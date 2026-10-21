@@ -64,7 +64,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--
+- **Connect latency: 607 ms → 2 ms median.** Three stacked fixes, each a bug family the
+  measurement kept unmasking: (1) the driver drained writes before events, but events
+  are what *produce* writes — ICE selection starts DTLS, DTLS completing starts SCTP —
+  so each handshake step queued behind a loop park whose only wake was the ~200 ms tick;
+  the loop now drains events first, then writes, and every cascade step leaves in the
+  same iteration. (2) The first DTLS ClientHello was buffered inside the endpoint when
+  `connect` returned and nothing drained it in that event, so it rode one more tick;
+  the rtc DTLS handler now pumps it into its write queue the moment `connect` returns.
+  (3) Flushing the ClientHello early let it overtake the ICE nomination ahead of it on
+  the wire — reaching a peer whose pair was not yet selected, getting dropped, and
+  costing a full 1 s DTLS retransmit cycle; the rtc ICE handler now front-inserts its
+  agent's transmits so the control plane can never be overtaken.
+  `tests/connect_latency.rs` trip-wires both failure shapes: the median against the
+  ~200 ms tick quantization, every round against the 1 s retransmit cycle.
 
 ### Security
 
