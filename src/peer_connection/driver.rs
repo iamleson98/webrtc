@@ -20,7 +20,7 @@ use crate::peer_connection::transport::{
 use crate::rtp_transceiver::rtp_receiver::RtpReceiverImpl;
 use crate::rtp_transceiver::{RtpReceiver, RtpTransceiverImpl};
 use crate::runtime::{
-    AsyncTcpStream, AsyncUdpSocket, EcnCodepoint, Receiver, RecvMeta, Sender, Transmit,
+    AsyncTcpStream, AsyncUdpSocket, EcnCodepoint, Receiver, RecvMeta, Runtime, Sender, Transmit,
     TrySendError, channel,
 };
 use bytes::BytesMut;
@@ -336,6 +336,28 @@ fn restage_retained_data_channel_events(
     pending.entry(channel_id).or_default().append(&mut retained);
 }
 
+/// Send errors where the datagram **provably did not leave the host**, so an immediate
+/// retry is idempotent — the wire never saw the packet, so resending cannot duplicate it.
+///
+/// * [`PermissionDenied`] (EPERM): netfilter's verdict for a locally generated packet it
+///   dropped. The case that matters is a conntrack confirm race — both ends of a *loopback*
+///   exchange sending their first packets to each other in the same microsecond confirm the
+///   same flow entry from two CPUs at once, and the loser of the race is dropped. Left
+///   alone, the packet comes back only on its protocol's own retransmit schedule (ICE's
+///   check interval: ~200 ms of otherwise-dead connect latency, ~1 round in 30 measured).
+///   A firewall REJECT surfaces identically, and a retry that also fails there is reported
+///   exactly as before.
+/// * [`ConnectionRefused`] (ECONNREFUSED): with `IP_RECVERR` set — which quinn-udp sets, so
+///   ICMP feedback reaches us — a *previous* datagram's port-unreachable error is consumed
+///   by the *next* send, which then never transmits its own payload. The error is one-shot;
+///   the retry starts from a clean queue.
+fn is_retryable_send_error(err: &std::io::Error) -> bool {
+    matches!(
+        err.kind(),
+        std::io::ErrorKind::PermissionDenied | std::io::ErrorKind::ConnectionRefused
+    )
+}
+
 /// Send `buf` to `target` without allocating.
 ///
 /// Polls [`AsyncUdpSocket::poll_send`] directly rather than going through the trait's
@@ -343,7 +365,13 @@ fn restage_retained_data_channel_events(
 /// on the hot path. `segment_size` of `0` sends a single datagram; non-zero requests UDP
 /// GSO — only valid when the socket reports `max_gso_segments() > 1`. `ecn` carries the raw
 /// two codepoint bits.
+///
+/// A send refused before transmission (see [`is_retryable_send_error`]) is retried a couple
+/// of times with a short pause: the transient windows it covers — a conntrack confirm race
+/// on loopback, a pending ICMP error being consumed — are one-shot and microseconds wide,
+/// while the alternative is waiting out the owning protocol's retransmit timer.
 async fn send_datagrams(
+    runtime: &dyn Runtime,
     socket: &dyn AsyncUdpSocket,
     buf: &[u8],
     segment_size: usize,
@@ -359,9 +387,24 @@ async fn send_datagrams(
         segment_size: (segment_size != 0).then_some(segment_size),
         src_ip: None,
     };
-    futures::future::poll_fn(|cx| socket.poll_send(cx, &transmit))
-        .await
-        .map_err(Error::from)
+    const MAX_SEND_RETRIES: usize = 2;
+    for attempt in 0..=MAX_SEND_RETRIES {
+        match futures::future::poll_fn(|cx| socket.poll_send(cx, &transmit)).await {
+            Ok(n) => return Ok(n),
+            Err(err) if attempt < MAX_SEND_RETRIES && is_retryable_send_error(&err) => {
+                trace!(
+                    "send to {target} was refused before transmission ({}); retrying ({}/{})",
+                    err,
+                    attempt + 1,
+                    MAX_SEND_RETRIES
+                );
+                runtime.sleep(Duration::from_millis(1)).await;
+                continue;
+            }
+            Err(err) => return Err(Error::from(err)),
+        }
+    }
+    unreachable!("the loop returns on its final attempt")
 }
 
 /// One address to bind, as produced by [`resolve_bind_addrs`].
@@ -2269,7 +2312,16 @@ where
                 for w in &writes[i..end] {
                     scratch.extend_from_slice(&w.message);
                 }
-                if let Err(err) = send_datagrams(&*socket, &scratch, seg, tp.peer_addr, ecn).await {
+                if let Err(err) = send_datagrams(
+                    &*self.inner.runtime,
+                    &*socket,
+                    &scratch,
+                    seg,
+                    tp.peer_addr,
+                    ecn,
+                )
+                .await
+                {
                     error!(
                         "Failed to GSO-send {} datagrams to {:?} from {:?}: {}",
                         end - i,
@@ -2283,8 +2335,15 @@ where
                 // setup. (ECN is carried only on the GSO run path; inert today since the
                 // rtc core always emits ecn: None.)
                 for w in &writes[i..end] {
-                    if let Err(err) =
-                        send_datagrams(&*socket, &w.message, 0, tp.peer_addr, None).await
+                    if let Err(err) = send_datagrams(
+                        &*self.inner.runtime,
+                        &*socket,
+                        &w.message,
+                        0,
+                        tp.peer_addr,
+                        None,
+                    )
+                    .await
                     {
                         error!(
                             "Failed to write packet to {:?} from {:?}: {}",
@@ -2729,6 +2788,131 @@ mod tests {
         assert_eq!(
             MAX_UNREGISTERED_PENDING_DATA_CHANNEL_EVENTS,
             pending.get(&0).map(|q| q.len()).unwrap_or(0)
+        );
+    }
+}
+
+/// The send-refused retry: see [`is_retryable_send_error`] for the wire-level story.
+///
+/// Tokio-gated because [`send_datagrams`] parks on the runtime's timer between attempts —
+/// the mock runtime's clock stands still in `block_on`, which would hang the test forever.
+#[cfg(all(test, feature = "runtime-tokio"))]
+mod send_retry_tests {
+    use super::*;
+    use crate::runtime::TokioRuntime;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::task::{Context, Poll};
+
+    /// A socket whose sends are refused a configurable number of times before succeeding,
+    /// recording every accepted payload.
+    #[derive(Debug, Default)]
+    struct RefusedThenDeliver {
+        /// How many leading sends are refused with EPERM.
+        refuse: usize,
+        attempts: AtomicUsize,
+        delivered: std::sync::Mutex<Vec<Vec<u8>>>,
+    }
+
+    impl AsyncUdpSocket for RefusedThenDeliver {
+        fn local_addr(&self) -> std::io::Result<SocketAddr> {
+            Ok("127.0.0.1:1".parse().expect("constant address"))
+        }
+
+        fn poll_send(
+            &self,
+            _cx: &mut Context<'_>,
+            transmit: &Transmit<'_>,
+        ) -> Poll<std::io::Result<usize>> {
+            if self.attempts.fetch_add(1, Ordering::SeqCst) < self.refuse {
+                return Poll::Ready(Err(std::io::Error::from(
+                    std::io::ErrorKind::PermissionDenied,
+                )));
+            }
+            self.delivered
+                .lock()
+                .expect("not poisoned")
+                .push(transmit.contents.to_vec());
+            Poll::Ready(Ok(transmit.contents.len()))
+        }
+
+        fn poll_recv(
+            &self,
+            _cx: &mut Context<'_>,
+            _bufs: &mut [IoSliceMut<'_>],
+            _meta: &mut [RecvMeta],
+        ) -> Poll<std::io::Result<usize>> {
+            Poll::Pending
+        }
+    }
+
+    fn run_send(socket: Arc<dyn AsyncUdpSocket>) -> Result<usize> {
+        let rt = ::tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("test runtime");
+        let mut out: Option<Result<usize>> = None;
+        {
+            let slot = &mut out;
+            rt.block_on(Box::pin(async move {
+                *slot = Some(
+                    send_datagrams(
+                        &TokioRuntime,
+                        &*socket,
+                        b"nomination",
+                        0,
+                        "127.0.0.1:9999".parse().expect("constant address"),
+                        None,
+                    )
+                    .await,
+                );
+            }));
+        }
+        out.expect("block_on future did not run")
+    }
+
+    /// One refusal — the conntrack-confirm-clash shape — must not lose the datagram: the
+    /// retry delivers it, byte-identical, and only the refused first attempt is spent.
+    #[test]
+    fn a_send_refused_before_transmission_is_retried_not_lost() {
+        let inner = Arc::new(RefusedThenDeliver {
+            refuse: 1,
+            ..Default::default()
+        });
+        let socket: Arc<dyn AsyncUdpSocket> = inner.clone();
+
+        let n = run_send(socket).expect("the retry must deliver the datagram");
+        assert_eq!(n, b"nomination".len());
+        assert_eq!(
+            inner.attempts.load(Ordering::SeqCst),
+            2,
+            "exactly one refusal plus one delivery"
+        );
+        assert_eq!(
+            inner.delivered.lock().expect("not poisoned").as_slice(),
+            [b"nomination".to_vec()],
+            "the datagram that reached the wire is byte-identical to what was queued"
+        );
+    }
+
+    /// A refusal that persists (a firewall REJECT, say) surfaces as an error after the
+    /// bounded retries — never silently swallowed, never retried forever.
+    #[test]
+    fn persistent_refusal_surfaces_after_bounded_retries() {
+        let inner = Arc::new(RefusedThenDeliver {
+            refuse: usize::MAX,
+            ..Default::default()
+        });
+        let socket: Arc<dyn AsyncUdpSocket> = inner.clone();
+
+        let err = run_send(socket).expect_err("a permanent refusal must be an error");
+        assert_eq!(
+            inner.attempts.load(Ordering::SeqCst),
+            3,
+            "initial attempt plus both retries"
+        );
+        assert!(
+            format!("{err}").to_lowercase().contains("permission"),
+            "the surfaced error identifies its cause, got: {err}"
         );
     }
 }

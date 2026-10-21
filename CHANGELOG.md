@@ -64,6 +64,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **UDP sends refused before transmission are retried instead of left to the protocol's
+  own retransmit timer.** On loopback, both ends of a fresh exchange send their first
+  packets to each other in the same microsecond, confirming the same conntrack flow entry
+  from two CPUs at once; the kernel drops the loser and reports `EPERM` to its `sendmsg`.
+  Every packet is safe to re-send — the refused datagram provably never left the host — so
+  the send funnel now retries twice after such refusals (`PermissionDenied`, and the
+  `ConnectionRefused` a pending ICMP error surfaces as), parking a millisecond between
+  attempts. A refusal that persists (a firewall REJECT) still surfaces as an error after
+  the bounded retries. Measured effect on the connect-latency stress: the tail round that
+  lost its ICE nomination to the clash and waited out the ~200 ms check interval
+  (~1 round in 30, max 207 ms over 200 rounds) is gone — 500 rounds now run median 3 ms,
+  **max 10 ms**.
 - **Connect latency: 607 ms → 2 ms median.** Three stacked fixes, each a bug family the
   measurement kept unmasking: (1) the driver drained writes before events, but events
   are what *produce* writes — ICE selection starts DTLS, DTLS completing starts SCTP —
