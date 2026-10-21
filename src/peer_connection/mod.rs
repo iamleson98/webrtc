@@ -98,6 +98,7 @@ pub use rtc::interceptor::Registry;
 /// the traits too.
 pub use rtc::crypto;
 pub use rtc::dtls::cipher_suite::CipherSuiteId;
+pub use rtc::dtls::config::KeyLogger;
 pub use rtc::dtls::extension::extension_use_srtp::SrtpProtectionProfile;
 use rtc::media_stream::MediaStreamTrackId;
 pub use rtc::peer_connection::{
@@ -184,6 +185,9 @@ pub struct PeerConnectionBuilder<A: ToSocketAddrs> {
     handler: Option<Arc<dyn PeerConnectionEventHandler>>,
     udp_addrs: Vec<A>,
     tcp_addrs: Vec<A>,
+    /// When set, a `:0` (ephemeral) UDP bind draws its port from this range instead of the
+    /// operating system's — see [`with_udp_port_range`](Self::with_udp_port_range).
+    udp_port_range: Option<(u16, u16)>,
     dedicated_reactor_pool_size: usize,
     data_channel_send_buffer_limit: usize,
     /// Held rather than forwarded immediately, so [`build`](Self::build) can resolve the crypto
@@ -198,6 +202,7 @@ impl<A: ToSocketAddrs> Default for PeerConnectionBuilder<A> {
             runtime: None,
             handler: None,
             udp_addrs: vec![],
+            udp_port_range: None,
             tcp_addrs: vec![],
             dedicated_reactor_pool_size: 0,
             setting_engine: SettingEngine::default(),
@@ -274,6 +279,26 @@ impl<A: ToSocketAddrs> PeerConnectionBuilder<A> {
     /// Port `0` picks an ephemeral port per socket, freshly on every rebind.
     pub fn with_udp_addrs(mut self, udp_addrs: Vec<A>) -> Self {
         self.udp_addrs = udp_addrs;
+        self
+    }
+
+    /// Restricts which ephemeral port a `:0` UDP bind may draw, matching pion's
+    /// `SetEphemeralUDPPortRange`.
+    ///
+    /// Without a range, port `0` in [`with_udp_addrs`](Self::with_udp_addrs) defers to the
+    /// operating system's ephemeral range, which is machine-wide and may collide with
+    /// other services or fall outside a firewall's allowances. With a range set, the
+    /// driver probes ports inside `[min, max]` — from a random start, wrapping once —
+    /// and each bound socket keeps the port it landed on.
+    ///
+    /// Applies only to UDP: TCP addresses bind verbatim, and an address that names a
+    /// concrete port ignores the range.
+    pub fn with_udp_port_range(mut self, min: u16, max: u16) -> Self {
+        assert!(
+            min >= 1 && min <= max,
+            "UDP port range must be 1 <= min <= max (got {min}..={max})"
+        );
+        self.udp_port_range = Some((min, max));
         self
     }
 
@@ -399,6 +424,7 @@ impl<A: ToSocketAddrs> PeerConnectionBuilder<A> {
             discard_local_candidates_during_ice_restart,
             self.udp_addrs,
             self.tcp_addrs,
+            self.udp_port_range,
             self.dedicated_reactor_pool_size,
             data_channel_send_buffer_limit,
             turn_allocation_refresh_interval_cap,
@@ -989,6 +1015,7 @@ impl PeerConnectionImpl {
         discard_local_candidates_during_ice_restart: bool,
         udp_addrs: Vec<A>,
         tcp_addrs: Vec<A>,
+        udp_port_range: Option<(u16, u16)>,
         dedicated_reactor_pool_size: usize,
         data_channel_send_buffer_limit: usize,
         turn_allocation_refresh_interval_cap: Option<Duration>,
@@ -1047,6 +1074,7 @@ impl PeerConnectionImpl {
                 inner,
                 udp_addrs,
                 tcp_addrs,
+                udp_port_range,
                 mdns_mode,
                 ice_servers,
                 ice_gather_policy,

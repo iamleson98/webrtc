@@ -386,6 +386,37 @@ struct BindAddr {
 /// changed network (webrtc#874): a host name can point somewhere new, and — the case that matters
 /// on mobile — the set of local interfaces is different. Resolving late is what lets the rebind
 /// follow the handover instead of asking for an address that no longer exists.
+/// Probes for a free UDP port in `[min, max]` and binds it, matching pion's
+/// `SetEphemeralUDPPortRange`.
+///
+/// The start is randomized so two processes on one host with the same range do not march
+/// toward each other from the same end, then wraps once: a busy port anywhere in the range
+/// costs only the remaining probes, and exhausting the range surfaces as the last error
+/// seen. The socket is non-blocking; every other setting matches a plain
+/// [`std::net::UdpSocket::bind`].
+fn bind_udp_ephemeral_in_range(ip: IpAddr, (min, max): (u16, u16)) -> std::io::Result<std::net::UdpSocket> {
+    use rand::RngExt;
+
+    let span = u32::from(max - min) + 1;
+    let start = rand::rng().random_range(0..span) as u16;
+    let mut last_err = std::io::Error::other("no ports probed");
+    for offset in 0..span {
+        let port = min + ((start + offset as u16) % span as u16);
+        match std::net::UdpSocket::bind(SocketAddr::new(ip, port)) {
+            Ok(socket) => return Ok(socket),
+            Err(err) if err.kind() == std::io::ErrorKind::AddrInUse => {
+                last_err = err;
+            }
+            Err(err) => return Err(err),
+        }
+    }
+    let _ = last_err; // the caller logs whichever bind the loop died on
+    Err(std::io::Error::new(
+        std::io::ErrorKind::AddrInUse,
+        format!("no free UDP port in {min}..={max} for {ip}"),
+    ))
+}
+
 fn resolve_bind_addrs<A: ToSocketAddrs>(addrs: &[A]) -> Result<Vec<BindAddr>> {
     let mut resolved: Vec<BindAddr> = Vec::new();
     for addr in addrs {
@@ -531,6 +562,8 @@ pub(crate) struct PeerConnectionDriver<A = SocketAddr> {
     /// than the ones that existed when the connection was built.
     udp_addrs: Vec<A>,
     tcp_addrs: Vec<A>,
+    /// The configured ephemeral-port window, from the builder's `with_udp_port_range`.
+    udp_port_range: Option<(u16, u16)>,
     mdns_mode: MulticastDnsMode,
     ice_servers: Vec<RTCIceServer>,
     ice_gather_policy: RTCIceTransportPolicy,
@@ -556,6 +589,7 @@ where
         inner: Arc<PeerConnectionRef>,
         udp_addrs: Vec<A>,
         tcp_addrs: Vec<A>,
+        udp_port_range: Option<(u16, u16)>,
         mdns_mode: MulticastDnsMode,
         ice_servers: Vec<RTCIceServer>,
         ice_gather_policy: RTCIceTransportPolicy,
@@ -592,6 +626,7 @@ where
             pending_data_channel_events: HashMap::new(),
             udp_addrs,
             tcp_addrs,
+            udp_port_range,
             mdns_mode,
             ice_servers,
             ice_gather_policy,
@@ -648,7 +683,17 @@ where
         // Resolve here, not at construction: this runs again on every ICE-restart rebind, which
         // is what makes the rebind follow a network change (webrtc#874).
         for bind in resolve_bind_addrs(&self.udp_addrs)? {
-            let socket = match std::net::UdpSocket::bind(bind.addr) {
+            let bind_result = if bind.addr.port() == 0 {
+                // Port 0 means "pick one": inside a configured range, probe for a port
+                // ourselves; otherwise defer to the operating system's ephemeral range.
+                match self.udp_port_range {
+                    Some(range) => bind_udp_ephemeral_in_range(bind.addr.ip(), range),
+                    None => std::net::UdpSocket::bind(bind.addr),
+                }
+            } else {
+                std::net::UdpSocket::bind(bind.addr)
+            };
+            let socket = match bind_result {
                 Ok(socket) => socket,
                 Err(err) => {
                     if bind.enumerated {
