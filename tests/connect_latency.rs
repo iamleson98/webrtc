@@ -77,7 +77,7 @@ async fn connect_once(rt: Arc<dyn Runtime>) -> Result<Duration> {
 
     let offer = offerer.create_offer(None).await?;
     offerer.set_local_description(offer.clone()).await?;
-    timeout(Duration::from_secs(10), o_gather_rx.recv()).await)?;
+    timeout(Duration::from_secs(10), o_gather_rx.recv()).await?;
     let offer_sdp = offerer.local_description().await.expect("offer");
 
     let (a_gather_tx, mut a_gather_rx) = channel::<()>(1);
