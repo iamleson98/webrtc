@@ -51,11 +51,12 @@
 
 pub(crate) mod driver;
 pub mod transport;
+pub mod udp_mux;
 
 use crate::peer_connection::transport::{SctpTransport, SctpTransportImpl};
 use log::error;
 use std::collections::{HashMap, HashSet};
-use std::net::ToSocketAddrs;
+use std::net::{SocketAddr, ToSocketAddrs};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -179,7 +180,7 @@ pub trait PeerConnectionEventHandler: Send + Sync + 'static {
 ///
 /// Configures the configuration, media engine, setting engine, interceptor registry,
 /// event handler, async runtime, and local socket addresses.
-pub struct PeerConnectionBuilder<A: ToSocketAddrs> {
+pub struct PeerConnectionBuilder<A: ToSocketAddrs = SocketAddr> {
     builder: RTCPeerConnectionBuilder,
     runtime: Option<Arc<dyn Runtime>>,
     handler: Option<Arc<dyn PeerConnectionEventHandler>>,
@@ -188,6 +189,9 @@ pub struct PeerConnectionBuilder<A: ToSocketAddrs> {
     /// When set, a `:0` (ephemeral) UDP bind draws its port from this range instead of the
     /// operating system's — see [`with_udp_port_range`](Self::with_udp_port_range).
     udp_port_range: Option<(u16, u16)>,
+    /// The shared socket from [`with_udp_mux`](Self::with_udp_mux), when the connection
+    /// serves from one instead of binding UDP sockets of its own.
+    udp_mux: Option<Arc<udp_mux::UdpMux>>,
     dedicated_reactor_pool_size: usize,
     data_channel_send_buffer_limit: usize,
     /// Held rather than forwarded immediately, so [`build`](Self::build) can resolve the crypto
@@ -204,6 +208,7 @@ impl<A: ToSocketAddrs> Default for PeerConnectionBuilder<A> {
             udp_addrs: vec![],
             udp_port_range: None,
             tcp_addrs: vec![],
+            udp_mux: None,
             dedicated_reactor_pool_size: 0,
             setting_engine: SettingEngine::default(),
             // `usize::MAX` = unbounded: no send back-pressure unless the application
@@ -299,6 +304,52 @@ impl<A: ToSocketAddrs> PeerConnectionBuilder<A> {
             "UDP port range must be 1 <= min <= max (got {min}..={max})"
         );
         self.udp_port_range = Some((min, max));
+        self
+    }
+
+    /// Serves this connection from a shared UDP socket — the Rust counterpart of pion's
+    /// `SettingEngine.SetICEUDPMux` + `ice.NewMultiUDPMuxFromPort` (the ice-single-port
+    /// example).
+    ///
+    /// An SFU that terminates many peer connections shares **one** listening socket this way
+    /// instead of one per connection: a constant number of file descriptors, kernel receive
+    /// buffers and wakeups instead of `N` of each. Build every connection sharing a mux with
+    /// this same mux — a mux shared by one connection is only a socket with extra steps.
+    ///
+    /// With a mux set, [`with_udp_addrs`](Self::with_udp_addrs) no longer binds UDP sockets
+    /// for this connection (TCP addresses are unaffected and still bind), and the
+    /// connection's UDP host candidates are the mux's addresses: one per usable interface
+    /// when the mux bind was a wildcard, the bind address itself when it was concrete.
+    ///
+    /// A mux is bound once and lives as long as it is shared; connections come and go on it,
+    /// and a dropped connection un-registers itself. Every connection sharing a mux **must**
+    /// run on the same runtime the mux was bound with — see
+    /// [`UdpMux::bind_on`](udp_mux::UdpMux::bind_on) — and mixing mux-served connections
+    /// with mux-less ones in one process is fine: the option is per connection.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use std::net::SocketAddr;
+    /// # use std::sync::Arc;
+    /// # use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler};
+    /// # #[derive(Clone)]
+    /// # struct MyHandler;
+    /// # #[async_trait::async_trait]
+    /// # impl PeerConnectionEventHandler for MyHandler {}
+    /// # async fn example() -> webrtc::error::Result<()> {
+    /// let mux = webrtc::peer_connection::udp_mux::UdpMux::bind("0.0.0.0:8443")?;
+    /// // ...and every connection built with this mux answers on 8443:
+    /// let pc = PeerConnectionBuilder::<SocketAddr>::new()
+    ///     .with_handler(Arc::new(MyHandler))
+    ///     .with_udp_mux(mux.clone())
+    ///     .build()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn with_udp_mux(mut self, mux: Arc<udp_mux::UdpMux>) -> Self {
+        self.udp_mux = Some(mux);
         self
     }
 
@@ -425,6 +476,7 @@ impl<A: ToSocketAddrs> PeerConnectionBuilder<A> {
             self.udp_addrs,
             self.tcp_addrs,
             self.udp_port_range,
+            self.udp_mux,
             self.dedicated_reactor_pool_size,
             data_channel_send_buffer_limit,
             turn_allocation_refresh_interval_cap,
@@ -1016,6 +1068,7 @@ impl PeerConnectionImpl {
         udp_addrs: Vec<A>,
         tcp_addrs: Vec<A>,
         udp_port_range: Option<(u16, u16)>,
+        udp_mux: Option<Arc<udp_mux::UdpMux>>,
         dedicated_reactor_pool_size: usize,
         data_channel_send_buffer_limit: usize,
         turn_allocation_refresh_interval_cap: Option<Duration>,
@@ -1075,6 +1128,7 @@ impl PeerConnectionImpl {
                 udp_addrs,
                 tcp_addrs,
                 udp_port_range,
+                udp_mux,
                 mdns_mode,
                 ice_servers,
                 ice_gather_policy,

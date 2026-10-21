@@ -6,6 +6,7 @@ use super::transport::stun_gatherer::{
     RTCStunGatherEventIn, RTCStunGatherEventOut, RTCStunGatherer,
 };
 use super::transport::turn_relayer::{RTCTurnRelayEventIn, RTCTurnRelayEventOut, RTCTurnRelayer};
+use super::udp_mux::UdpMux;
 use crate::data_channel::{DataChannelEvent, DataChannelImpl, RTCDataChannelId};
 use crate::media_stream::track_local::TrackLocalEvent;
 use crate::media_stream::track_remote::static_rtp::TrackRemoteStaticRTP;
@@ -365,8 +366,8 @@ async fn send_datagrams(
 
 /// One address to bind, as produced by [`resolve_bind_addrs`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct BindAddr {
-    addr: SocketAddr,
+pub(crate) struct BindAddr {
+    pub(crate) addr: SocketAddr,
     /// True when this address came from enumerating the local interfaces rather than from the
     /// application's configuration.
     ///
@@ -417,7 +418,7 @@ fn bind_udp_ephemeral_in_range(ip: IpAddr, (min, max): (u16, u16)) -> std::io::R
     ))
 }
 
-fn resolve_bind_addrs<A: ToSocketAddrs>(addrs: &[A]) -> Result<Vec<BindAddr>> {
+pub(crate) fn resolve_bind_addrs<A: ToSocketAddrs>(addrs: &[A]) -> Result<Vec<BindAddr>> {
     let mut resolved: Vec<BindAddr> = Vec::new();
     for addr in addrs {
         for addr in addr.to_socket_addrs()? {
@@ -523,6 +524,45 @@ pub(crate) enum PeerConnectionDriverEvent {
     Close,
 }
 
+/// One socket the event loop polls for datagrams.
+///
+/// `bind_addr` is the address the socket is bound to as the driver knows it, and is the local
+/// address every datagram received on it is attributed to — except for a shared
+/// [`UdpMux`](super::udp_mux::UdpMux) socket, whose bind address may be a wildcard while each
+/// datagram actually arrives addressed to one concrete interface. Those sockets set
+/// `local_from_dst`, and [`local_for`](Self::local_for) derives the real address from the
+/// per-datagram destination IP the mux surfaces through `RecvMeta::dst_addr` — the address
+/// naming the host candidate the peer dialled, which a wildcard would never match.
+#[derive(Clone)]
+struct UdpPollSocket {
+    bind_addr: SocketAddr,
+    socket: Arc<dyn AsyncUdpSocket>,
+    local_from_dst: bool,
+}
+
+impl UdpPollSocket {
+    fn new(bind_addr: SocketAddr, socket: Arc<dyn AsyncUdpSocket>, local_from_dst: bool) -> Self {
+        Self {
+            bind_addr,
+            socket,
+            local_from_dst,
+        }
+    }
+
+    /// The local address a datagram received on this socket arrived at.
+    ///
+    /// `dst` is the destination IP the kernel recorded for that datagram, where the
+    /// platform reports one. It is ignored unless this socket is a mux handle — on the
+    /// driver's own sockets the bind address already is the address every peer sees —
+    /// and falls back to the bind address when the platform reports nothing.
+    fn local_for(&self, dst: Option<IpAddr>) -> SocketAddr {
+        match (self.local_from_dst, dst) {
+            (true, Some(ip)) if !ip.is_unspecified() => SocketAddr::new(ip, self.bind_addr.port()),
+            _ => self.bind_addr,
+        }
+    }
+}
+
 /// The driver for a peer connection
 ///
 /// Runs the event loop following rtc's EventLoop pattern with select!
@@ -564,6 +604,27 @@ pub(crate) struct PeerConnectionDriver<A = SocketAddr> {
     tcp_addrs: Vec<A>,
     /// The configured ephemeral-port window, from the builder's `with_udp_port_range`.
     udp_port_range: Option<(u16, u16)>,
+    /// The shared socket this connection serves from, from the builder's
+    /// [`with_udp_mux`](crate::PeerConnectionBuilder::with_udp_mux).
+    ///
+    /// When set, the driver binds no UDP sockets of its own: it registers this connection's
+    /// ICE username fragment with the mux and serves all UDP traffic — STUN, DTLS, SCTP,
+    /// RTP — through the one shared socket, re-registering on every ICE-restart rebind,
+    /// which replaces the credentials. See [`udp_mux`](crate::peer_connection::udp_mux)
+    /// for how the mux attributes a datagram to its connection.
+    udp_mux: Option<Arc<UdpMux>>,
+    /// The mux handle registered for the current ICE generation, when a mux is configured.
+    ///
+    /// Also held in [`udp_sockets`](Self::udp_sockets), keyed by the mux's bind address; kept
+    /// separately so the write path can fall back to it for the connection's advertised
+    /// candidate addresses, which a wildcard-bound mux does not key on.
+    mux_socket: Option<Arc<dyn AsyncUdpSocket>>,
+    /// The candidate addresses a mux-backed connection advertises: one per usable interface
+    /// when the mux bind was a wildcard, the bind address itself when it was concrete.
+    ///
+    /// Precomputed at bind time so the write path's fallback is a scan of a small vec, not
+    /// an allocation per packet.
+    mux_candidate_addrs: Vec<SocketAddr>,
     mdns_mode: MulticastDnsMode,
     ice_servers: Vec<RTCIceServer>,
     ice_gather_policy: RTCIceTransportPolicy,
@@ -590,6 +651,7 @@ where
         udp_addrs: Vec<A>,
         tcp_addrs: Vec<A>,
         udp_port_range: Option<(u16, u16)>,
+        udp_mux: Option<Arc<UdpMux>>,
         mdns_mode: MulticastDnsMode,
         ice_servers: Vec<RTCIceServer>,
         ice_gather_policy: RTCIceTransportPolicy,
@@ -627,6 +689,9 @@ where
             udp_addrs,
             tcp_addrs,
             udp_port_range,
+            udp_mux,
+            mux_socket: None,
+            mux_candidate_addrs: Vec::new(),
             mdns_mode,
             ice_servers,
             ice_gather_policy,
@@ -673,6 +738,8 @@ where
         // Drop before binding — see above. Also drops every accepted TCP stream, which is
         // correct: they belong to the generation being replaced.
         self.udp_sockets.clear();
+        self.mux_socket = None;
+        self.mux_candidate_addrs.clear();
         self.mdns_socket = None;
         self.tcp_transport = RTCTcpTransport::new(HashMap::new());
 
@@ -680,34 +747,57 @@ where
             self.mdns_socket = Some(runtime.wrap_udp_socket(MulticastSocket::new().into_std()?)?);
         }
 
-        // Resolve here, not at construction: this runs again on every ICE-restart rebind, which
-        // is what makes the rebind follow a network change (webrtc#874).
-        for bind in resolve_bind_addrs(&self.udp_addrs)? {
-            let bind_result = if bind.addr.port() == 0 {
-                // Port 0 means "pick one": inside a configured range, probe for a port
-                // ourselves; otherwise defer to the operating system's ephemeral range.
-                match self.udp_port_range {
-                    Some(range) => bind_udp_ephemeral_in_range(bind.addr.ip(), range),
-                    None => std::net::UdpSocket::bind(bind.addr),
-                }
-            } else {
-                std::net::UdpSocket::bind(bind.addr)
+        if let Some(mux) = self.udp_mux.clone() {
+            // Shared-socket mode: no UDP sockets of our own. The one socket is the mux's, and
+            // this connection's traffic is the slice of it the mux routes by ICE username
+            // fragment and peer address.
+            //
+            // The fragment is read now — not captured at construction — because this runs
+            // again on every ICE-restart rebind, which replaces the credentials; reading
+            // `local_ice_parameters` at bind time yields the fragment matching the traffic
+            // about to arrive, exactly the accessor's contract.
+            let username_fragment = {
+                let core = self.inner.core.lock().await;
+                core.local_ice_parameters()?.username_fragment
             };
-            let socket = match bind_result {
-                Ok(socket) => socket,
-                Err(err) => {
-                    if bind.enumerated {
-                        warn!("Skipping UDP bind on local address {}: {err}", bind.addr);
-                    } else {
-                        error!("Failed to bind UDP on address {}: {err}", bind.addr);
+            let handle: Arc<dyn AsyncUdpSocket> = mux.clone().register(&username_fragment)?;
+            self.udp_sockets.insert(mux.local_addr(), handle.clone());
+            self.mux_candidate_addrs = mux.candidate_addrs();
+            self.mux_socket = Some(handle);
+            debug!(
+                "registered with udp mux on {} (ufrag {:?}, host candidates {:?})",
+                mux.local_addr(), username_fragment, self.mux_candidate_addrs
+            );
+        } else {
+            // Resolve here, not at construction: this runs again on every ICE-restart rebind, which
+            // is what makes the rebind follow a network change (webrtc#874).
+            for bind in resolve_bind_addrs(&self.udp_addrs)? {
+                let bind_result = if bind.addr.port() == 0 {
+                    // Port 0 means "pick one": inside a configured range, probe for a port
+                    // ourselves; otherwise defer to the operating system's ephemeral range.
+                    match self.udp_port_range {
+                        Some(range) => bind_udp_ephemeral_in_range(bind.addr.ip(), range),
+                        None => std::net::UdpSocket::bind(bind.addr),
                     }
-                    continue;
-                }
-            };
-            socket.set_nonblocking(true)?;
-            let local_addr = socket.local_addr()?;
-            self.udp_sockets
-                .insert(local_addr, runtime.wrap_udp_socket(socket)?);
+                } else {
+                    std::net::UdpSocket::bind(bind.addr)
+                };
+                let socket = match bind_result {
+                    Ok(socket) => socket,
+                    Err(err) => {
+                        if bind.enumerated {
+                            warn!("Skipping UDP bind on local address {}: {err}", bind.addr);
+                        } else {
+                            error!("Failed to bind UDP on address {}: {err}", bind.addr);
+                        }
+                        continue;
+                    }
+                };
+                socket.set_nonblocking(true)?;
+                let local_addr = socket.local_addr()?;
+                self.udp_sockets
+                    .insert(local_addr, runtime.wrap_udp_socket(socket)?);
+            }
         }
 
         let mut tcp_listeners = HashMap::new();
@@ -737,7 +827,15 @@ where
 
         // Rebuilt, not updated: a gatherer's STUN clients and TURN allocations are keyed by
         // 5-tuples that no longer exist, so there is nothing in the old ones worth carrying over.
-        let local_addrs: Vec<SocketAddr> = self.udp_sockets.keys().copied().collect();
+        //
+        // In shared-socket mode the mux's candidate addresses stand in for the bound sockets'
+        // local addresses: they are what STUN turns into host candidates and what a TURN
+        // client dials from, and the mux socket — wildcard or concrete — serves them all.
+        let local_addrs: Vec<SocketAddr> = if self.udp_mux.is_some() {
+            self.mux_candidate_addrs.clone()
+        } else {
+            self.udp_sockets.keys().copied().collect()
+        };
         self.stun_gatherer = RTCStunGatherer::new(
             local_addrs.clone(),
             self.ice_servers.clone(),
@@ -771,6 +869,42 @@ where
         self.inner.data_channel_backpressure.notify_waiters();
     }
 
+    /// The sockets the event loop is to poll, in the order they are indexed.
+    ///
+    /// Every UDP socket the driver owns — its own bound sockets, or the one shared mux
+    /// handle — followed by the mDNS socket when there is one. Index order is the contract:
+    /// the receive futures, their buffers and the socket list itself are all rebuilt
+    /// together, keyed by this index, at startup and after every ICE-restart rebind.
+    ///
+    /// A mux handle is marked `local_from_dst` — see [`UdpPollSocket`] — because its bind
+    /// address may be a wildcard while every received datagram names the concrete interface
+    /// it actually arrived on, which is the address the core's candidates speak.
+    fn polled_sockets(&self) -> Vec<UdpPollSocket> {
+        self.udp_sockets
+            .iter()
+            .map(|(addr, socket)| {
+                UdpPollSocket::new(*addr, socket.clone(), self.is_mux_socket(socket))
+            })
+            .chain(self.mdns_socket.iter().filter_map(|socket| {
+                socket
+                    .local_addr()
+                    .ok()
+                    .map(|local_addr| UdpPollSocket::new(local_addr, socket.clone(), false))
+            }))
+            .collect()
+    }
+
+    /// Whether `socket` is this connection's registered mux handle.
+    ///
+    /// Pointer identity, not address: only the handle registered by the latest
+    /// [`bind_transports`](Self::bind_transports) is the live one, and a rebind replaces
+    /// it (re-registering with the restarted generation's credentials).
+    fn is_mux_socket(&self, socket: &Arc<dyn AsyncUdpSocket>) -> bool {
+        self.mux_socket
+            .as_ref()
+            .is_some_and(|mux| Arc::ptr_eq(mux, socket))
+    }
+
     /// Run the driver event loop
     ///
     /// This follows rtc Event Loop pattern exactly with select!
@@ -789,24 +923,16 @@ where
         let _ = init_tx.try_send(Ok(()));
 
         // Collect socket info into a vec for indexed access
-        let mut udp_socket_list: Vec<(SocketAddr, Arc<dyn AsyncUdpSocket>)> = self
-            .udp_sockets
-            .iter()
-            .map(|(addr, sock)| (*addr, sock.clone()))
-            .chain(self.mdns_socket.iter().filter_map(|socket| {
-                socket
-                    .local_addr()
-                    .ok()
-                    .map(|local_addr| (local_addr, socket.clone()))
-            }))
-            .collect();
+        let mut udp_socket_list: Vec<UdpPollSocket> = self.polled_sockets();
 
         // Pre-allocate buffers once - one per socket, these will be reused forever.
         // Sized for the socket's GRO coalescing capacity so a single `poll_recv` can
         // hold up to `max_gro_segments()` datagrams without truncation.
         let mut udp_socket_buffers: Vec<Vec<u8>> = udp_socket_list
             .iter()
-            .map(|(_, socket)| vec![0u8; gro_recv_buf_len(socket.max_gro_segments())])
+            .map(|polled| {
+                vec![0u8; gro_recv_buf_len(polled.socket.max_gro_segments())]
+            })
             .collect();
 
         // Helper function to create a recv future for a specific socket. Polls
@@ -818,10 +944,12 @@ where
         // (`recvmmsg` on Linux), but this asks for one. Widening it to a slab of
         // `BATCH_SIZE` buffers would collapse the burst-drain loop below into a single
         // syscall; the buffer bookkeeping is the only reason it is staged separately.
-        let create_udp_recv_future = |idx: usize,
-                                      local_addr: SocketAddr,
-                                      socket: Arc<dyn AsyncUdpSocket>,
-                                      mut buf: Vec<u8>| async move {
+        let create_udp_recv_future = |idx: usize, polled: UdpPollSocket, mut buf: Vec<u8>| async move {
+            let UdpPollSocket {
+                bind_addr: local_addr,
+                socket,
+                local_from_dst,
+            } = polled;
             let mut meta = [RecvMeta::default(); 1];
             let recv = futures::future::poll_fn(|cx| {
                 let mut bufs = [IoSliceMut::new(&mut buf)];
@@ -832,7 +960,16 @@ where
                 Ok(_) => SocketRecvResult::Packet {
                     n: meta[0].len,
                     stride: meta[0].stride,
-                    local_addr,
+                    // A mux handle's datagrams name the interface they really arrived
+                    // on; every other socket's bind address already is that answer.
+                    // `dst_ip` is `None` where the platform does not report it, and the
+                    // bind address is then the best available answer.
+                    local_addr: match (local_from_dst, meta[0].dst_ip) {
+                        (true, Some(ip)) if !ip.is_unspecified() => {
+                            SocketAddr::new(ip, local_addr.port())
+                        }
+                        _ => local_addr,
+                    },
                     peer_addr: meta[0].addr,
                     idx,
                     buf,
@@ -850,9 +987,9 @@ where
         let mut udp_recv_futures: FuturesUnordered<_> = udp_socket_list
             .iter()
             .enumerate()
-            .map(|(idx, (local_addr, socket))| {
+            .map(|(idx, polled)| {
                 let buf = std::mem::take(&mut udp_socket_buffers[idx]);
-                create_udp_recv_future(idx, *local_addr, socket.clone(), buf).boxed()
+                create_udp_recv_future(idx, polled.clone(), buf).boxed()
             })
             .collect();
         let mut active_socket_count = udp_socket_list.len();
@@ -872,7 +1009,7 @@ where
         // capacity among them (falls back to the plain size when none support GRO).
         let burst_buf_len = udp_socket_list
             .iter()
-            .map(|(_, socket)| gro_recv_buf_len(socket.max_gro_segments()))
+            .map(|polled| gro_recv_buf_len(polled.socket.max_gro_segments()))
             .max()
             .unwrap_or(UDP_RECV_BUF_LEN);
         let mut burst_buf = vec![0u8; burst_buf_len];
@@ -1031,11 +1168,6 @@ where
 
                             match self.bind_transports().await {
                                 Ok(()) => {
-                                    let new_sockets: Vec<(SocketAddr, Arc<dyn AsyncUdpSocket>)> = self
-                                        .udp_sockets
-                                        .iter()
-                                        .map(|(addr, socket)| (*addr, socket.clone()))
-                                        .collect();
                                     debug!(
                                         "ICE restart rebound transports; local addrs now {:?}",
                                         self.udp_sockets.keys().collect::<Vec<_>>()
@@ -1043,27 +1175,19 @@ where
                                     // Rebuild everything keyed by socket index. The futures being
                                     // dropped here own the old buffers and were polling sockets
                                     // that no longer exist.
-                                    udp_socket_list = new_sockets
-                                        .into_iter()
-                                        .chain(self.mdns_socket.iter().filter_map(|socket| {
-                                            socket
-                                                .local_addr()
-                                                .ok()
-                                                .map(|local_addr| (local_addr, socket.clone()))
-                                        }))
-                                        .collect();
+                                    udp_socket_list = self.polled_sockets();
                                     udp_socket_buffers = udp_socket_list
                                         .iter()
-                                        .map(|(_, socket)| {
-                                            vec![0u8; gro_recv_buf_len(socket.max_gro_segments())]
+                                        .map(|polled| {
+                                            vec![0u8; gro_recv_buf_len(polled.socket.max_gro_segments())]
                                         })
                                         .collect();
                                     udp_recv_futures = udp_socket_list
                                         .iter()
                                         .enumerate()
-                                        .map(|(idx, (local_addr, socket))| {
+                                        .map(|(idx, polled)| {
                                             let buf = std::mem::take(&mut udp_socket_buffers[idx]);
-                                            create_udp_recv_future(idx, *local_addr, socket.clone(), buf).boxed()
+                                            create_udp_recv_future(idx, polled.clone(), buf).boxed()
                                         })
                                         .collect();
                                     active_socket_count = udp_socket_list.len();
@@ -1099,11 +1223,9 @@ where
                                 self.deliver_udp_batch(&buf, n, stride, local_addr, peer_addr).await;
 
                                 // Immediately create a new future for this socket and reuse the buffer
-                                let (socket_local_addr, socket) = &udp_socket_list[idx];
-                                let socket_local_addr = *socket_local_addr;
-                                let socket = socket.clone();
+                                let polled = udp_socket_list[idx].clone();
                                 udp_recv_futures.push(
-                                    create_udp_recv_future(idx, socket_local_addr, socket.clone(), buf).boxed()
+                                    create_udp_recv_future(idx, polled.clone(), buf).boxed()
                                 );
 
                                 // Batch-drain: drain a bounded burst of additional
@@ -1122,12 +1244,13 @@ where
                                 while burst < MAX_UDP_RECV_BURST {
                                     let probe = crate::runtime::poll_once(|cx| {
                                         let mut bufs = [IoSliceMut::new(&mut burst_buf)];
-                                        socket.poll_recv(cx, &mut bufs, &mut burst_meta)
+                                        polled.socket.poll_recv(cx, &mut bufs, &mut burst_meta)
                                     });
                                     match probe {
                                         Some(Ok(_)) => {
                                             let m = burst_meta[0];
-                                            self.deliver_udp_batch(&burst_buf, m.len, m.stride, socket_local_addr, m.addr).await;
+                                            let local_addr = polled.local_for(m.dst_ip);
+                                            self.deliver_udp_batch(&burst_buf, m.len, m.stride, local_addr, m.addr).await;
                                             burst += 1;
                                         }
                                         _ => break, // would-block (pending) or error
@@ -1138,9 +1261,9 @@ where
                                 if is_retryable_socket_recv_error(&err) {
                                     trace!("Transient socket recv error on {}: {}", local_addr, err);
 
-                                    let (socket_local_addr, socket) = &udp_socket_list[idx];
+                                    let polled = udp_socket_list[idx].clone();
                                     udp_recv_futures.push(
-                                        create_udp_recv_future(idx, *socket_local_addr, socket.clone(), buf).boxed()
+                                        create_udp_recv_future(idx, polled, buf).boxed()
                                     );
                                     continue;
                                 }
@@ -1208,6 +1331,21 @@ where
             Ok(n)
         } else if let Some(udp_socket) = self.udp_sockets.get(&msg.transport.local_addr) {
             Ok(udp_socket
+                .send_to(&msg.message, msg.transport.peer_addr)
+                .await?)
+        } else if self.mux_candidate_addrs.contains(&msg.transport.local_addr) {
+            // Shared-mux traffic: a wildcard-bound mux is keyed in `udp_sockets` by its
+            // bind address, but the core names the candidate the packet is from — one of
+            // the mux's per-interface advertised addresses. One handle serves them all.
+            //
+            // `mux_socket` is the handle stored under the bind address and is always set
+            // when `mux_candidate_addrs` is non-empty — both are written together in
+            // `bind_transports`, and only there.
+            let handle = self
+                .mux_socket
+                .as_ref()
+                .expect("mux candidate address seen with no registered mux handle");
+            Ok(handle
                 .send_to(&msg.message, msg.transport.peer_addr)
                 .await?)
         } else {

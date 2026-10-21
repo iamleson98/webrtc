@@ -87,12 +87,13 @@ check [Pion Examples](https://github.com/pion/webrtc/tree/master/examples#readme
   implementing the `Runtime` trait over `async-executor` + `async-io` — neither Tokio nor smol — and injecting it with
   `with_runtime`. Run it with `--no-default-features` to prove nothing in the library is hard-wired to a built-in
   runtime.
+- ✅ [ICE Single Port](ice-single-port): The ice-single-port example demonstrates serving many PeerConnections from
+  one shared UDP socket — the `UdpMux` counterpart of pion's `ice.NewMultiUDPMuxFromPort` + `SetICEUDPMux`. One
+  listening port fronts every connection an SFU terminates, with datagrams attributed to their connection by ICE
+  username fragment.
 
 ### Not Applicable
 
-- [x] [ICE Single Port](N/A) This example doesn't apply to sansio RTC because sansio RTC is I/O-free by design: The
-  library never creates or manages sockets. Your application creates UDP sockets and feeds data to handle_read(). Port
-  multiplexing is already the application's responsibility.
 - [x] [ICE Proxy](N/A) This example doesn't apply to sansio RTC too, since Sansio RTC is I/O-free - it never creates
   network connections. The application is responsible for all I/O.
 - [x] [Data Channels WHIP WHEP](N/A): This example doesn't apply to sansio RTC, since it demonstrates a WHIP/WHEP-like
