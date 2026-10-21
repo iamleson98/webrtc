@@ -1029,8 +1029,18 @@ where
             // data: a send that set the flag is either already enqueued (drained
             // this iteration) or enqueues a fresh `WriteNotify` for the next one.
             self.inner.write_pending.store(false, Ordering::Release);
-            self.poll_writes().await?;
+
+            // Events before writes. This order is what keeps a connect — and every
+            // state cascade — moving without waiting out a timer: events are what
+            // *produce* writes. ICE selection (an event) starts DTLS, whose ClientHello
+            // is a write; DTLS completing (an event) starts SCTP, whose INIT is a
+            // write. Draining events first means the write drain right after picks
+            // each of those up in the same iteration — the peer is waiting for exactly
+            // those packets, so nothing else would wake the loop until a ~200 ms
+            // timer did, which was the old connect latency: three timer-quantized
+            // stalls per handshake.
             self.poll_events().await;
+            self.poll_writes().await?;
             self.poll_reads().await?;
 
             // Wake senders blocked in `DataChannel::writable()`: the poll_* passes above

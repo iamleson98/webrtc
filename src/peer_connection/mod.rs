@@ -99,6 +99,7 @@ pub use rtc::interceptor::Registry;
 /// the traits too.
 pub use rtc::crypto;
 pub use rtc::dtls::cipher_suite::CipherSuiteId;
+pub use rtc::dtls::config::FileKeyLogger;
 pub use rtc::dtls::config::KeyLogger;
 pub use rtc::dtls::extension::extension_use_srtp::SrtpProtectionProfile;
 use rtc::media_stream::MediaStreamTrackId;

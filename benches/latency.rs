@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use webrtc::data_channel::{DataChannelEvent, RTCDataChannelInit};
 use webrtc::peer_connection::{
     PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler,
-    RTCIceGatheringState,
+    RTCIceGatheringState, SettingEngineBuilder,
 };
 use webrtc::runtime::{Runtime, Sender, channel, default_runtime};
 
@@ -35,42 +35,70 @@ fn block_on<T>(rt: &Arc<dyn Runtime>, future: impl Future<Output = T>) -> T {
     out.expect("block_on future did not run")
 }
 
+/// Phase trace for the connect-latency bench: set `LATENCY_TRACE=1` to print per-phase
+/// timestamps (`t+ms  phase`) of one round — where the milliseconds actually go.
+fn trace(start: &Instant, what: &str) {
+    if std::env::var_os("LATENCY_TRACE").is_some() {
+        eprintln!("t+{:>5}ms  {what}", start.elapsed().as_millis());
+    }
+}
+
 async fn connect_once(rt: Arc<dyn Runtime>) -> Result<Duration> {
     let start = Instant::now();
 
+    // `CHECK_MS=<n>` overrides the ICE check interval for this round — the A/B knob used
+    // to find how much of the connect latency is check-interval quantization.
+    let check_ms: Option<u64> = std::env::var("CHECK_MS").ok().and_then(|v| v.parse().ok());
+    let setting_engine = check_ms.map(|ms| {
+        SettingEngineBuilder::new()
+            .with_ice_connection_attempts(Some(Duration::from_millis(ms)), None)
+            .build()
+    });
+
     let (o_gather_tx, mut o_gather_rx) = channel::<()>(1);
-    let offerer = PeerConnectionBuilder::new()
+    let mut offerer_builder = PeerConnectionBuilder::new()
         .with_handler(Arc::new(GatherWaiter { gather_tx: o_gather_tx }))
         .with_runtime(rt.clone())
-        .with_udp_addrs(vec!["127.0.0.1:0".to_string()])
-        .build()
-        .await?;
+        .with_udp_addrs(vec!["127.0.0.1:0".to_string()]);
+    if let Some(se) = setting_engine.clone() {
+        offerer_builder = offerer_builder.with_setting_engine(se);
+    }
+    let offerer = offerer_builder.build().await?;
+    trace(&start, "offerer built");
     let dc = offerer
         .create_data_channel("latency", Some(RTCDataChannelInit::default()))
         .await?;
+    trace(&start, "data channel created");
 
     let offer = offerer.create_offer(None).await?;
     offerer.set_local_description(offer.clone()).await?;
+    trace(&start, "offer: created + local set");
     webrtc::runtime::timeout(&*rt.clone(), Duration::from_secs(10), o_gather_rx.recv())
         .await
         .map_err(|_| anyhow::anyhow!("gather timeout"))?;
+    trace(&start, "offer: gathering complete");
     let offer_sdp = offerer.local_description().await.expect("offer");
 
     let (a_gather_tx, mut a_gather_rx) = channel::<()>(1);
-    let answerer = PeerConnectionBuilder::new()
+    let mut answerer_builder = PeerConnectionBuilder::new()
         .with_handler(Arc::new(GatherWaiter { gather_tx: a_gather_tx }))
         .with_runtime(rt.clone())
-        .with_udp_addrs(vec!["127.0.0.1:0".to_string()])
-        .build()
-        .await?;
+        .with_udp_addrs(vec!["127.0.0.1:0".to_string()]);
+    if let Some(se) = setting_engine {
+        answerer_builder = answerer_builder.with_setting_engine(se);
+    }
+    let answerer = answerer_builder.build().await?;
     answerer.set_remote_description(offer_sdp).await?;
+    trace(&start, "answerer built + offer applied");
     let answer = answerer.create_answer(None).await?;
     answerer.set_local_description(answer.clone()).await?;
     webrtc::runtime::timeout(&*rt.clone(), Duration::from_secs(10), a_gather_rx.recv())
         .await
         .map_err(|_| anyhow::anyhow!("gather timeout"))?;
+    trace(&start, "answer: created + local set + gathered");
     let answer_sdp = answerer.local_description().await.expect("answer");
     offerer.set_remote_description(answer_sdp).await?;
+    trace(&start, "answer applied on offerer");
 
     loop {
         match dc.poll().await {
@@ -79,6 +107,7 @@ async fn connect_once(rt: Arc<dyn Runtime>) -> Result<Duration> {
             None => rt.yield_now().await,
         }
     }
+    trace(&start, "data channel open");
     let elapsed = start.elapsed();
 
     offerer.close().await?;
@@ -87,6 +116,12 @@ async fn connect_once(rt: Arc<dyn Runtime>) -> Result<Duration> {
 }
 
 fn main() -> Result<()> {
+    // With `LATENCY_TRACE=1`, honor `RUST_LOG` so one traced round can show the whole
+    // connect sequence with millisecond timestamps (no logger without this: `RUST_LOG`
+    // alone does nothing in a bench binary).
+    if std::env::var_os("LATENCY_TRACE").is_some() {
+        env_logger::builder().format_timestamp_millis().parse_env("RUST_LOG").try_init().ok();
+    }
     run()
 }
 
