@@ -53,11 +53,11 @@ jobs:
         run: |
           # FLAGS is deliberately split into words.
           # shellcheck disable=SC2086
-          cargo build --all-targets $FLAGS --verbose
+          $GITHUB_WORKSPACE/scripts/ci-run.sh cargo build --all-targets $FLAGS --verbose
       - name: Test
         run: |
           # shellcheck disable=SC2086
-          cargo test --no-fail-fast $FLAGS --verbose
+          $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --no-fail-fast $FLAGS --verbose
 
   # The sans-I/O core on the same platforms, so a failure there is attributed to the right
   # repository. `rtc/.github/workflows/platform.yml` is the full matrix; this is the smoke run
@@ -80,7 +80,7 @@ jobs:
           workspaces: rtc
       - name: Test the sans-I/O workspace
         working-directory: rtc
-        run: cargo test --workspace --no-fail-fast --verbose
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --workspace --no-fail-fast --verbose
 
   # pion (Go) and this stack, in both directions, over loopback sockets: ICE, DTLS, SCTP and the
   # data-channel protocol, each spoken by two independent implementations.
@@ -103,7 +103,7 @@ jobs:
           cache-dependency-path: interop/pion-interop/go.sum
       - uses: Swatinem/rust-cache@v2
       - name: Run the interop matrix
-        run: bash interop/run.sh
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh bash interop/run.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -127,10 +127,10 @@ jobs:
           go-version-file: tools/pion-parity/go.mod
           cache-dependency-path: tools/pion-parity/go.sum
       - name: Check the ledger against the pinned pion releases
-        run: python3 tools/pion-parity/parity.py check
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh python3 tools/pion-parity/parity.py check
       - name: Coverage table
         if: always()
-        run: python3 tools/pion-parity/parity.py report --md "$GITHUB_STEP_SUMMARY"
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh python3 tools/pion-parity/parity.py report --md "$GITHUB_STEP_SUMMARY"
 
   # pion's own test suites, at the versions the ledger and the golden corpora were recorded
   # against, on the same runners: proves the reference is green here, so a difference found by the
@@ -166,7 +166,7 @@ jobs:
         run: |
           dir=$(go mod download -json ${{ matrix.module }} | python3 -c 'import json,sys; print(json.load(sys.stdin)["Dir"])')
           rm -rf "$RUNNER_TEMP/pion" && cp -R "$dir" "$RUNNER_TEMP/pion" && chmod -R u+w "$RUNNER_TEMP/pion"
-          cd "$RUNNER_TEMP/pion" && go test -count=1 -timeout 20m ./...
+          cd "$RUNNER_TEMP/pion" && $GITHUB_WORKSPACE/scripts/ci-run.sh go test -count=1 -timeout 20m ./...
 
   lint:
     name: lint / ${{ matrix.os }}
@@ -185,15 +185,15 @@ jobs:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - name: rustfmt
-        run: cargo fmt --all -- --check
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo fmt --all -- --check
       - name: clippy (library code, warnings are errors)
-        run: cargo clippy --lib --bins -- -D warnings
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo clippy --lib --bins -- -D warnings
       - name: clippy (all targets, correctness lints are errors)
-        run: cargo clippy --all-targets -- -A clippy::all -D clippy::correctness
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo clippy --all-targets -- -A clippy::all -D clippy::correctness
       - name: rustdoc (warnings are errors)
         env:
           RUSTDOCFLAGS: -D warnings
-        run: cargo doc --no-deps
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo doc --no-deps
 
   supply-chain:
     name: supply chain
@@ -203,6 +203,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-deny
@@ -229,7 +230,7 @@ jobs:
           # Cargo.lock is not committed, so a fresh resolve would otherwise pick dependency
           # versions newer than the MSRV compiler can build; prefer ones that declare support.
           CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: fallback
-        run: cargo check --all-targets --verbose
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo check --all-targets --verbose
 
   # Whole-connection numbers against pion on every platform: data-channel throughput, the CPU and
   # memory the transfer cost, and connect latency, each side measured the way its own bench is
@@ -253,4 +254,4 @@ jobs:
           cache-dependency-path: benches/pion/go.sum
       - uses: Swatinem/rust-cache@v2
       - name: webrtc-rs vs pion
-        run: python3 benches/pion/compare.py --runs 5 --summary "$GITHUB_STEP_SUMMARY"
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh python3 benches/pion/compare.py --runs 5 --summary "$GITHUB_STEP_SUMMARY"

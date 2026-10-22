@@ -24,8 +24,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
       - name: Build
-        run: cargo build --verbose
+        shell: bash
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo build --verbose
 
   build-no-features:
     name: Build with No Default Features
@@ -34,8 +36,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
       - name: Build
-        run: cargo build --verbose --no-default-features
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo build --verbose --no-default-features
 
   test-features:
     name: Unit Test with ${{ matrix.features }}
@@ -53,8 +56,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
       - name: Build
-        run: cargo test --lib --verbose --no-default-features --features ${{ matrix.features }}
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --lib --verbose --no-default-features --features ${{ matrix.features }}
 
   crypto-provider-features:
     name: Crypto provider (${{ matrix.name }})
@@ -82,15 +86,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
       - name: Build
-        run: cargo build --all-targets --verbose ${{ matrix.args }}
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo build --all-targets --verbose ${{ matrix.args }}
       - name: Feature-semantics tests
-        run: cargo test --test crypto_provider_features --verbose ${{ matrix.args }}
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --test crypto_provider_features --verbose ${{ matrix.args }}
       # End-to-end: ICE/STUN integrity, the DTLS handshake, and SRTP media over a real
       # connection, per provider pairing. Skipped in the no-built-in configuration, where the
       # test file is `#![cfg]`-ed out.
       - name: Provider integration tests
-        run: cargo test --test crypto_provider_integration --verbose ${{ matrix.args }}
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --test crypto_provider_integration --verbose ${{ matrix.args }}
 
   crypto-provider-boundary:
     name: Crypto stays in the core crates
@@ -99,6 +104,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
       # The async layer forwards provider features and threads the provider through; it must not
       # depend on a crypto implementation or perform crypto itself. The script parses dependency
       # sections so that feature forwarding (`ring = ["rtc/crypto-ring"]`) is not mistaken for one.
@@ -128,8 +134,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
       - name: Run tests
-        run: cargo test --verbose
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --verbose
 
   rustfmt_and_clippy:
     name: Check rustfmt style && run clippy
@@ -143,6 +150,6 @@ jobs:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - name: Run clippy
-        run: cargo clippy
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo clippy
       - name: Check formatting
-        run: cargo fmt --all -- --check
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo fmt --all -- --check

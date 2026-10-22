@@ -1,3 +1,6 @@
+// Module docs are shown both on the module and where it is re-exported, and rustdoc judges the
+// same link redundant from one place and necessary from the other.
+#![allow(rustdoc::redundant_explicit_links)]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/webrtc-rs/webrtc-rs.github.io/master/res/webrtc.rs.png"
 )]
