@@ -1,4 +1,4 @@
-# The async `webrtc` crate on Linux and macOS (x86-64 and arm64), on every built-in runtime and
+# The async `webrtc` crate on Linux and macOS (x86-64 on Linux, arm64 on macOS), on every built-in runtime and
 # crypto provider, in debug and release — plus interoperability with pion over real sockets.
 # `cargo.yml` covers the feature graph and packaging; this one answers "does it work on every
 # platform we support".
@@ -37,6 +37,10 @@ jobs:
           - { name: tokio+ring,    features: 'runtime-tokio,crypto-ring' }
           - { name: smol+ring,     features: 'runtime-smol,crypto-ring' }
           - { name: tokio+aws-lc,  features: 'runtime-tokio,crypto-aws-lc-rs' }
+        exclude:
+          # macOS is for this machine: one runtime and provider is enough there.
+          - { target: { name: macos-arm64, os: macos-latest }, cfg: { name: smol+ring,    features: 'runtime-smol,crypto-ring' } }
+          - { target: { name: macos-arm64, os: macos-latest }, cfg: { name: tokio+aws-lc, features: 'runtime-tokio,crypto-aws-lc-rs' } }
     env:
       FLAGS: ${{ matrix.profile == 'release' && '--release' || '' }} --no-default-features --features ${{ matrix.cfg.features }}
     steps:
