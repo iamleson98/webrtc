@@ -100,15 +100,21 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: interop/pion-interop/go.mod
-          cache-dependency-path: interop/pion-interop/go.sum
+          cache-dependency-path: |
+            interop/pion-interop/go.sum
+            interop/pion-turn/go.sum
       - uses: Swatinem/rust-cache@v2
       - name: Run the interop matrix
         run: $GITHUB_WORKSPACE/scripts/ci-run.sh bash interop/run.sh
+      - name: Run the TURN interop matrix
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh bash interop/run-turn.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: interop-${{ matrix.os }}
-          path: interop/interop-results.log
+          path: |
+            interop/interop-results.log
+            interop/interop-turn-results.log
 
   # Every `Test*` function in the pinned pion releases has a row in tools/pion-parity/ledger: a
   # Rust test that reproduces it, a differential corpus that replays pion's own inputs, a stated
