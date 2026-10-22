@@ -15,3 +15,10 @@ updates:
     groups:
       actions:
         patterns: [ "*" ]
+  # `webrtc` is built against whatever `rtc` commit this repository's submodule pointer names,
+  # which is also what a downstream `git` dependency on `webrtc` gets. Keep it on rtc's tip.
+  - package-ecosystem: gitsubmodule
+    directory: /
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 2

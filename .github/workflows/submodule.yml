@@ -1,0 +1,39 @@
+# `webrtc` compiles against the `rtc` commit its submodule pointer names; a project that depends on
+# `webrtc` by git gets exactly that commit. This fails whenever the pointer is behind rtc's
+# `master`, so `webrtc` is never published or consumed against a stale core, and then proves the
+# pair builds together.
+name: submodule
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  rtc-is-latest:
+    name: rtc pointer is rtc master
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: The submodule contains rtc master
+        run: |
+          git -C rtc fetch --quiet origin master
+          pinned="$(git -C rtc rev-parse HEAD)"
+          latest="$(git -C rtc rev-parse origin/master)"
+          echo "pinned rtc: $pinned"
+          echo "rtc master: $latest"
+          if ! git -C rtc merge-base --is-ancestor "$latest" "$pinned"; then
+            echo "::error::the rtc submodule is behind rtc master; run: git submodule update --remote rtc && git add rtc"
+            exit 1
+          fi
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: webrtc builds against that rtc
+        run: cargo check --all-targets
