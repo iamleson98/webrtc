@@ -47,7 +47,7 @@ use std::collections::hash_map::Entry;
 use std::collections::{HashMap, VecDeque};
 use std::future::Future;
 use std::io::IoSliceMut;
-use std::net::{IpAddr, SocketAddr, ToSocketAddrs};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, ToSocketAddrs};
 use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
@@ -640,6 +640,9 @@ pub(crate) struct PeerConnectionDriver<A = SocketAddr> {
     turn_relayer: RTCTurnRelayer,
     tcp_transport: RTCTcpTransport,
     mdns_socket: Option<Arc<dyn AsyncUdpSocket>>,
+    /// A handle on the mDNS socket's descriptor, for `IP_MULTICAST_IF` when the OS's default
+    /// multicast route fails (see [`Self::send_mdns`]).
+    mdns_ctl: Option<socket2::Socket>,
     udp_sockets: HashMap<SocketAddr, Arc<dyn AsyncUdpSocket>>,
     /// Reused scratch buffer for concatenating a run of same-destination datagrams
     /// into one UDP GSO send (see [`flush_writes`](Self::flush_writes)).
@@ -746,6 +749,7 @@ where
                 Arc::clone(&crypto_provider),
             ),
             mdns_socket: None,
+            mdns_ctl: None,
             udp_sockets: HashMap::new(),
             gso_scratch: Vec::new(),
             tcp_transport: RTCTcpTransport::new(HashMap::new()),
@@ -809,10 +813,13 @@ where
         self.mux_socket = None;
         self.mux_candidate_addrs.clear();
         self.mdns_socket = None;
+        self.mdns_ctl = None;
         self.tcp_transport = RTCTcpTransport::new(HashMap::new());
 
         if self.mdns_mode != MulticastDnsMode::Disabled {
-            self.mdns_socket = Some(runtime.wrap_udp_socket(MulticastSocket::new().into_std()?)?);
+            let std_socket = MulticastSocket::new().into_std()?;
+            self.mdns_ctl = std_socket.try_clone().map(socket2::Socket::from).ok();
+            self.mdns_socket = Some(runtime.wrap_udp_socket(std_socket)?);
         }
 
         if let Some(mux) = self.udp_mux.clone() {
@@ -1392,14 +1399,45 @@ where
         }
     }
 
+    /// Send one mDNS datagram. Multicast is best effort: when the interface the OS picks by
+    /// default cannot carry it (a virtual NIC with no multicast route, as on GitHub's macOS
+    /// runners), try every other local IPv4 interface, loopback included, which still reaches
+    /// the other peers on this host. A datagram no interface accepts is dropped, not an error.
+    async fn send_mdns(&mut self, msg: &TaggedBytesMut) -> Result<usize> {
+        let Some(socket) = &self.mdns_socket else {
+            return Ok(0);
+        };
+        let first = match socket.send_to(&msg.message, msg.transport.peer_addr).await {
+            Ok(n) => return Ok(n),
+            Err(err) if rtc::mdns::is_route_error(&err) => err,
+            Err(err) => return Err(err.into()),
+        };
+        let Some(ctl) = &self.mdns_ctl else {
+            debug!("mDNS send failed ({first}) and no fallback is available");
+            return Ok(0);
+        };
+        let mut sent = 0;
+        for iface in rtc::mdns::multicast_interfaces() {
+            if ctl.set_multicast_if_v4(&iface).is_err() {
+                continue;
+            }
+            if let Ok(n) = socket.send_to(&msg.message, msg.transport.peer_addr).await {
+                sent = sent.max(n);
+            }
+        }
+        let _ = ctl.set_multicast_if_v4(&Ipv4Addr::UNSPECIFIED);
+        if sent == 0 {
+            debug!("mDNS send failed on every interface ({first}); dropping the datagram");
+        }
+        Ok(sent)
+    }
+
     async fn handle_write(&mut self, msg: TaggedBytesMut) -> Result<usize> {
         if msg.transport.transport_protocol == TransportProtocol::TCP {
             self.tcp_transport.write(&msg).await
         } else if msg.transport.peer_addr.port() == MDNS_PORT {
-            if let Some(socket) = &self.mdns_socket {
-                Ok(socket
-                    .send_to(&msg.message, msg.transport.peer_addr)
-                    .await?)
+            if self.mdns_socket.is_some() {
+                self.send_mdns(&msg).await
             } else {
                 trace!(
                     "None mDNS socket, drop the packet to {:?} from {:?}",
