@@ -1,0 +1,62 @@
+# Diagnostic, run by hand (workflow_dispatch): why do the multicast-DNS QueryAndGather tests time
+# out on GitHub's macOS runners when they pass on a developer's Mac? Prints the network facts that
+# decide it and the test's own debug log. Not part of the regular checks.
+name: diag-mdns-macos
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mdns:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Network facts
+        run: |
+          set +e
+          sw_vers
+          echo '--- interfaces'; ifconfig | grep -E '^[a-z0-9]+:|inet |status|MULTICAST' 
+          echo '--- routes'; netstat -rn | head -30
+          echo '--- who holds 5353'; sudo lsof -nP -iUDP:5353
+          echo '--- mDNSResponder'; pgrep -l mDNSResponder
+          echo '--- firewall'; sudo /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate
+          echo '--- pf'; sudo pfctl -s info 2>&1 | head -5
+          echo '--- mcast sysctl'; sysctl net.inet.ip.mcast 2>&1 | head
+      - name: Multicast delivery between two sockets bound like mDNS binds
+        run: |
+          set +e
+          python3 - <<'PY'
+          import socket, struct, time, subprocess
+          GROUP = "224.0.0.251"
+          def sock(iface):
+              s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+              s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+              s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+              s.bind(("0.0.0.0", 5353))
+              s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(GROUP) + socket.inet_aton(iface))
+              s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(iface))
+              s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+              s.settimeout(1.0)
+              return s
+          primary = subprocess.run("ipconfig getifaddr en0", shell=True, capture_output=True, text=True).stdout.strip()
+          for iface in ["127.0.0.1"] + ([primary] if primary else []):
+              a, b = sock(iface), sock(iface)
+              a.sendto(b"from-a", (GROUP, 5353))
+              got = {"a": None, "b": None}
+              for name, s in (("a", a), ("b", b)):
+                  try: got[name] = s.recvfrom(100)
+                  except Exception as e: got[name] = repr(e)
+              print(f"iface {iface}: a heard {got['a']} | b heard {got['b']}")
+              a.close(); b.close()
+          PY
+      - name: The failing test with debug logs
+        continue-on-error: true
+        env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: "0"
+        run: |
+          cargo test --test mdns_query_and_gather_webrtc2webrtc -- --nocapture 2>&1 | grep -v -E '^\s+(Compiling|Running|Fresh)' | tail -300

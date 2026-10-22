@@ -97,6 +97,7 @@ fn test_mdns_query_and_gather_webrtc_to_webrtc() {
 async fn run_test() -> Result<()> {
     env_logger::builder()
         .filter_level(log::LevelFilter::Info)
+        .parse_default_env()
         .is_test(true)
         .try_init()
         .ok();
