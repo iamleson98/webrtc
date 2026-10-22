@@ -480,6 +480,10 @@ fn test_stun_gathering_with_google_stun() {
 
 #[test]
 fn test_mdns_query_and_gather_rewrites_host_candidate() {
+    if !common::multicast_loopback_works() {
+        eprintln!("skipping: this host does not loop IPv4 multicast back to a local listener");
+        return;
+    }
     block_on(async {
         let mut media_engine = MediaEngine::default();
         media_engine

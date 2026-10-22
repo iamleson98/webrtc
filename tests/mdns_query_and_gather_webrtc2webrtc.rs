@@ -87,6 +87,10 @@ fn mdns_setting_engine(name: &str, local_ip: IpAddr) -> SettingEngine {
 
 #[test]
 fn test_mdns_query_and_gather_webrtc_to_webrtc() {
+    if !common::multicast_loopback_works() {
+        eprintln!("skipping: this host does not loop IPv4 multicast back to a local listener");
+        return;
+    }
     block_on(run_test()).unwrap();
 }
 
