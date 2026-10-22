@@ -70,9 +70,9 @@ srtp_cipher_aead_aes_gcm_rfc_test.go	TestAeadCiphersWithRfcTestVectors	todo
 srtp_cipher_aes_cm_hmac_sha1_rfc_test.go	TestAesCiphersWithRfcTestVectors	todo		
 srtp_cipher_rcc_test.go	TestRCC	todo		
 srtp_cipher_test.go	TestSrtpCipher	todo		
-srtp_cryptex_test.go	TestCryptexRFC	todo		
-srtp_cryptex_test.go	TestCryptexUnsupportedHeaderExtension	todo		
-srtp_cryptex_test.go	TestCryptexModes	todo		
+srtp_cryptex_test.go	TestCryptexRFC	rust	rfc9335_appendix_a_encrypt	RFC 9335 Appendix A vectors, encrypt and decrypt (rfc9335_appendix_a_decrypt)
+srtp_cryptex_test.go	TestCryptexUnsupportedHeaderExtension	rust	unsupported_header_extension_profile_is_refused	
+srtp_cryptex_test.go	TestCryptexModes	rust	modes_decide_what_is_accepted	
 srtp_cryptex_test.go	TestUpdateOptionsCryptexRuntime	todo		
 srtp_cryptex_test.go	TestUpdateOptionsCryptexRuntimeDecrypt	todo		
 srtp_test.go	TestKeyLen	named	test_key_len	
