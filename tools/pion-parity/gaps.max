@@ -5,14 +5,14 @@ ice 0
 ice:todo 358
 dtls 0
 dtls:todo 265
-sctp 0
-sctp:todo 190
+sctp 13
+sctp:todo 176
 sdp 0
 sdp:todo 175
 rtp 0
 rtp:todo 198
 rtcp 0
-rtcp:todo 32
+rtcp:todo 26
 srtp 0
 srtp:todo 86
 stun 0

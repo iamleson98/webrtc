@@ -6,7 +6,7 @@ compound_packet_test.go	TestReadEOF	named	test_read_eof
 compound_packet_test.go	TestBadCompound	named	test_bad_compound	
 compound_packet_test.go	TestValidPacket	named	test_valid_packet	
 compound_packet_test.go	TestCNAME	named	test_cname	
-compound_packet_test.go	TestCompoundPacketRoundTrip	todo		
+compound_packet_test.go	TestCompoundPacketRoundTrip	rust	compound_packet_round_trip	
 extended_report_test.go	TestEncode	named	test_encode	
 extended_report_test.go	TestDecode	named	test_decode	
 full_intra_request_test.go	TestFullIntraRequestUnmarshal	named	test_full_intra_request_unmarshal	
@@ -17,7 +17,7 @@ goodbye_test.go	TestGoodbyeUnmarshal	named	test_goodbye_unmarshal
 goodbye_test.go	TestGoodbyeRoundTrip	named	test_goodbye_round_trip	
 goodbye_test.go	TestGoodbyeRoundTripMaxFieldSizes	rust	goodbye_round_trip_max_field_sizes	
 header_test.go	TestHeaderUnmarshal	named	test_header_unmarshal	
-header_test.go	TestHeaderRoundTrip	todo		
+header_test.go	TestHeaderRoundTrip	rust	header_round_trip	
 packet_buffer_test.go	TestWrite	na		Go-internal buffer reader helper; the Rust parsers read through bytes::Buf
 packet_buffer_test.go	TestReadUint8	na		Go-internal buffer reader helper; the Rust parsers read through bytes::Buf
 packet_buffer_test.go	TestReadUint16	na		Go-internal buffer reader helper; the Rust parsers read through bytes::Buf
@@ -28,10 +28,10 @@ packet_buffer_test.go	TestReadSlice	na		Go-internal buffer reader helper; the Ru
 packet_buffer_test.go	TestReadComplex	na		Go-internal buffer reader helper; the Rust parsers read through bytes::Buf
 packet_stringifier_test.go	TestPrint	na		Go fmt.Stringer output
 packet_test.go	TestUnmarshal	todo		
-packet_test.go	TestUnmarshalNil	todo		
+packet_test.go	TestUnmarshalNil	rust	unmarshal_empty_buffer_is_an_error	
 packet_test.go	TestInvalidHeaderLength	todo		
 packet_test.go	TestUnmarshalMaxLengthRawPacket	rust	unmarshal_max_length_raw_packet	
-packet_test.go	TestReportProfileExtensionsRoundTrip	todo		
+packet_test.go	TestReportProfileExtensionsRoundTrip	rust	report_profile_extensions_round_trip	padding scheme differs from pion (P bit + count); lengths and extension bytes agree
 picture_loss_indication_test.go	TestPictureLossIndicationUnmarshal	named	test_picture_loss_indication_unmarshal	
 picture_loss_indication_test.go	TestPictureLossIndicationRoundTrip	todo		
 picture_loss_indication_test.go	TestPictureLossIndicationUnmarshalHeader	named	test_picture_loss_indication_unmarshal_header	
@@ -66,7 +66,7 @@ slice_loss_indication_test.go	TestSliceLossIndicationUnmarshalMaxLength	rust	sli
 source_description_test.go	TestSourceDescriptionUnmarshal	named	test_source_description_unmarshal	
 source_description_test.go	TestSourceDescriptionRoundTrip	todo		
 source_description_test.go	TestSourceDescriptionRoundTripMaxLength	rust	source_description_round_trip_max_length	
-transport_layer_cc_test.go	TestTransportLayerCC_MarshalInvalidDelta	todo		
+transport_layer_cc_test.go	TestTransportLayerCC_MarshalInvalidDelta	rust	transport_layer_cc_rejects_deltas_outside_their_symbol_size	
 transport_layer_cc_test.go	TestTransportLayerCC_RunLengthChunkUnmarshal	named	test_transport_layer_cc_run_length_chunk_unmarshal	
 transport_layer_cc_test.go	TestTransportLayerCCUnmarshalMaxLength	rust	transport_layer_cc_unmarshal_max_length	
 transport_layer_cc_test.go	TestTransportLayerCC_RunLengthChunkMarshal	named	test_transport_layer_cc_run_length_chunk_marshal	
@@ -76,7 +76,7 @@ transport_layer_cc_test.go	TestTransportLayerCC_RecvDeltaUnmarshal	named	test_tr
 transport_layer_cc_test.go	TestTransportLayerCC_RecvDeltaMarshal	named	test_transport_layer_cc_recv_delta_marshal	
 transport_layer_cc_test.go	TestTransportLayerCC_Unmarshal	named	test_transport_layer_cc_unmarshal	
 transport_layer_cc_test.go	TestTransportLayerCC_Marshal	named	test_transport_layer_cc_marshal	
-transport_layer_cc_test.go	TestTransportLayerCC_LengthOverflow	todo		
+transport_layer_cc_test.go	TestTransportLayerCC_LengthOverflow	rust	transport_layer_cc_length_overflow	
 transport_layer_cc_test.go	TestTransportLayerCC_UnmarshalUnusedVector	todo		
 transport_layer_nack_test.go	TestTransportLayerNackUnmarshal	named	test_transport_layer_nack_unmarshal	
 transport_layer_nack_test.go	TestTransportLayerNackRoundTrip	todo		

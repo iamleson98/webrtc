@@ -1,7 +1,7 @@
 # file	test	status	ref	note   (see tools/pion-parity/parity.py)
 ack_timer_test.go	TestAckTimer	todo		
-association_interleaving_options_test.go	TestInterleavingSettingsWeightedFairQueueingFactorySnapshotsWeights	todo		
-association_interleaving_options_test.go	TestCloneInterleavingSettingsWeightedFairQueueingFactoryUsesClonedWeights	todo		
+association_interleaving_options_test.go	TestInterleavingSettingsWeightedFairQueueingFactorySnapshotsWeights	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_interleaving_options_test.go	TestCloneInterleavingSettingsWeightedFairQueueingFactoryUsesClonedWeights	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
 association_options_test.go	TestAssociationOptions_ApplyBothSides	todo		
 association_options_test.go	TestConfigComparable	todo		
 association_options_test.go	TestAssociationOptions_Interleaving	todo		
@@ -16,12 +16,12 @@ association_rack_options_test.go	TestRACKOptions_ApplyToConfig	todo
 association_rack_options_test.go	TestRACKOptions_EndToEnd_DefaultsAndOverrides	todo		
 association_test.go	TestAssocStressDuplex	todo		
 association_test.go	TestAssociationPRForwardTSNChunkTypeMatchesInterleaving	todo		
-association_test.go	TestAssociationInterleavingNegotiationPayloadChunkType	todo		
-association_test.go	TestAssociationInterleavingUpdatesMaxPayloadSize	todo		
+association_test.go	TestAssociationInterleavingNegotiationPayloadChunkType	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_test.go	TestAssociationInterleavingUpdatesMaxPayloadSize	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
 association_test.go	TestAssociationMetadataNotReadyBeforeHandshake	todo		
 association_test.go	TestAssociationMetadataJSON	todo		
-association_test.go	TestAssociationInterleavingProtocolViolationWrongPayloadChunkType	todo		
-association_test.go	TestAssociationInterleavingFinalizedOnEstablishedTransition	todo		
+association_test.go	TestAssociationInterleavingProtocolViolationWrongPayloadChunkType	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_test.go	TestAssociationInterleavingFinalizedOnEstablishedTransition	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
 association_test.go	TestAssociationDataIgnoredOutsideReceiveStates	todo		
 association_test.go	TestAssociationDataAcknowledgedInShutdownSent	todo		
 association_test.go	TestAssociationShutdownProcessesCumulativeTSNAck	todo		
@@ -40,20 +40,20 @@ association_test.go	TestAssociationCrossedShutdownDrainsPendingData	todo
 association_test.go	TestAssociationSendsForwardTSNWhileDrainingShutdown	todo		
 association_test.go	TestAssociationShutdownAdvancesAfterPendingStreamReset	todo		
 association_test.go	TestAssociationShutdownSentRespondsToInvalidCumulativeTSNAck	todo		
-association_test.go	TestAssociationInterleavingProtocolViolationWrongForwardTSNChunkType	todo		
-association_test.go	TestAssociationIForwardTSNValidationAbort	todo		
-association_test.go	TestAssociationIForwardTSNDuplicateEntriesUseLargestMID	todo		
-association_test.go	TestAssociationInterleavingProtocolViolationMIDLimit	todo		
-association_test.go	TestAssociationInterleavingMIDLimitDisabledByDefault	todo		
+association_test.go	TestAssociationInterleavingProtocolViolationWrongForwardTSNChunkType	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_test.go	TestAssociationIForwardTSNValidationAbort	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_test.go	TestAssociationIForwardTSNDuplicateEntriesUseLargestMID	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_test.go	TestAssociationInterleavingProtocolViolationMIDLimit	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_test.go	TestAssociationInterleavingMIDLimitDisabledByDefault	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
 association_test.go	TestAssociationDataReassemblyLimitProtocolViolation	todo		
 association_test.go	TestAssocReliable	todo		
 association_test.go	TestAssocUnreliable	todo		
 association_test.go	TestAssocUnreliableRexmitLimit	todo		
 association_test.go	TestInitVerificationTagIsZero	todo		
 association_test.go	TestCreateForwardTSN	todo		
-association_test.go	TestCreateIForwardTSN	todo		
+association_test.go	TestCreateIForwardTSN	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
 association_test.go	TestHandleForwardTSN	todo		
-association_test.go	TestHandleIForwardTSN	todo		
+association_test.go	TestHandleIForwardTSN	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
 association_test.go	TestHandleDataAckTriggering	todo		
 association_test.go	TestAssocT1InitTimer	todo		
 association_test.go	TestAssocT1CookieTimer	todo		
@@ -73,7 +73,7 @@ association_test.go	TestAssociationAbortSetsWriteDeadline	todo
 association_test.go	TestAssociationWriteFailureClosesTransport	todo		
 association_test.go	TestAssociationReceiveWindow	todo		
 association_test.go	TestAssociationFastRtxWnd	todo		
-association_test.go	TestAssociationMaxTSNOffset	todo		
+association_test.go	TestAssociationMaxTSNOffset	rust	test_association_max_tsn_offset	
 association_test.go	TestAssociation_Shutdown	named	test_association_shutdown	
 association_test.go	TestAssociation_ShutdownDuringWrite	todo		
 association_test.go	TestAssociation_HandlePacketInCookieWaitState	todo		
