@@ -1,85 +1,85 @@
 # file	test	status	ref	note   (see tools/pion-parity/parity.py)
-client_test.go	TestClientWithSTUN	todo		
-client_test.go	TestClientNonceExpiration	todo		
-client_test.go	TestTCPClient	todo		
-client_test.go	TestTCPClientWithoutAddress	todo		
-client_test.go	TestClientReadTimout	todo		
-client_test.go	TestTCPClientDial	todo		
-client_test.go	TestTCPClientAccept	todo		
-client_test.go	TestTCPClientMultipleConns	todo		
-client_test.go	TestInferAddressFamilyFromConn	todo		
-client_test.go	TestGetRequestedAddressFamily	todo		
-client_test.go	TestAppendRequestedAddressFamilyOrReservation	todo		
-client_test.go	TestClientE2E	todo		
-client_test.go	TestClientAllocateContext	todo		
-lt_cred_test.go	TestLtCredMech	todo		
-lt_cred_test.go	TestNewLongTermAuthHandler	todo		
-lt_cred_test.go	TestLongTermTURNRESTAuthHandler	todo		
-lt_cred_test.go	TestLongTermTURNRESTAuthHandler_NoColon	todo		
-server_test.go	TestServerConfig	todo		
-server_test.go	TestServer	todo		
-server_test.go	TestServerHandleComprehensionRequiredAttribute	todo		
-server_test.go	TestServerVNet	todo		
-server_test.go	TestSTUNOnly	todo		
-server_test.go	TestQuotaReached	todo		
-server_test.go	TestReservation	todo		
-server_test.go	TestReservation_InvalidToken	todo		
-server_test.go	TestReservation_TokenAndEvenPort	todo		
-server_test.go	TestDontFragment	todo		
-server_test.go	TestRelayAddressGeneratorStatic	todo		
-server_test.go	TestTLSHandshakeConnectionState	todo		
-server_test.go	TestRelayAddressGeneratorPortRange	todo		
-server_test.go	TestNilAddressGenerator	todo		
-internal/allocation/allocation_manager_test.go	TestNewManagerValidation	todo		
-internal/allocation/allocation_manager_test.go	TestCreateInvalidAllocation	todo		
-internal/allocation/allocation_manager_test.go	TestCreateAllocation	todo		
-internal/allocation/allocation_manager_test.go	TestCreateAllocationDuplicateFiveTuple	todo		
-internal/allocation/allocation_manager_test.go	TestDeleteAllocation	todo		
-internal/allocation/allocation_manager_test.go	TestAllocationTimeout	todo		
-internal/allocation/allocation_manager_test.go	TestManagerClose	todo		
-internal/allocation/allocation_manager_test.go	TestGetRandomEvenPort	todo		
-internal/allocation/allocation_manager_test.go	TestCreateTCPConnection	todo		
-internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionUsesAddressFamily	todo		
-internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionDuplicateDoesNotBlockManager	todo		
-internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionInvalidPeerAddress	todo		
-internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionInvalid	todo		
-internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionTimeout	todo		
-internal/allocation/allocation_manager_test.go	TestCreateAllocationIPv6	todo		
-internal/allocation/allocation_test.go	TestAddressFamily	todo		
-internal/allocation/allocation_test.go	TestGetPermission	todo		
-internal/allocation/allocation_test.go	TestAddPermission	todo		
-internal/allocation/allocation_test.go	TestRemovePermission	todo		
-internal/allocation/allocation_test.go	TestAddChannelBind	todo		
-internal/allocation/allocation_test.go	TestGetChannelByNumber	todo		
-internal/allocation/allocation_test.go	TestGetChannelByAddr	todo		
+client_test.go	TestClientWithSTUN	named	test_client_with_stun_send_binding_request	
+client_test.go	TestClientNonceExpiration	named	the_rust_client_relays_data_to_and_from_a_peer	
+client_test.go	TestTCPClient	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+client_test.go	TestTCPClientWithoutAddress	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+client_test.go	TestClientReadTimout	na		Go net.PacketConn read deadline; the sans-I/O client has no connection object
+client_test.go	TestTCPClientDial	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+client_test.go	TestTCPClientAccept	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+client_test.go	TestTCPClientMultipleConns	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+client_test.go	TestInferAddressFamilyFromConn	na		Go net.Conn type inference; the sans-I/O client takes the family from AllocateOptions
+client_test.go	TestGetRequestedAddressFamily	named	the_rust_client_asks_for_an_address_family	
+client_test.go	TestAppendRequestedAddressFamilyOrReservation	named	the_rust_client_options_exclude_each_other	
+client_test.go	TestClientE2E	named	the_rust_client_allocates_through_the_server	
+client_test.go	TestClientAllocateContext	na		Go context.Context
+lt_cred_test.go	TestLtCredMech	named	time_limited_credentials_work_until_they_expire	
+lt_cred_test.go	TestNewLongTermAuthHandler	named	time_limited_credentials_work_until_they_expire	
+lt_cred_test.go	TestLongTermTURNRESTAuthHandler	named	time_limited_credentials_work_until_they_expire	
+lt_cred_test.go	TestLongTermTURNRESTAuthHandler_NoColon	named	a_rest_username_without_a_colon_does_not_authenticate	
+server_test.go	TestServerConfig	named	relay_generators_plan_what_they_promise	
+server_test.go	TestServer	named	the_rust_client_relays_data_to_and_from_a_peer	
+server_test.go	TestServerHandleComprehensionRequiredAttribute	named	an_unknown_comprehension_required_attribute_is_refused_but_optional_ones_are_not	
+server_test.go	TestServerVNet	na		vnet network simulator
+server_test.go	TestSTUNOnly	named	a_stun_only_server_answers_binding_and_refuses_the_rest	
+server_test.go	TestQuotaReached	named	the_quota_handler_limits_allocations	
+server_test.go	TestReservation	named	the_rust_client_reserves_a_port_and_a_second_client_claims_it	
+server_test.go	TestReservation_InvalidToken	named	reservation_tokens_are_never_valid	
+server_test.go	TestReservation_TokenAndEvenPort	named	a_token_excludes_a_family_and_an_even_port	
+server_test.go	TestDontFragment	named	dont_fragment_is_refused_by_name	
+server_test.go	TestRelayAddressGeneratorStatic	named	relay_generators_plan_what_they_promise	
+server_test.go	TestTLSHandshakeConnectionState	gap		AuthRequest carries no TLS connection state
+server_test.go	TestRelayAddressGeneratorPortRange	named	relay_generators_plan_what_they_promise	
+server_test.go	TestNilAddressGenerator	named	relay_generators_plan_what_they_promise	
+internal/allocation/allocation_manager_test.go	TestNewManagerValidation	na		Go constructor validation; the Rust constructors cannot be misconfigured
+internal/allocation/allocation_manager_test.go	TestCreateInvalidAllocation	na		nil five-tuple and nil socket cannot be expressed; a zero lifetime is a delete (refresh_with_zero_deletes)
+internal/allocation/allocation_manager_test.go	TestCreateAllocation	named	allocate_binds_a_relay_then_answers	
+internal/allocation/allocation_manager_test.go	TestCreateAllocationDuplicateFiveTuple	named	a_second_allocate_on_the_same_five_tuple_is_a_mismatch	
+internal/allocation/allocation_manager_test.go	TestDeleteAllocation	named	delete_allocation_and_close_release_relays	
+internal/allocation/allocation_manager_test.go	TestAllocationTimeout	named	an_allocation_expires_without_a_refresh	
+internal/allocation/allocation_manager_test.go	TestManagerClose	named	delete_allocation_and_close_release_relays	
+internal/allocation/allocation_manager_test.go	TestGetRandomEvenPort	named	an_even_port_is_planned_and_replanned_when_taken	
+internal/allocation/allocation_manager_test.go	TestCreateTCPConnection	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionUsesAddressFamily	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionDuplicateDoesNotBlockManager	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionInvalidPeerAddress	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionInvalid	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_manager_test.go	TestCreateTCPConnectionTimeout	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_manager_test.go	TestCreateAllocationIPv6	named	a_wildcard_listener_follows_the_client_and_strict_mode_is_ipv4	
+internal/allocation/allocation_test.go	TestAddressFamily	na		trivial getter
+internal/allocation/allocation_test.go	TestGetPermission	named	permission_is_per_ip_not_per_port	
+internal/allocation/allocation_test.go	TestAddPermission	named	create_permission_takes_several_peers	
+internal/allocation/allocation_test.go	TestRemovePermission	na		permissions only lapse; TURN has no request that removes one
+internal/allocation/allocation_test.go	TestAddChannelBind	named	a_channel_and_a_peer_pair_up_one_to_one	
+internal/allocation/allocation_test.go	TestGetChannelByNumber	named	channel_data_flows_both_ways_once_bound	
+internal/allocation/allocation_test.go	TestGetChannelByAddr	named	channel_data_flows_both_ways_once_bound	
 internal/allocation/allocation_test.go	TestAddChannelBindSameIPPortDifferentZone	todo		
-internal/allocation/allocation_test.go	TestRemoveChannelBind	todo		
-internal/allocation/allocation_test.go	TestAllocationRefresh	todo		
-internal/allocation/allocation_test.go	TestAllocationClose	todo		
-internal/allocation/allocation_test.go	TestPacketHandler	todo		
-internal/allocation/allocation_test.go	TestTCPRelay_E2E	todo		
-internal/allocation/allocation_test.go	TestResponseCache	todo		
-internal/allocation/allocation_test.go	TestAllocationConnHandler_AcceptErrorDeletesAllocation	todo		
-internal/allocation/allocation_test.go	TestAllocationConnHandler_RemoteAddrCastFailureClosesConn	todo		
-internal/allocation/allocation_test.go	TestAllocationConnHandler_AddTCPConnectionErrorClosesConn	todo		
-internal/allocation/allocation_test.go	TestAllocationConnHandler_StunBuildErrorRemovesConnection	todo		
-internal/allocation/allocation_test.go	TestAllocationConnHandler_TurnSocketWriteErrorRemovesConnection	todo		
-internal/allocation/allocation_test.go	TestAllocationConnHandler_NoPermissionClosesConn	todo		
-internal/allocation/channel_bind_test.go	TestChannelBind	todo		
-internal/allocation/channel_bind_test.go	TestChannelBindStart	todo		
-internal/allocation/channel_bind_test.go	TestChannelBindReset	todo		
-internal/allocation/five_tuple_test.go	TestFiveTupleProtocol	todo		
+internal/allocation/allocation_test.go	TestRemoveChannelBind	named	a_channel_lapses_and_can_then_be_rebound_elsewhere	
+internal/allocation/allocation_test.go	TestAllocationRefresh	named	refresh_extends_the_allocation	
+internal/allocation/allocation_test.go	TestAllocationClose	named	delete_allocation_and_close_release_relays	
+internal/allocation/allocation_test.go	TestPacketHandler	named	data_from_a_permissioned_peer_reaches_the_client_as_a_data_indication	
+internal/allocation/allocation_test.go	TestTCPRelay_E2E	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_test.go	TestResponseCache	named	a_retransmitted_allocate_gets_the_same_answer	
+internal/allocation/allocation_test.go	TestAllocationConnHandler_AcceptErrorDeletesAllocation	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_test.go	TestAllocationConnHandler_RemoteAddrCastFailureClosesConn	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_test.go	TestAllocationConnHandler_AddTCPConnectionErrorClosesConn	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_test.go	TestAllocationConnHandler_StunBuildErrorRemovesConnection	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_test.go	TestAllocationConnHandler_TurnSocketWriteErrorRemovesConnection	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/allocation_test.go	TestAllocationConnHandler_NoPermissionClosesConn	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/allocation/channel_bind_test.go	TestChannelBind	named	a_channel_and_a_peer_pair_up_one_to_one	
+internal/allocation/channel_bind_test.go	TestChannelBindStart	named	a_channel_lapses_and_can_then_be_rebound_elsewhere	
+internal/allocation/channel_bind_test.go	TestChannelBindReset	named	rebinding_a_channel_restarts_its_clock	
+internal/allocation/five_tuple_test.go	TestFiveTupleProtocol	named	five_tuples_differ_by_protocol	
 internal/allocation/five_tuple_test.go	TestFiveTupleEqual	named	test_five_tuple_equal	
-internal/client/binding_test.go	TestBindingManager	todo		
-internal/client/periodic_timer_test.go	TestPeriodicTimer	todo		
+internal/client/binding_test.go	TestBindingManager	named	test_binding_manager_number_assignment	
+internal/client/periodic_timer_test.go	TestPeriodicTimer	named	test_relay_refresh_timers_run_on_injected_time	
 internal/client/permission_test.go	TestPermission	todo		
 internal/client/permission_test.go	TestPermissionMap	todo		
-internal/client/tcp_conn_test.go	TestTCPConn	todo		
-internal/client/tcp_conn_test.go	TestTCPAllocationServerTCPAddrPreservesZone	todo		
-internal/client/trylock_test.go	TestTryLock	todo		
-internal/client/udp_conn_test.go	TestUDPConn	todo		
+internal/client/tcp_conn_test.go	TestTCPConn	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/client/tcp_conn_test.go	TestTCPAllocationServerTCPAddrPreservesZone	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/client/trylock_test.go	TestTryLock	na		Go sync primitive
+internal/client/udp_conn_test.go	TestUDPConn	na		net.PacketConn adapter; the sans-I/O client has no connection object
 internal/client/udp_conn_test.go	TestCreatePermissions	todo		
-internal/proto/addr_test.go	TestAddr_FromUDPAddr	todo		
+internal/proto/addr_test.go	TestAddr_FromUDPAddr	named	test_addr_from_socket_addr	
 internal/proto/addr_test.go	TestAddr_EqualIP	named	test_addr_equal_ip	
 internal/proto/addr_test.go	TestFiveTuple_Equal	named	test_five_tuple_equal	
 internal/proto/addr_test.go	TestFiveTuple_String	named	test_five_tuple_string	
@@ -89,36 +89,36 @@ internal/proto/chandata_test.go	TestChannelData_Decode	named	test_channel_data_d
 internal/proto/chandata_test.go	TestChannelData_Reset	named	test_channel_data_reset	
 internal/proto/chandata_test.go	TestIsChannelData	named	test_is_channel_data	
 internal/proto/chandata_test.go	TestChromeChannelData	named	test_chrome_channel_data	
-internal/proto/chann_test.go	TestChannelNumber	todo		
-internal/proto/chann_test.go	TestChannelNumber_Valid	todo		
+internal/proto/chann_test.go	TestChannelNumber	named	test_channel_number_string	
+internal/proto/chann_test.go	TestChannelNumber_Valid	named	channel_numbers_are_validated	
 internal/proto/chrome_test.go	TestChromeAllocRequest	named	test_chrome_alloc_request	
-internal/proto/data_test.go	TestData	todo		
-internal/proto/dontfrag_test.go	TestDontFragment	todo		
-internal/proto/evenport_test.go	TestEvenPort	todo		
-internal/proto/lifetime_test.go	TestLifetime	todo		
+internal/proto/data_test.go	TestData	named	test_data_add_to	
+internal/proto/dontfrag_test.go	TestDontFragment	named	test_dont_fragment_add_to	
+internal/proto/evenport_test.go	TestEvenPort	named	test_even_port_add_to	
+internal/proto/lifetime_test.go	TestLifetime	named	test_lifetime_add_to	
 internal/proto/peeraddr_test.go	TestPeerAddress	named	test_peer_address	
 internal/proto/relayedaddr_test.go	TestRelayedAddress	named	test_relayed_address	
-internal/proto/reqfamily_test.go	TestRequestedAddressFamily	todo		
-internal/proto/reqtrans_test.go	TestRequestedTransport	todo		
+internal/proto/reqfamily_test.go	TestRequestedAddressFamily	named	test_requested_address_family_add_to	
+internal/proto/reqtrans_test.go	TestRequestedTransport	named	test_requested_transport_add_to	
 internal/proto/rsrvtoken_test.go	TestReservationToken	named	test_reservation_token	
-internal/proto/stun_conn_test.go	TestStunConn	todo		
-internal/proto/stun_conn_test.go	TestConsumeSingleTURNFrame	todo		
-internal/server/base36_test.go	TestBase36	todo		
-internal/server/nonce_test.go	TestNonceHash	todo		
-internal/server/turn_test.go	TestAllocationLifeTime	todo		
-internal/server/turn_test.go	TestRequestedTransport	todo		
-internal/server/turn_test.go	TestConnectRequest	todo		
-internal/server/turn_test.go	TestConnectionBindRequest	todo		
-internal/server/turn_test.go	TestRequestedAddressFamilyIPv6	todo		
-internal/server/turn_test.go	TestAllocateDefaultAddressFamilyFromListener	todo		
-internal/server/turn_test.go	TestRequestedAddressFamilyUnsupported	todo		
-internal/server/turn_test.go	TestRequestedAddressFamilyMutualExclusivity	todo		
-internal/server/turn_test.go	TestHandleRefreshRequestRequestedAddressFamilyMismatch	todo		
-internal/server/turn_test.go	TestIPMatchesFamily	todo		
-internal/server/turn_test.go	TestHandleCreatePermissionRequest	todo		
-internal/server/turn_test.go	TestHandleSendIndication	todo		
-internal/server/turn_test.go	TestHandleChannelBindRequest	todo		
-internal/server/turn_test.go	TestHandleAllocationRequest	todo		
-internal/server/turn_test.go	TestHandleDuplicateAllocationRequest	todo		
-internal/server/turn_test.go	TestHandleChannelData	todo		
-internal/server/turn_test.go	TestConnectRequestPermissionDenied	todo		
+internal/proto/stun_conn_test.go	TestStunConn	named	stun_message_waits_for_its_whole_length	
+internal/proto/stun_conn_test.go	TestConsumeSingleTURNFrame	named	channel_data_over_tcp_is_padded	
+internal/server/base36_test.go	TestBase36	na		pion's base36 nonce encoding; nonces here are HMAC-stamped (nonces_are_verifiable_and_expire)
+internal/server/nonce_test.go	TestNonceHash	named	nonces_are_verifiable_and_expire	
+internal/server/turn_test.go	TestAllocationLifeTime	named	a_requested_lifetime_is_granted_up_to_the_maximum	
+internal/server/turn_test.go	TestRequestedTransport	named	allocate_needs_a_transport_and_it_must_be_udp	
+internal/server/turn_test.go	TestConnectRequest	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/server/turn_test.go	TestConnectionBindRequest	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
+internal/server/turn_test.go	TestRequestedAddressFamilyIPv6	named	the_rust_client_asks_for_an_address_family	
+internal/server/turn_test.go	TestAllocateDefaultAddressFamilyFromListener	named	an_unmentioned_family_follows_the_listener	
+internal/server/turn_test.go	TestRequestedAddressFamilyUnsupported	named	a_wildcard_listener_follows_the_client_and_strict_mode_is_ipv4	
+internal/server/turn_test.go	TestRequestedAddressFamilyMutualExclusivity	named	a_token_excludes_a_family_and_an_even_port	
+internal/server/turn_test.go	TestHandleRefreshRequestRequestedAddressFamilyMismatch	named	refresh_may_not_change_the_family	
+internal/server/turn_test.go	TestIPMatchesFamily	named	a_relay_address_outside_the_family_is_rejected_by_validate	
+internal/server/turn_test.go	TestHandleCreatePermissionRequest	named	create_permission_takes_several_peers	
+internal/server/turn_test.go	TestHandleSendIndication	named	a_permissioned_peer_can_be_sent_to_with_a_send_indication	
+internal/server/turn_test.go	TestHandleChannelBindRequest	named	a_channel_and_a_peer_pair_up_one_to_one	
+internal/server/turn_test.go	TestHandleAllocationRequest	named	allocate_binds_a_relay_then_answers	
+internal/server/turn_test.go	TestHandleDuplicateAllocationRequest	named	a_second_allocate_on_the_same_five_tuple_is_a_mismatch	
+internal/server/turn_test.go	TestHandleChannelData	named	channel_data_flows_both_ways_once_bound	
+internal/server/turn_test.go	TestConnectRequestPermissionDenied	gap		RFC 6062 TCP allocations (Connect/ConnectionBind) are not implemented
