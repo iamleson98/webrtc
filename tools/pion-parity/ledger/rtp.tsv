@@ -175,19 +175,19 @@ codecs/h265_packet_test.go	TestH265Payloader_Payload_VPS_SPS_PPS_before_fragment
 codecs/h265_packet_test.go	TestH265Payloader_Payload_SkipAggregation	todo		
 codecs/h265_packet_test.go	TestH265Packetizer_Fragmented	todo		
 codecs/h265_packet_test.go	TestH265Depacketizer_Roundtrip	todo		
-codecs/h266_packet_test.go	TestH266_AggregationRoundtrip	todo		
-codecs/h266_packet_test.go	TestH266_AggregationHeader	todo		
-codecs/h266_packet_test.go	TestH266_AggregationMalformed	todo		
-codecs/h266_packet_test.go	TestH266_AggregationDONL	todo		
-codecs/h266_packet_test.go	TestH266_FragmentationRoundtrip	todo		
-codecs/h266_packet_test.go	TestH266_FragmentationHeader	todo		
-codecs/h266_packet_test.go	TestH266_FragmentationEdgeCase	todo		
-codecs/h266_packet_test.go	TestH266_PacketParsing	todo		
-codecs/h266_packet_test.go	TestH266_PacketRoundtrip	todo		
-codecs/h266_packet_test.go	TestH266Packetizer_Single	todo		
-codecs/h266_packet_test.go	TestH266Packetizer_Aggregated	todo		
-codecs/h266_packet_test.go	TestH266Packetizer_Fragmented	todo		
-codecs/h266_packet_test.go	TestH266Depacketizer_Roundtrip	todo		
+codecs/h266_packet_test.go	TestH266_AggregationRoundtrip	rust	test_h266_aggregation_roundtrip	
+codecs/h266_packet_test.go	TestH266_AggregationHeader	rust	test_h266_aggregation_header	
+codecs/h266_packet_test.go	TestH266_AggregationMalformed	rust	test_h266_aggregation_malformed	
+codecs/h266_packet_test.go	TestH266_AggregationDONL	rust	test_h266_aggregation_donl	
+codecs/h266_packet_test.go	TestH266_FragmentationRoundtrip	rust	test_h266_fragmentation_roundtrip	
+codecs/h266_packet_test.go	TestH266_FragmentationHeader	rust	test_h266_fragmentation_header	
+codecs/h266_packet_test.go	TestH266_FragmentationEdgeCase	rust	test_h266_fragmentation_edge_case	
+codecs/h266_packet_test.go	TestH266_PacketParsing	rust	test_h266_packet_parsing	
+codecs/h266_packet_test.go	TestH266_PacketRoundtrip	rust	test_h266_packet_roundtrip	
+codecs/h266_packet_test.go	TestH266Packetizer_Single	rust	test_h266_packetizer_single	
+codecs/h266_packet_test.go	TestH266Packetizer_Aggregated	rust	test_h266_packetizer_aggregated	
+codecs/h266_packet_test.go	TestH266Packetizer_Fragmented	rust	test_h266_packetizer_fragmented	
+codecs/h266_packet_test.go	TestH266Depacketizer_Roundtrip	rust	test_h266_depacketizer_roundtrip	
 codecs/opus_packet_test.go	TestOpusPacket_Unmarshal	todo		
 codecs/opus_packet_test.go	TestOpusPayloader_Payload	todo		
 codecs/opus_packet_test.go	TestOpusIsPartitionHead	named	test_opus_is_partition_head	
