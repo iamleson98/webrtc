@@ -1,0 +1,399 @@
+# file	test	status	ref	note   (see tools/pion-parity/parity.py)
+active_tcp_test.go	TestActiveTCP	todo		
+active_tcp_test.go	TestActiveTCP_NonBlocking	todo		
+active_tcp_test.go	TestActiveTCP_Respect_NetworkTypes	todo		
+active_tcp_test.go	TestNewActiveTCPConn_LocalAddrError_EarlyReturn	todo		
+active_tcp_test.go	TestActiveTCPConn_ReadLoop_BufferWriteError	todo		
+active_tcp_test.go	TestActiveTCPConn_WriteLoop_WriteStreamingError	todo		
+active_tcp_test.go	TestActiveTCPConn_LocalAddr_DefaultWhenUnset	todo		
+active_tcp_test.go	TestActiveTCPConn_SetDeadlines_ReturnEOF	todo		
+active_tcp_test.go	TestActiveTCPConn_SetDeadlines_WhenConnected	todo		
+addr_test.go	TestParseAddrFromIface_ErrFromParseAddr	todo		
+addr_test.go	TestParseAddr_ErrorBranches	todo		
+addr_test.go	TestParseAddr_IPAddr_Success	todo		
+addr_test.go	TestAddrParseError_Error	todo		
+addr_test.go	TestIPConvertError_Error	todo		
+addr_test.go	TestIPAddrToNetIP_Error_InvalidBytes	todo		
+addr_test.go	TestIPAddrToNetIP_OK_IPv4	todo		
+addr_test.go	TestAddrEqual_FirstParseError	todo		
+addr_test.go	TestAddrEqual_SecondParseError	todo		
+addr_test.go	TestAddrEqual_SameTypeIPPort	todo		
+addr_test.go	TestAddrPortEqual	todo		
+addr_test.go	TestAsAddrPortReaderWriter	todo		
+agent_config_test.go	TestAgentConfig_initWithDefaults	todo		
+agent_config_test.go	TestDefaultRelayAcceptanceMinWaitForCandidates	todo		
+agent_get_best_available_candidate_pair_test.go	TestNoBestAvailableCandidatePairAfterAgentConstruction	todo		
+agent_get_best_valid_candidate_pair_test.go	TestAgentGetBestValidCandidatePair	todo		
+agent_handlers_test.go	TestConnectionStateNotifier	todo		
+agent_handlers_test.go	TestHandlerNotifier_Close_AlreadyClosed	todo		
+agent_handlers_test.go	TestHandlerNotifier_EnqueueConnectionState_AfterClose	todo		
+agent_handlers_test.go	TestHandlerNotifier_EnqueueCandidate_AfterClose	todo		
+agent_handlers_test.go	TestHandlerNotifier_EnqueueSelectedCandidatePair_AfterClose	todo		
+agent_on_selected_candidate_pair_change_test.go	TestOnSelectedCandidatePairChange	named	test_on_selected_candidate_pair_change	
+agent_options_test.go	TestDefaultNominationValueGenerator	todo		
+agent_options_test.go	TestWithLite	todo		
+agent_options_test.go	TestWithUrls	todo		
+agent_options_test.go	TestWithPortRange	todo		
+agent_options_test.go	TestWithTimeoutOptions	todo		
+agent_options_test.go	TestICELiteDisconnectedTimeoutDefault	todo		
+agent_options_test.go	TestWithAcceptanceWaitOptions	todo		
+agent_options_test.go	TestWithSTUNGatherTimeout	todo		
+agent_options_test.go	TestWithIPFilterOption	todo		
+agent_options_test.go	TestWithRemoteIPFilterOption	todo		
+agent_options_test.go	TestWithNetOption	todo		
+agent_options_test.go	TestWithMulticastDNSOptions	todo		
+agent_options_test.go	TestWithLocalCredentials	todo		
+agent_options_test.go	TestLocalCredentialsLength	todo		
+agent_options_test.go	TestWithMuxOptions	todo		
+agent_options_test.go	TestWithProxyDialer	todo		
+agent_options_test.go	TestWithMaxBindingRequests	todo		
+agent_options_test.go	TestWithRenomination	todo		
+agent_options_test.go	TestWithNominationAttribute	todo		
+agent_options_test.go	TestWithIncludeLoopback	todo		
+agent_options_test.go	TestWithTCPPriorityOffset	todo		
+agent_options_test.go	TestWithDisableActiveTCP	todo		
+agent_options_test.go	TestWithBindingRequestHandler	todo		
+agent_options_test.go	TestWithEnableUseCandidateCheckPriority	todo		
+agent_options_test.go	TestMultipleConfigOptions	todo		
+agent_options_test.go	TestWithInterfaceFilter	todo		
+agent_options_test.go	TestWithLoggerFactory	todo		
+agent_options_test.go	TestWithNetworkTypesAppliedBeforeRestart	todo		
+agent_options_test.go	TestWithNetworkTypes	todo		
+agent_options_test.go	TestWithTURNTransportProtocols	todo		
+agent_options_test.go	TestWithCandidateTypesAffectsURLValidation	todo		
+agent_options_test.go	TestWithAddressRewriteRulesAccumulatesAndCopies	todo		
+agent_options_test.go	TestWithAddressRewriteRulesOverlapWarnings	todo		
+agent_options_test.go	TestLegacyAddressRewriteTranslationAndOrdering	todo		
+agent_options_test.go	TestWithCandidateTypesValidatesLegacyAddressRewrite	todo		
+agent_options_test.go	TestAddressRewriteMapper	todo		
+agent_options_test.go	TestAddressRewritePortValidation	todo		
+agent_test.go	TestAgentCloseAbortsBlockedCandidateWrite	todo		
+agent_test.go	TestAgentCloseAbortsBlockedSharedCandidateWrite	todo		
+agent_test.go	TestHandlePeerReflexive	todo		
+agent_test.go	TestAddRemoteCandidateStoresCandidatesIndependentlyOfNetworkTypes	todo		
+agent_test.go	TestConnectivityOnStartup	todo		
+agent_test.go	TestConnectivityLite	todo		
+agent_test.go	TestLiteAgentDoesNotSendConnectivityChecks	todo		
+agent_test.go	TestInboundValidity	todo		
+agent_test.go	TestHandleInboundAdditionalCases	todo		
+agent_test.go	TestInvalidAgentStarts	named	test_invalid_agent_starts	
+agent_test.go	TestConnectionStateCallback	named	test_connection_state_callback	
+agent_test.go	TestInvalidGather	named	test_invalid_gather	
+agent_test.go	TestCandidatePairsStats	todo		
+agent_test.go	TestSelectedCandidatePairStats	todo		
+agent_test.go	TestLocalCandidateStats	named	test_local_candidate_stats	
+agent_test.go	TestRemoteCandidateStats	named	test_remote_candidate_stats	
+agent_test.go	TestBindingRequestTimeout	named	test_binding_request_timeout	
+agent_test.go	TestAgentCredentials	named	test_agent_credentials	
+agent_test.go	TestConnectionStateFailedDeleteAllCandidates	named	test_connection_state_failed_delete_all_candidates	
+agent_test.go	TestConnectionStateConnectingToFailed	named	test_connection_state_connecting_to_failed	
+agent_test.go	TestAgentRestart	todo		
+agent_test.go	TestGetRemoteCredentials	named	test_get_remote_credentials	
+agent_test.go	TestGetRemoteCandidates	todo		
+agent_test.go	TestRemoteIPFilterInAddRemoteCandidate	todo		
+agent_test.go	TestAddRemoteCandidateHonorsRemoteIPFilter	todo		
+agent_test.go	TestAddVirtualCandidateRegistersExternalRelay	todo		
+agent_test.go	TestAddVirtualCandidateRejectsNilPacketConn	todo		
+agent_test.go	TestAddVirtualCandidateRejectsDuplicateWithoutClosing	todo		
+agent_test.go	TestAddCandidateClosesDuplicate	todo		
+agent_test.go	TestGetLocalCandidates	todo		
+agent_test.go	TestLiteLocalCandidatePrioritiesAreUnique	todo		
+agent_test.go	TestCloseInConnectionStateCallback	named	test_close_in_connection_state_callback	
+agent_test.go	TestRunTaskInConnectionStateCallback	named	test_run_task_in_connection_state_callback	
+agent_test.go	TestRunTaskInSelectedCandidatePairChangeCallback	named	test_run_task_in_selected_candidate_pair_change_callback	
+agent_test.go	TestLiteLifecycle	named	test_lite_lifecycle	
+agent_test.go	TestValidateSelectedPairTransitions	todo		
+agent_test.go	TestNilCandidate	todo		
+agent_test.go	TestNilCandidatePair	todo		
+agent_test.go	TestGetSelectedCandidatePair	todo		
+agent_test.go	TestAcceptAggressiveNomination	todo		
+agent_test.go	TestAgentGracefulCloseDeadlock	todo		
+agent_test.go	TestSetCandidatesUfrag	todo		
+agent_test.go	TestAddingCandidatesFromOtherGenerations	todo		
+agent_test.go	TestAlwaysSentKeepAlive	todo		
+agent_test.go	TestRoleConflict	todo		
+agent_test.go	TestRoleConflictErrorResponse	todo		
+agent_test.go	TestDefaultCandidateTypes	todo		
+agent_test.go	TestDefaultRelayAcceptanceMinWaitFor	todo		
+agent_test.go	TestAgentConfig_initWithDefaults_UsesProvidedValues	todo		
+agent_test.go	TestAutomaticRenominationWithVNet	todo		
+agent_test.go	TestAutomaticRenominationRTTImprovement	todo		
+agent_test.go	TestAutomaticRenominationRelayToDirect	todo		
+agent_test.go	TestAgentUpdateOptions	todo		
+agent_test.go	TestRemoteDialIPForLocalInterface	todo		
+agent_test.go	TestMDNSQueryTimeout	todo		
+agent_test.go	TestAddRemoteCandidateIndependentFromTURNTransportSelection	todo		
+agent_test.go	TestMDNSLocalAddressFromTCPMux	todo		
+agent_udpmux_test.go	TestMuxAgentPreservesPrecreatedConn	todo		
+agent_udpmux_test.go	TestMuxAgent	todo		
+candidate_relay_test.go	TestRelayOnlyConnection	named	test_relay_only_connection	
+candidate_server_reflexive_test.go	TestServerReflexiveOnlyConnection	named	test_server_reflexive_only_connection	
+candidate_test.go	TestCandidateTypePreference	todo		
+candidate_test.go	TestCandidatePriority	named	test_candidate_priority	
+candidate_test.go	TestCandidateLastSent	named	test_candidate_last_sent	
+candidate_test.go	TestCandidateLastReceived	named	test_candidate_last_received	
+candidate_test.go	TestCandidateFoundation	named	test_candidate_foundation	
+candidate_test.go	TestCandidateMarshal	named	test_candidate_marshal	
+candidate_test.go	TestUnmarshalCandidateNumericBounds	todo		
+candidate_test.go	TestCandidateWriteTo	todo		
+candidate_test.go	TestMarshalUnmarshalCandidateWithZoneID	todo		
+candidate_test.go	TestCandidateExtensionsMarshal	todo		
+candidate_test.go	TestCandidateExtensionsDeepEqual	todo		
+candidate_test.go	TestUnmarshalCandidateExtensions	todo		
+candidate_test.go	TestCandidateGetExtension	todo		
+candidate_test.go	TestBaseCandidateMarshalExtensions	todo		
+candidate_test.go	TestBaseCandidateExtensionsEqual	todo		
+candidate_test.go	TestCandidateAddExtension	todo		
+candidate_test.go	TestCandidateRemoveExtension	todo		
+candidatepair_test.go	TestCandidatePairPriority	named	test_candidate_pair_priority	
+candidatepair_test.go	TestCandidatePairEquality	named	test_candidate_pair_equality	
+candidatepair_test.go	TestNilCandidatePairString	todo		
+candidatepair_test.go	TestCandidatePairState_String	todo		
+candidatepair_test.go	TestCandidatePairEqual_NilCases	todo		
+candidatepair_test.go	TestCandidatePair_TimeGetters_DefaultZero	todo		
+candidatepair_test.go	TestCandidatePair_ID	todo		
+candidatepair_test.go	TestCandidatePairPacketTimestamps	todo		
+candidatetype_test.go	TestCandidateType_String_KnownCases	todo		
+candidatetype_test.go	TestCandidateType_String_Default	todo		
+candidatetype_test.go	TestCandidateType_Preference_DefaultCase	todo		
+candidatetype_test.go	TestContainsCandidateType_NilSlice	todo		
+connectivity_vnet_test.go	TestConnectivityVNet	todo		
+connectivity_vnet_test.go	TestConnectivityVNetWithAddressRewriteRuleOptions	todo		
+connectivity_vnet_test.go	TestAddressRewriteSystem	todo		
+connectivity_vnet_test.go	TestConnectivityVNetNAT1To1SharedFoundation	todo		
+connectivity_vnet_test.go	TestDisconnectedToConnected	todo		
+connectivity_vnet_test.go	TestWriteUseValidPair	todo		
+ecn_unix_test.go	TestECN	todo		
+gather_test.go	TestConfiguredNetworkTypes	todo		
+gather_test.go	TestEffectiveURLProtoType	todo		
+gather_test.go	TestListenUDP	todo		
+gather_test.go	TestGatherConcurrency	todo		
+gather_test.go	TestAgentRestartThenGatherRepeatedly	todo		
+gather_test.go	TestCompleteGatheringIgnoresOldGeneration	todo		
+gather_test.go	TestContinualRegatherKeepsGeneration	todo		
+gather_test.go	TestLoopbackCandidate	todo		
+gather_test.go	TestSTUNConcurrency	todo		
+gather_test.go	TestTURNConcurrency	todo		
+gather_test.go	TestSTUNTURNConcurrency	todo		
+gather_test.go	TestTURNSrflx	todo		
+gather_test.go	TestGatherCandidatesRelayProducesRelay	todo		
+gather_test.go	TestGatherCandidatesRelayCallsAddRelayCandidates	todo		
+gather_test.go	TestGatherCandidatesRelayRespectsInterfaceFilter	todo		
+gather_test.go	TestGatherCandidatesRelayRespectsNetworkTypeAndTransport	todo		
+gather_test.go	TestGatherCandidatesRelayDefaultClientError	todo		
+gather_test.go	TestCloseConnLog	todo		
+gather_test.go	TestTURNProxyDialer	todo		
+gather_test.go	TestGatherCandidatesRelayTURNOverTCPProducesUDPRelayCandidate	todo		
+gather_test.go	TestGatherCandidatesRelayProxySkipsTURNResolution	todo		
+gather_test.go	TestGatherCandidatesLocalUDPMux	todo		
+gather_test.go	TestGatherCandidatesSrflxUDPMux	todo		
+gather_test.go	TestGatherCandidatesSrflxRespectsInterfaceFilter	todo		
+gather_test.go	TestGatherCandidatesSrflxUDPMuxRespectsURLTransport	todo		
+gather_test.go	TestMultiUDPMuxUsage	todo		
+gather_test.go	TestAddRelayCandidatesWithRewrite	todo		
+gather_test.go	TestResolveAddressRewriteRespectsInterface	todo		
+gather_test.go	TestGatherAddressRewriteAppendHostMux	todo		
+gather_test.go	TestCreateRelayCandidateErrorPaths	todo		
+gather_test.go	TestGatherCandidatesLocalTCPMuxSkipsUnboundInterfaces	todo		
+gather_test.go	TestGatherCandidatesLocalHostErrorPaths	todo		
+gather_test.go	TestMultiTCPMuxUsage	todo		
+gather_test.go	TestUniversalUDPMuxUsage	todo		
+gather_test.go	TestShouldFilterLocationTrackedIP	todo		
+gather_test.go	TestShouldFilterLocationTracked	todo		
+gather_test.go	TestContinualGatheringPolicy	todo		
+gather_test.go	TestNetworkChangeDetection	todo		
+gather_test.go	TestContinualGatheringPolicyString	todo		
+gather_test.go	TestGatherUsesStartingUfragAcrossRestart	todo		
+gather_test.go	TestTURNContext	todo		
+gather_test.go	TestAddressRewritePortSrflx	todo		
+gather_test.go	TestAddressRewritePort	todo		
+gather_vnet_test.go	TestVNetGather	todo		
+gather_vnet_test.go	TestVNetGatherNAT1To1SocketAddresses	todo		
+gather_vnet_test.go	TestGatherAddressRewriteSrflxModes	todo		
+gather_vnet_test.go	TestVNetGatherWithInterfaceFilter	todo		
+gather_vnet_test.go	TestGatherRelayWithVNet	todo		
+gather_vnet_test.go	TestVNetGather_TURNConnectionLeak	todo		
+ice_test.go	TestConnectedState_String	named	test_connected_state_string	
+ice_test.go	TestGatheringState_String	named	test_gathering_state_string	
+icecontrol_test.go	TestControlled_GetFrom	named	test_controlled_get_from	
+icecontrol_test.go	TestControlling_GetFrom	named	test_controlling_get_from	
+icecontrol_test.go	TestControl_GetFrom	named	test_control_get_from	
+mdns_test.go	TestMulticastDNSOnlyConnection	named	test_multicast_dns_only_connection	
+mdns_test.go	TestMulticastDNSMixedConnection	named	test_multicast_dns_mixed_connection	
+mdns_test.go	TestMulticastDNSStaticHostName	named	test_multicast_dns_static_host_name	
+mdns_test.go	TestGenerateMulticastDNSName	todo		
+net_test.go	TestIsSupportedIPv6Partial	todo		
+net_test.go	TestCreateAddr	todo		
+net_test.go	TestLocalInterfaces_ErrorFromInterfaces	todo		
+net_test.go	TestLocalInterfaces_SkipInterfaceDown	todo		
+net_test.go	TestLocalInterfaces_SkipLoopbackAddrs_WhenIncludeLoopbackFalse	todo		
+net_test.go	TestListenUDPInPortRange_DefaultsPortMinTo1024	todo		
+net_test.go	TestListenUDPInPortRange_BailsOnEADDRNOTAVAIL	todo		
+net_test.go	TestListenUDPInPortRange_ContinuesOnPortBusyError	todo		
+net_test.go	TestListenUDPInPortRange_RealEADDRNOTAVAIL	todo		
+net_test.go	TestListenUDPInPortRange_DefaultsPortMaxToFFFF	todo		
+networktype_test.go	TestNetworkTypeParsing_Success	named	test_network_type_parsing_success	
+networktype_test.go	TestNetworkTypeParsing_Failure	named	test_network_type_parsing_failure	
+networktype_test.go	TestNetworkTypeIsUDP	named	test_network_type_is_udp	
+networktype_test.go	TestNetworkTypeIsTCP	named	test_network_type_is_tcp	
+networktype_test.go	TestNetworkType_String_Default	todo		
+networktype_test.go	TestNetworkType_NetworkShort_Default	todo		
+networktype_test.go	TestNetworkType_IPvFlags_Default	todo		
+networktype_test.go	TestNetworkType_IsReliable	todo		
+priority_test.go	TestPriority_GetFrom	named	test_priority_get_from	
+rand_test.go	TestRandomGeneratorCollision	named	test_random_generator_collision	
+renomination_test.go	TestNominationAttribute	todo		
+renomination_test.go	TestRenominationConfiguration	todo		
+renomination_test.go	TestControlledSelectorNominationAcceptance	todo		
+renomination_test.go	TestControlledSelectorNominationDisabled	todo		
+renomination_test.go	TestAgentRenominateCandidate	todo		
+renomination_test.go	TestSendNominationRequest	todo		
+renomination_test.go	TestRenominationErrorCases	todo		
+renomination_test.go	TestNominationValueBoundaries	todo		
+renomination_test.go	TestControlledSelectorWithActualSTUNMessages	todo		
+renomination_test.go	TestInvalidRenominationConfig	todo		
+renomination_test.go	TestAgentWithCustomNominationAttribute	todo		
+role_test.go	TestUnmarshalText_Success	todo		
+role_test.go	TestUnmarshalText_UnknownKeepsValueAndErrors	todo		
+role_test.go	TestMarshalText	todo		
+role_test.go	TestString	todo		
+selection_test.go	TestBindingRequestHandler	todo		
+selection_test.go	TestControllingSelector_IsNominatable_LogsInvalidType	todo		
+selection_test.go	TestControllingSelector_NominatePair_BuildError	todo		
+selection_test.go	TestControllingSelector_PingCandidate_BuildError	todo		
+selection_test.go	TestControlledSelector_PingCandidate_BuildError	todo		
+selection_test.go	TestControlledSelector_HandleSuccessResponse_UnknownTxID	todo		
+selection_test.go	TestResponseSymmetric	todo		
+selection_test.go	TestHandleSuccessResponse_AsymmetricDiscarded	todo		
+selection_test.go	TestControlledSelector_NoTriggeredCheckAfterConnected	todo		
+selection_test.go	TestControlledSelector_TriggeredCheckDuringChecking	todo		
+selection_test.go	TestAutomaticRenomination	todo		
+selection_test.go	TestAutomaticRenominationIntegration	todo		
+selection_test.go	TestKeepAliveCandidatesForRenomination	todo		
+selection_test.go	TestRenominationAcceptance	todo		
+selection_test.go	TestControllingSideRenomination	todo		
+selection_test.go	TestLiteControllingSelectorContactCandidates	todo		
+selection_test.go	TestLiteControlledSelector_NoPingCandidate	todo		
+selection_test.go	TestLiteMode_FullToLite_Integration	todo		
+selection_test.go	TestLiteMode_LiteControlling_Integration	todo		
+selection_test.go	TestBindingRequestPriorityAttr	todo		
+shared_packet_conn_test.go	TestSharedPacketConn_RefcountClose	todo		
+shared_packet_conn_test.go	TestSharedPacketConn_DoubleCloseIdempotent	todo		
+shared_packet_conn_test.go	TestSharedPacketConn_CloseUnblocksOwnReadWithoutTouchingSiblings	todo		
+shared_packet_conn_test.go	TestSharedPacketConn_ConcurrentLastCloserOnlyClosesUnderlying	todo		
+shared_packet_conn_test.go	TestSharedPacketConn_SetReadDeadlineIsolated	todo		
+shared_packet_conn_test.go	TestSharedPacketConn_ReadWriteAfterCloseReturnsClosed	todo		
+sped_test.go	TestDtlsInStunAttribute_GetFrom	todo		
+sped_test.go	TestDtlsInStunAttribute_AddTo	todo		
+sped_test.go	TestDtlsInStunAckAttribute_GetFrom	todo		
+sped_test.go	TestDtlsInStunAckAttribute_AddTo	todo		
+sync_test.go	TestUDPMuxWriteWatchdogIdleClose	todo		
+sync_test.go	TestAgentCloseAbortsBlockedUDPMuxWrite	todo		
+sync_test.go	TestAgentCloseAbortsBlockedUDPMuxSrflxGatherWrite	todo		
+sync_test.go	TestAgentCloseDoesNotAbortOtherAgentUDPMuxSrflxGatherWrite	todo		
+sync_test.go	TestAgentCloseClearsSharedUDPMuxAbortDeadlineForOtherAgent	todo		
+tcp_mux_multi_test.go	TestMultiTCPMux_Recv	todo		
+tcp_mux_multi_test.go	TestMultiTCPMux_NoDeadlockWhenClosingUnusedPacketConn	todo		
+tcp_mux_multi_test.go	TestMultiTCPMux_GetConnByUfrag_NoMuxes	todo		
+tcp_mux_multi_test.go	TestMultiTCPMux_GetConnByUfrag_FromAnyMux	todo		
+tcp_mux_multi_test.go	TestMultiTCPMux_GetAllConns_NoMuxes	todo		
+tcp_mux_multi_test.go	TestMultiTCPMux_Close_PropagatesError_FromWrappedMux	todo		
+tcp_mux_multi_test.go	TestMultiTCPMux_Close_LastErrorWins_FromWrappedMuxes	todo		
+tcp_mux_test.go	TestTCPMux_Recv	todo		
+tcp_mux_test.go	TestTCPMux_NoDeadlockWhenClosingUnusedPacketConn	todo		
+tcp_mux_test.go	TestTCPMux_FirstPacketTimeout	todo		
+tcp_mux_test.go	TestTCPMux_NoLeakForConnectionFromStun	todo		
+tcp_mux_test.go	TestTCPMux_GetConnByUfrag_SharedRefcount	todo		
+tcp_packet_conn_test.go	TestBufferedConn_Write_ErrorAfterClose	todo		
+tcp_packet_conn_test.go	TestBufferedConn_writeProcess_ReadError	todo		
+tcp_packet_conn_test.go	TestBufferedConn_writeProcess_WriteError	todo		
+tcp_packet_conn_test.go	TestTCPPacketConn_AddConn_ReturnsClosed	todo		
+tcp_packet_conn_test.go	TestTCPPacketConn_AddConn_DuplicateRemoteAddr	todo		
+tcp_packet_conn_test.go	TestTCPPacketConn_AddConn_FirstPacket_BailsOnClosed	todo		
+tcp_packet_conn_test.go	TestTCPPacketConn_ReadFrom_ShortBuffer	todo		
+tcp_packet_conn_test.go	TestTCPPacketConn_WriteTo_ErrorBranch_WithProvidedMock	todo		
+tcp_packet_conn_test.go	TestTCPPacketConn_SetDeadlines	todo		
+tcp_packet_conn_test.go	TestTCPPacketConn_String	todo		
+tcptype_test.go	TestTCPType	named	test_tcp_type	
+transport_filtering_matrix_test.go	TestTransportFilteringRelayMatrix	todo		
+transport_filtering_matrix_test.go	TestTransportFilteringSrflxMatrix	todo		
+transport_filtering_matrix_test.go	TestTransportFilteringHostMatrix	todo		
+transport_filtering_matrix_test.go	TestTransportFilteringRelayTCPOnlyFirewallUDPRelayConfigTURNTCP	todo		
+transport_test.go	TestStressDuplex	todo		
+transport_test.go	TestTimeout	todo		
+transport_test.go	TestReadClosed	todo		
+transport_test.go	TestConnDeadlines	todo		
+transport_test.go	TestConnStats	todo		
+transport_test.go	TestAgent_connect_ErrEarly	todo		
+transport_test.go	TestConn_Write_RejectsSTUN	todo		
+transport_test.go	TestStartDialConnWriteBeforeConnectReturnsError	todo		
+transport_test.go	TestConn_GetCandidatePairsInfo	todo		
+transport_test.go	TestConn_WriteToPair_InvalidID	todo		
+transport_test.go	TestConn_WriteToPair_NotSucceeded	todo		
+transport_test.go	TestConn_WriteToPair_RejectsSTUN	todo		
+transport_test.go	TestConn_WriteToPair_Success	todo		
+transport_test.go	TestUDPConnReadWriteDoesNotAllocate	todo		
+transport_test.go	TestConnWriteDoesNotAllocateOverStandardPacketConn	todo		
+transport_test.go	TestCustomTCPMuxAddrPortCapability	todo		
+transport_vnet_test.go	TestRemoteLocalAddr	todo		
+udp_mux_multi_test.go	TestMultiUDPMux	todo		
+udp_mux_multi_test.go	TestUnspecifiedUDPMux	todo		
+udp_mux_multi_test.go	TestMultiUDPMux_GetConn_NoUDPMuxAvailable	todo		
+udp_mux_multi_test.go	TestMultiUDPMux_Close_PropagatesError	todo		
+udp_mux_multi_test.go	TestMultiUDPMux_Close_LastErrorWins	todo		
+udp_mux_multi_test.go	TestUDPMuxFromPortOptions_Apply	todo		
+udp_mux_multi_test.go	TestNewMultiUDPMuxFromPort_PortInUse_ListenErrorAndCleanup	todo		
+udp_mux_multi_test.go	TestNewMultiUDPMuxFromPort_Success_SetsBuffers	todo		
+udp_mux_multi_test.go	TestNewMultiUDPMuxFromPort_CleanupClosesAll	todo		
+udp_mux_test.go	TestUDPMux	todo		
+udp_mux_test.go	TestUDPMuxOnUnhandledPacket	todo		
+udp_mux_test.go	TestUDPMux_Agent_Restart	todo		
+udp_mux_test.go	TestUDPMuxedConn_ReadFrom	todo		
+udp_mux_test.go	TestUDPMuxedConn_ReadFrom_EOFAfterClose	todo		
+udp_mux_test.go	TestUDPMuxedConn_ReadFrom_WaitingThenClosedEOF	todo		
+udp_mux_test.go	TestUDPMuxedConn_TwoReadersWokenByTwoWrites	todo		
+udp_mux_test.go	TestUDPMuxedConn_WriteTo_ClosedPipe	todo		
+udp_mux_test.go	TestUDPMuxedConn_WriteTo_BadAddrType	todo		
+udp_mux_test.go	TestUDPMuxedConn_WriteTo_InvalidIP	todo		
+udp_mux_test.go	TestUDPMuxedConn_WriteTo_InvalidPort	todo		
+udp_mux_test.go	TestUDPMuxedConn_SetDeadlines	todo		
+udp_mux_test.go	TestUDPMuxedConn_removeAddress	todo		
+udp_mux_test.go	TestUDPMuxedConn_writePacket_ShortBuffer	todo		
+udp_mux_test.go	TestUDPMuxedConn_writePacket_ClosedState	todo		
+udp_mux_test.go	TestUDPMuxedConn_writePacket_NotifyDefaultBranch	todo		
+udp_mux_test.go	TestNewUDPMuxDefault_LocalAddrNotUDPAddr	todo		
+udp_mux_test.go	TestUDPMuxDefault_GetConn_InvalidAddress	todo		
+udp_mux_test.go	TestUDPMuxDefault_registerConnForAddress_ClosedMuxEarlyReturn	todo		
+udp_mux_test.go	TestUDPMuxDefault_registerConnForAddress_ReplacesExisting	todo		
+udp_mux_test.go	TestUDPMuxDefault_abortWriteBlocksNewWritesUntilDeadlineCleared	todo		
+udp_mux_test.go	TestUDPMux_connWorker_AddrNotUDP	todo		
+udp_mux_test.go	TestUDPMux_connWorker_ReadError_Timeout	todo		
+udp_mux_test.go	TestUDPMux_connWorker_InvalidSrcIP	todo		
+udp_mux_test.go	TestUDPMux_connWorker_STUNDecodeError	todo		
+udp_mux_test.go	TestUDPMux_connWorker_STUNNoUsername	todo		
+udp_mux_test.go	TestUDPMux_connWorker_WritePacketError	todo		
+udp_mux_test.go	TestUDPMux_GetConn_SharedRefcount	todo		
+udp_mux_test.go	TestUDPMux_AddrPortReadWrite	todo		
+udp_mux_test.go	TestUDPMuxGetConnAddrPortCapability	todo		
+udp_mux_test.go	TestUDPMuxDefault_GetListenAddresses_ReflectsInterfaceChanges	todo		
+udp_mux_test.go	TestNewUDPMuxDefault_UnspecifiedAddr_AutoInitNet	todo		
+udp_mux_universal_test.go	TestUniversalUDPMux_QueuedSTUNDuringInitialization	todo		
+udp_mux_universal_test.go	TestUniversalUDPMux	todo		
+udp_mux_universal_test.go	TestUniversalUDPMux_GetConnForURL_UniquePerURL	todo		
+udp_mux_universal_test.go	Test_udpConn_ReadFrom_STUNDecodeError	todo		
+udp_mux_universal_test.go	Test_udpConn_ReadFrom_AddrNotUDP	todo		
+udp_mux_universal_test.go	Test_udpConn_ReadFrom_NonSTUN	todo		
+udp_mux_universal_test.go	TestUniversalUDPMux_handleXORMappedResponse_RoutesByTransactionAndServer	todo		
+udp_mux_universal_test.go	TestUniversalUDPMux_GetXORMappedAddr_CustomAddrCacheKey	todo		
+udp_mux_universal_test.go	TestUniversalUDPMux_GetXORMappedAddr_Pending_WriteError	todo		
+udp_mux_universal_test.go	TestUniversalUDPMux_GetXORMappedAddr_ConcurrentTransactions	todo		
+usecandidate_test.go	TestUseCandidateAttr_AddTo	named	test_use_candidate_attr_add_to	
+internal/stun/stun_test.go	TestXORMappedAddrTransactionRunPacketConn	todo		
+internal/stun/stun_test.go	TestXORMappedAddrTransactionRunPacketConnCancelsBlockedWrite	todo		
+internal/stun/stun_test.go	TestXORMappedAddrTransactionRunPacketConnCancelsBlockedRead	todo		
+internal/stun/stun_test.go	TestXORMappedAddrTransactionDiscardsUnrelatedResponses	todo		
+internal/stun/stun_test.go	TestXORMappedAddrTransactionReportsErrorResponse	todo		
+internal/stun/stun_test.go	TestXORMappedAddrTransactionPrefersCanceledContextToSendError	todo		
+internal/stun/stun_test.go	TestXORMappedAddrTransactionTimeoutIncludesSend	todo		
+internal/taskloop/taskloop_test.go	TestRunReturnsErrClosedWhenLoopClosing	todo		
+internal/taskloop/taskloop_test.go	TestCloseWithPreStopConcurrentWaits	todo		

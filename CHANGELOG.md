@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- A UDP mux and an ordinary connection no longer create per-SSRC state for unauthenticated SRTP and
+  SRTCP packets (inherited from `rtc`; see its changelog).
+
+### Added
+
+- **CI on Linux and macOS, x86-64 and arm64**, debug and release, tokio and smol, ring and aws-lc-rs;
+  pion interop in both directions on every PR; nightly soak, stress and long-fuzz runs; a release
+  workflow that verifies, then publishes behind an approval gate. See `rtc/docs/ci.md`.
+
+### Changed
+
+- **UDP sockets ask the kernel for 4 MiB send and receive buffers.** The Linux default (about
+  208 KiB) is too small for a sender that emits whole congestion windows with GSO: one 64-datagram
+  burst occupies roughly 150 KiB of the receive queue, a second before the reader runs overflows
+  it, and every dropped datagram is a loss for SCTP to recover from. The kernel clamps the
+  request to `net.core.rmem_max`/`wmem_max`, so asking is harmless; raise those sysctls on a busy
+  server to get the full benefit.
+- The driver flushes writes again after delivering messages to the application, so the window
+  update described in `rtc`'s changelog leaves immediately rather than on the next wake-up.
+- `DataChannel::outstanding_bytes()` and the wait inside `send().await` read the counter through
+  `rtc`'s lock-free handle instead of locking the core on every call, so polling for send room no
+  longer competes with the driver for the lock. The first call per channel still takes the lock once
+  to fetch the handle.
+
+### Added
+
+- `benches/media.rs` and a media mode in the pion twin: RTP forwarding through SRTP and the default
+  interceptors at a fixed rate, compared on CPU time, peak memory and delivery.
+- `benches/pion/compare.py` also compares 200 idle connections (peak RSS and CPU) with pion, and
+  gates on webrtc-rs using no more memory.
+- `benches/throughput_send`: the data-channel transfer written the way most applications write
+  it, with `send().await` against a send-buffer limit instead of polling `outstanding_bytes()`.
+
+### Fixed
+
+- `test_wildcard_mux_uses_arrival_interface` is skipped, rather than failing, on a host that cannot
+  deliver a datagram to its own non-loopback address (a firewalled developer machine); and
+  `test_ephemeral_ports_honor_the_range` draws its port window at random instead of using fixed ports
+  that collide when runs overlap.
+
 ### Added
 
 - **UDP mux — one socket for every connection**, pion's `SetICEUDPMux` + `ice.NewMultiUDPMuxFromPort` (the ice-single-port example). `UdpMux::bind` claims one UDP port once; `PeerConnectionBuilder::with_udp_mux` serves any number of connections from it — the SFU shape, a constant number of file descriptors, kernel receive buffers and wakeups instead of one per connection. A datagram finds its connection by the ICE username fragment of the first connectivity check and stays pinned to that peer's address; a wildcard-bound mux advertises one host candidate per interface and attributes each received datagram to the interface it actually arrived on. With a mux set the connection binds no UDP sockets of its own, re-registers its fragment on every ICE-restart rebind, and stray datagrams are dropped and counted without taxing anyone's connection. The [ice-single-port] example mirrors pion's: one signaling port, many PeerConnections, all answering on one UDP port.

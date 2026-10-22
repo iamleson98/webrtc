@@ -303,6 +303,35 @@ We welcome your input as `v0.20.x` and `v0.21.x` grow:
 **New projects:** start on `v0.21.0`.  
 **Hit a gap?** Open an issue — reports of what is missing directly shape what we prioritise before `1.0`.
 
+## Supported Platforms
+
+Linux and macOS, x86-64 and arm64, are first-class: every pull request is built and tested on all
+four, with tokio and smol, with both crypto providers, and against pion over real sockets
+(`interop/run.sh`). The minimum supported Rust version is **1.91**. See
+[rtc/docs/ci.md](rtc/docs/ci.md).
+
+## Performance against pion
+
+`benches/pion/compare.py` runs the same whole-connection benchmarks against webrtc-rs and against
+[pion](https://github.com/pion/webrtc) (a Go twin in `benches/pion/main.go`) and fails when
+webrtc-rs falls behind; CI runs it on Linux and macOS. Measured on an Apple-silicon Mac, release
+build, medians of three runs, two peer connections in one process over loopback:
+
+| | webrtc-rs | pion |
+|---|--:|--:|
+| 256 MiB over a data channel, `send().await` | 159 MiB/s, 3.4 CPU-s | 68 MiB/s, 18.5 CPU-s |
+| the same, polling `outstanding_bytes()` | 164 MiB/s, 4.5 CPU-s | |
+| peak memory of that transfer | 25 MiB | 51 MiB |
+| connect, median | 1 ms | 5 ms |
+| media: 60,000 RTP packets at 12,000/s through SRTP, CPU | 1.3 s | 2.2 s |
+| the same, peak memory | 7 MiB | 25 MiB |
+| 200 idle connections, peak memory | 52 MiB | 84 MiB |
+| 200 idle connections, CPU | 0.5 s | 1.5 s |
+
+These are loopback figures for one machine, not a network benchmark; run the script on yours.
+Packet-level micro-benchmarks (SRTP, STUN, SDP, RTP/RTCP, payloaders) live in
+`rtc/benchmarks/pion-compare`.
+
 ## Building and Testing
 
 ```bash

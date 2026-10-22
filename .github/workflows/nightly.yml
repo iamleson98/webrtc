@@ -1,0 +1,115 @@
+# Deep, slow checks that do not belong on every pull request.
+name: nightly
+
+on:
+  schedule:
+    - cron: '47 3 * * *'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Repeat the suite to flush out flaky tests: anything that fails once in a few dozen runs
+  # fails here, on every platform, before a user finds it.
+  soak:
+    name: soak / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --release --no-run
+      - name: Repeat the suite
+        run: |
+          set -eu
+          for i in $(seq 1 20); do
+            echo "::group::iteration $i"
+            cargo test --release --no-fail-fast
+            echo "::endgroup::"
+          done
+
+  interop-soak:
+    name: pion interop x10 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: interop/pion-interop/go.mod
+          cache-dependency-path: interop/pion-interop/go.sum
+      - uses: Swatinem/rust-cache@v2
+      - run: |
+          set -eu
+          for i in $(seq 1 10); do
+            echo "::group::run $i"
+            interop/run.sh
+            echo "::endgroup::"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: interop-soak-${{ matrix.os }}
+          path: interop/interop-results.log
+
+  # Many connections at once pushing data: the back-pressure and memory behaviour that a single
+  # pair never shows. The example exits non-zero if a transfer stalls or the send counter does
+  # not drain.
+  stress:
+    name: stress / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Many pairs, naive sender, bounded buffers
+        env:
+          STRESS_PAIRS: '30'
+          STRESS_MB_PER_PAIR: '32'
+          STRESS_NAIVE_SENDER: '1'
+          STRESS_SEND_BUFFER_LIMIT: '4194304'
+          STRESS_DRAIN_CHECK: '1'
+        run: cargo run --release --example data-channels-stress-bench | tee -a "$GITHUB_STEP_SUMMARY"
+
+  toolchains:
+    name: ${{ matrix.toolchain }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        toolchain: [ beta, nightly ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --no-fail-fast

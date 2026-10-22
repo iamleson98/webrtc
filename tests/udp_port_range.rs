@@ -87,9 +87,26 @@ async fn gather_ports(udp_addrs: Vec<String>, range: Option<(u16, u16)>) -> Resu
     Ok(ports)
 }
 
+/// A 31-port window somewhere in 10000..30000, below every platform's ephemeral range (Linux
+/// 32768+, macOS and the IANA range 49152+). Fixed ports collide when test binaries or CI jobs
+/// overlap, so each run picks its own window.
+fn random_window() -> (u16, u16) {
+    let min = 10_000 + (rand::random::<u32>() % 19_000) as u16;
+    (min, min + 30)
+}
+
+/// A port nothing is listening on right now. There is a window between releasing it and the
+/// caller binding it, which is acceptable for a test and far narrower than a hard-coded port.
+fn free_port() -> u16 {
+    std::net::UdpSocket::bind("127.0.0.1:0")
+        .and_then(|socket| socket.local_addr())
+        .expect("a loopback port is available")
+        .port()
+}
+
 /// Every ephemeral bind must land inside the configured range.
 async fn ephemeral_ports_honor_the_range() -> Result<()> {
-    let (min, max) = (20010u16, 20040u16);
+    let (min, max) = random_window();
     let ports = gather_ports(vec!["127.0.0.1:0".to_string()], Some((min, max))).await?;
     assert!(
         !ports.is_empty(),
@@ -106,12 +123,9 @@ async fn ephemeral_ports_honor_the_range() -> Result<()> {
 
 /// A concrete port is bound verbatim; the range never rewrites an explicit choice.
 async fn explicit_ports_ignore_the_range() -> Result<()> {
-    let explicit = 20999u16;
-    let ports = gather_ports(
-        vec![format!("127.0.0.1:{explicit}")],
-        Some((20010, 20040)),
-    )
-    .await?;
+    let explicit = free_port();
+    let (min, max) = random_window();
+    let ports = gather_ports(vec![format!("127.0.0.1:{explicit}")], Some((min, max))).await?;
     assert_eq!(
         ports.iter().copied().collect::<Vec<_>>(),
         vec![explicit],

@@ -438,7 +438,32 @@ pub(crate) struct BindAddr {
 /// costs only the remaining probes, and exhausting the range surfaces as the last error
 /// seen. The socket is non-blocking; every other setting matches a plain
 /// [`std::net::UdpSocket::bind`].
-fn bind_udp_ephemeral_in_range(ip: IpAddr, (min, max): (u16, u16)) -> std::io::Result<std::net::UdpSocket> {
+/// Kernel socket buffer size requested for each UDP socket, in bytes.
+///
+/// The OS default (about 208 KiB on Linux) is far too small for a sender that emits whole
+/// congestion windows with GSO: a burst of 64 datagrams occupies roughly 150 KiB of the receive
+/// queue, a second burst before the reader runs overflows it, and every overflowed datagram is a
+/// loss the SCTP congestion controller then pays for. The kernel clamps the request to its
+/// configured maximum (`net.core.rmem_max` / `wmem_max`), so asking for more than is available is
+/// harmless.
+const UDP_SOCKET_BUFFER_BYTES: usize = 4 << 20;
+
+/// Raises the socket's send and receive buffers to [`UDP_SOCKET_BUFFER_BYTES`] where the OS
+/// allows. Failure is ignored: the defaults still work, just with less headroom.
+fn tune_udp_socket_buffers(socket: &std::net::UdpSocket) {
+    let socket = socket2::SockRef::from(socket);
+    if let Err(err) = socket.set_recv_buffer_size(UDP_SOCKET_BUFFER_BYTES) {
+        debug!("could not raise UDP receive buffer: {err}");
+    }
+    if let Err(err) = socket.set_send_buffer_size(UDP_SOCKET_BUFFER_BYTES) {
+        debug!("could not raise UDP send buffer: {err}");
+    }
+}
+
+fn bind_udp_ephemeral_in_range(
+    ip: IpAddr,
+    (min, max): (u16, u16),
+) -> std::io::Result<std::net::UdpSocket> {
     use rand::RngExt;
 
     let span = u32::from(max - min) + 1;
@@ -809,7 +834,9 @@ where
             self.mux_socket = Some(handle);
             debug!(
                 "registered with udp mux on {} (ufrag {:?}, host candidates {:?})",
-                mux.local_addr(), username_fragment, self.mux_candidate_addrs
+                mux.local_addr(),
+                username_fragment,
+                self.mux_candidate_addrs
             );
         } else {
             // Resolve here, not at construction: this runs again on every ICE-restart rebind, which
@@ -837,6 +864,7 @@ where
                     }
                 };
                 socket.set_nonblocking(true)?;
+                tune_udp_socket_buffers(&socket);
                 let local_addr = socket.local_addr()?;
                 self.udp_sockets
                     .insert(local_addr, runtime.wrap_udp_socket(socket)?);
@@ -973,9 +1001,7 @@ where
         // hold up to `max_gro_segments()` datagrams without truncation.
         let mut udp_socket_buffers: Vec<Vec<u8>> = udp_socket_list
             .iter()
-            .map(|polled| {
-                vec![0u8; gro_recv_buf_len(polled.socket.max_gro_segments())]
-            })
+            .map(|polled| vec![0u8; gro_recv_buf_len(polled.socket.max_gro_segments())])
             .collect();
 
         // Helper function to create a recv future for a specific socket. Polls
@@ -1084,7 +1110,13 @@ where
             // stalls per handshake.
             self.poll_events().await;
             self.poll_writes().await?;
-            self.poll_reads().await?;
+            // Delivering messages to the application empties SCTP's receive queues, which can
+            // reopen the window a back-pressured peer is waiting on. That is announced with a SACK,
+            // and a SACK is a write: flush again now rather than leaving the peer to find out
+            // from its next zero-window probe (a retransmission timeout, a second at minimum).
+            if self.poll_reads().await? {
+                self.poll_writes().await?;
+            }
 
             // Wake senders blocked in `DataChannel::writable()`: the poll_* passes above
             // applied any SCTP buffer releases (acked/abandoned bytes) to the per-channel
@@ -2376,13 +2408,15 @@ where
         }
     }
 
-    async fn poll_reads(&mut self) -> Result<()> {
+    /// Returns whether anything was delivered, i.e. whether the core may now have writes to flush.
+    async fn poll_reads(&mut self) -> Result<bool> {
         // 3.a turn_relayer poll_read() - deliver decapsulated relay data,
         // but no need for stun_gatherer poll_read()
         let mut turn_messages = Vec::new();
         while let Some(message) = self.turn_relayer.poll_read() {
             turn_messages.push(message);
         }
+        let mut delivered = !turn_messages.is_empty();
         if !turn_messages.is_empty() {
             let mut core = self.inner.core.lock().await;
             for message in turn_messages {
@@ -2394,6 +2428,7 @@ where
         // gating it on that was a real defect: a slow signalling consumer froze video on the
         // same connection for as long as it stalled.
         for message in Self::drain_core_media(self.inner.clone()).await {
+            delivered = true;
             self.handle_rtc_message(message).await;
         }
 
@@ -2404,14 +2439,15 @@ where
         // `a_rwnd` falls, and the peer slows down. Draining regardless would move the backlog
         // into this process's heap and throttle nobody.
         if self.flush_pending_data_channel_events().await {
-            return Ok(());
+            return Ok(true);
         }
 
         for message in Self::drain_core_data(self.inner.clone()).await {
+            delivered = true;
             self.handle_rtc_message(message).await;
         }
 
-        Ok(())
+        Ok(delivered)
     }
 
     async fn poll_timeout(&mut self) -> Instant {

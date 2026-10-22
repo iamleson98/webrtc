@@ -1,0 +1,229 @@
+# file	test	status	ref	note   (see tools/pion-parity/parity.py)
+abscapturetimeextension_test.go	TestAbsCaptureTimeExtension_Roundtrip	todo		
+abscapturetimeextension_test.go	TestAbsCaptureTimeExtensionMarshalTo	todo		
+abssendtimeextension_test.go	TestNtpConversion	named	test_ntp_conversion	
+abssendtimeextension_test.go	TestAbsSendTimeExtension_Roundtrip	named	test_abs_send_time_extension_roundtrip	
+abssendtimeextension_test.go	TestAbsSendTimeExtension_Estimate	named	test_abs_send_time_extension_estimate	
+abssendtimeextension_test.go	TestAbsSendTimeExtensionMarshalTo	todo		
+audiolevelextension_test.go	TestAudioLevelExtensionTooSmall	named	test_audio_level_extension_too_small	
+audiolevelextension_test.go	TestAudioLevelExtensionVoiceTrue	named	test_audio_level_extension_voice_true	
+audiolevelextension_test.go	TestAudioLevelExtensionVoiceFalse	named	test_audio_level_extension_voice_false	
+audiolevelextension_test.go	TestAudioLevelExtensionLevelOverflow	named	test_audio_level_extension_level_overflow	
+audiolevelextension_test.go	TestAudioLevelExtensionMarshalTo	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285OneByteExtension	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285OneByteTwoExtensionOfTwoBytes	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285OneByteMultipleExtensionsWithPadding	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285TwoByteExtension	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285TwoByteMultipleExtensionsWithPadding	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285TwoByteMultipleExtensionsWithLargeExtension	todo		
+header_extension_test.go	TestHeaderExtension_Invalid	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285OneByteDelExtension	todo		
+header_extension_test.go	TestHeaderExtension_GetIds	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285TwoByteDelExtension	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285OneByteExtensionRewrite	todo		
+header_extension_test.go	TestHeaderExtension_RFC8285TwoByteExtensionRewrite	todo		
+header_extension_test.go	TestHeaderExtension_Raw	todo		
+packet_test.go	TestBasic	named	test_basic	
+packet_test.go	TestExtension	named	test_extension	
+packet_test.go	TestRFC8285OneByteExtension	todo		
+packet_test.go	TestRFC8285OneByteTwoExtensionOfTwoBytes	todo		
+packet_test.go	TestRFC8285OneByteMultipleExtensionsWithPadding	todo		
+packet_test.go	TestRFC8285OneByteMultipleExtensions	todo		
+packet_test.go	TestRFC8285TwoByteExtension	todo		
+packet_test.go	TestRFC8285TwoByteMultipleExtensionsWithPadding	todo		
+packet_test.go	TestRFC8285TwoByteMultipleExtensionsWithLargeExtension	todo		
+packet_test.go	TestRFC8285GetExtensionReturnsNilWhenExtensionsDisabled	todo		
+packet_test.go	TestRFC8285DelExtension	named	test_rfc8285_del_extension	
+packet_test.go	TestRFC8285ClearExtensions	todo		
+packet_test.go	TestRFC8285GetExtensionIDs	todo		
+packet_test.go	TestRFC8285GetExtensionIDsReturnsErrorWhenExtensionsDisabled	todo		
+packet_test.go	TestRFC8285DelExtensionReturnsErrorWhenExtensionsDisabled	todo		
+packet_test.go	TestRFC8285OneByteSetExtensionShouldEnableExensionsWhenAdding	todo		
+packet_test.go	TestRFC8285OneByteSetExtensionShouldSetCorrectExtensionProfileFor16ByteExtension	todo		
+packet_test.go	TestRFC8285OneByteSetExtensionShouldUpdateExistingExension	todo		
+packet_test.go	TestRFC8285OneByteSetExtensionShouldErrorWhenInvalidIDProvided	named	test_rfc8285_one_byte_set_extension_should_error_when_invalid_id_provided	
+packet_test.go	TestRFC8285OneByteExtensionTerminateProcessingWhenReservedIDEncountered	named	test_rfc8285_one_byte_extension_terminate_processing_when_reserved_id_encountered	
+packet_test.go	TestRFC8285OneByteExtensionTerminateProcessingWhenPaddingWithSizeEncountered	todo		
+packet_test.go	TestRFC8285OneByteSetExtensionShouldErrorWhenPayloadTooLarge	named	test_rfc8285_one_byte_set_extension_should_error_when_payload_too_large	
+packet_test.go	TestRFC8285TwoByteSetExtensionShouldEnableExensionsWhenAdding	todo		
+packet_test.go	TestRFC8285TwoByteSetExtensionShouldUpdateExistingExension	todo		
+packet_test.go	TestRFC8285TwoByteSetExtensionShouldErrorWhenPayloadTooLarge	named	test_rfc8285_two_byte_set_extension_should_error_when_payload_too_large	
+packet_test.go	TestRFC8285Padding	todo		
+packet_test.go	TestRFC3550SetExtensionShouldErrorWhenNonZero	named	test_rfc3550_set_extension_should_error_when_non_zero	
+packet_test.go	TestRFC3550SetExtensionShouldRaiseErrorWhenSettingNonzeroID	todo		
+packet_test.go	TestUnmarshal_ErrorHandling	named	test_unmarshal_error_handling	
+packet_test.go	TestUnmarshal_OneByteExtensionWithoutRTPPayload	todo		
+packet_test.go	TestUnmarshal_TwoByteExtensionWithoutRTPPayload	todo		
+packet_test.go	TestUnmarshal_NonStandardExtensionWithoutRTPPayload	todo		
+packet_test.go	TestUnmarshal_EmptyOneByteExtensionWithoutRTPPayload	todo		
+packet_test.go	TestUnmarshal_EmptyTwoByteExtensionWithoutRTPPayload	todo		
+packet_test.go	TestUnmarshal_EmptyNonStandardExtensionWithoutRTPPayload	todo		
+packet_test.go	TestRoundtrip	todo		
+packet_test.go	TestCloneHeader	todo		
+packet_test.go	TestClonePacket	todo		
+packet_test.go	TestMarshalRTPPacketFuncs	todo		
+packet_test.go	TestDeprecatedPaddingSizeField	todo		
+packet_test.go	TestSetExtensionWithProfile	todo		
+packet_test.go	TestMarshalSizePanic	todo		
+packet_test.go	TestMarshalToPanic	todo		
+packet_test.go	TestMarshalToInitializesPadding	todo		
+packetizer_test.go	TestPacketizer	named	test_packetizer	
+packetizer_test.go	TestPacketizer_AbsSendTime	named	test_packetizer_abs_send_time	
+packetizer_test.go	TestPacketizer_Roundtrip	todo		
+packetizer_test.go	TestPacketizer_GeneratePadding	todo		
+packetizer_test.go	TestNewPacketizerWithOptions_DefaultValues	todo		
+packetizer_test.go	TestNewPacketizerWithOptions_WithOptions	todo		
+packetizer_test.go	TestNewPacketizerWithOptions_PartialOptions	todo		
+packetizer_test.go	TestPacketizer_Empty_Payload	todo		
+playoutdelayextension_test.go	TestPlayoutDelayExtensionTooSmall	todo		
+playoutdelayextension_test.go	TestPlayoutDelayExtensionTooLarge	todo		
+playoutdelayextension_test.go	TestPlayoutDelayExtension	todo		
+playoutdelayextension_test.go	TestPlayoutDelayExtensionExtraBytes	todo		
+playoutdelayextension_test.go	TestPlayoutDelayExtensionMarshalTo	todo		
+sequencer_test.go	TestSequencerBasic	todo		
+sequencer_test.go	TestSequencerWrapAround	todo		
+sequencer_test.go	TestSequencerMultipleRollovers	todo		
+sequencer_test.go	TestRandomSequencer	todo		
+sequencer_test.go	TestSequencerConcurrent	todo		
+sequencer_test.go	TestSequencerRollOverCountDuringWrap	todo		
+transportccextension_test.go	TestTransportCCExtensionTooSmall	named	test_transport_cc_extension_too_small	
+transportccextension_test.go	TestTransportCCExtension	named	test_transport_cc_extension	
+transportccextension_test.go	TestTransportCCExtensionExtraBytes	named	test_transport_cc_extension_extra_bytes	
+transportccextension_test.go	TestTransportCCExtensionMarshalTo	todo		
+vlaextension_test.go	TestVLAMarshal	todo		
+vlaextension_test.go	TestVLAUnmarshal	todo		
+vlaextension_test.go	TestVLAMarshalThenUnmarshal	todo		
+vlaextension_test.go	TestVLAMarshalTo	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_invalidPackets	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_singleOBU	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_singleOBUWithPadding	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_withOBUSize	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_validateOBUSize	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_dropBuffer	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_singleOBUWithW	todo		
+codecs/av1_depacketizer_test.go	TestDepacketizer_multipleFullOBUs	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_multipleFullOBUsWithW	todo		
+codecs/av1_depacketizer_test.go	TestDepacketizer_fragmentedOBUS	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_dropLostFragment	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_dropIfLostFragment	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_IsPartitionTail	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_IsPartitionHead	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_ignoreBadOBUs	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_fragmentedOverMultiple	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_shortOBUHeader	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_aggregationHeader	todo		
+codecs/av1_depacketizer_test.go	TestAV1Depacketizer_fragmentAllocationGrowth	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_ShortMtU	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_SinglePacket	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_MultipleOBUsInSinglePacket	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_HandleMTUBasedFragmentation	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_Padding	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_TemporalDelimiter	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_ExtensionHeaders	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_SequenceHeader	todo		
+codecs/av1_packet_test.go	TestAv1Payloader_FragmentedEdgeLeb128Size	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_ReturnEarlyOnError	todo		
+codecs/av1_packet_test.go	TestAV1Payloader_Leb128Size	todo		
+codecs/av1_packet_test.go	TestAV1_depacketizer_to_packetizer	todo		
+codecs/av1_packet_test.go	TestAV1_Unmarshal_Error	todo		
+codecs/av1_packet_test.go	TestAV1_Unmarshal	todo		
+codecs/common_test.go	TestCommon_Min	todo		
+codecs/common_test.go	TestZeroAllocations	todo		
+codecs/g711_packet_test.go	TestG711Payloader	todo		
+codecs/g722_packet_test.go	TestG722Payloader	todo		
+codecs/h264_packet_test.go	TestH264Payloader_Payload	todo		
+codecs/h264_packet_test.go	TestH264Packet_Unmarshal	named	test_h264_packet_unmarshal	
+codecs/h264_packet_test.go	TestH264IsPartitionHead	todo		
+codecs/h264_packet_test.go	TestH264Payloader_Payload_SPS_and_PPS_handling	named	test_h264_payloader_payload_sps_and_pps_handling	
+codecs/h264_packet_test.go	TestH264Payloader_Payload_SPS_and_PPS_handling_no_stapA	todo		
+codecs/h265_packet_test.go	TestH265_NALU_Header	named	test_h265_nalu_header	
+codecs/h265_packet_test.go	TestH265_FU_Header	named	test_h265_fu_header	
+codecs/h265_packet_test.go	TestH265_SingleNALUnitPacket	todo		
+codecs/h265_packet_test.go	TestH265_TemporalScalabilityControlInformation	named	test_h265_temporal_scalability_control_information	
+codecs/h265_packet_test.go	TestH265IsPartitionHead	todo		
+codecs/h265_packet_test.go	TestH265IsPartitionTail	todo		
+codecs/h265_packet_test.go	TestH265_Packet_Real	named	test_h265_packet_real	
+codecs/h265_packet_test.go	TestH265Payloader_Real	todo		
+codecs/h265_packet_test.go	TestH265_FragmentationMtu	todo		
+codecs/h265_packet_test.go	TestH265_FragmentationRoundtrip	todo		
+codecs/h265_packet_test.go	TestH265_AggregationRoundtrip	todo		
+codecs/h265_packet_test.go	TestH265_PACIRoundtrip	todo		
+codecs/h265_packet_test.go	TestH265_SingleRoundtrip	todo		
+codecs/h265_packet_test.go	TestH265Packetizer_Single	todo		
+codecs/h265_packet_test.go	TestH265Packetizer_Aggregated	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_VPS_SPS_PPS_handling	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_MultipleParameterSets	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_ReplacesSameIDParameterSetsAcrossLayers	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_ReplacesPendingParameterSet	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_OrdersUpdatedParameterSets	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_ReplacesRepeatedParameterSet	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_UsesLatestPendingConfiguration	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_PreservesParameterSetOrder	todo		
+codecs/h265_packet_test.go	TestH265ParameterSetIDs_RejectTruncatedInput	todo		
+codecs/h265_packet_test.go	TestH265SpsID_ProfileTierLevelWithSubLayer	todo		
+codecs/h265_packet_test.go	TestH265SkipProfileTierLevel_RejectsTruncatedInput	todo		
+codecs/h265_packet_test.go	TestH265ParamBits_RejectsMalformedExpGolomb	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_ForwardsOutOfRangeParameterSetID	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_ForwardsTruncatedParameterSet	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_ForwardsUnparseableParameterSets	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_VCLOnlyDoesNotCreateParameterSetCache	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_ReplacesParameterSetOnlyCache	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_CopiesCachedParameterSet	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_DefersLargeParameterSetUntilVCL	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_CachesLargeParameterSetsWithoutExtraIDExtractionAllocation	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_VPS_SPS_PPS_before_fragmented	todo		
+codecs/h265_packet_test.go	TestH265Payloader_Payload_SkipAggregation	todo		
+codecs/h265_packet_test.go	TestH265Packetizer_Fragmented	todo		
+codecs/h265_packet_test.go	TestH265Depacketizer_Roundtrip	todo		
+codecs/h266_packet_test.go	TestH266_AggregationRoundtrip	todo		
+codecs/h266_packet_test.go	TestH266_AggregationHeader	todo		
+codecs/h266_packet_test.go	TestH266_AggregationMalformed	todo		
+codecs/h266_packet_test.go	TestH266_AggregationDONL	todo		
+codecs/h266_packet_test.go	TestH266_FragmentationRoundtrip	todo		
+codecs/h266_packet_test.go	TestH266_FragmentationHeader	todo		
+codecs/h266_packet_test.go	TestH266_FragmentationEdgeCase	todo		
+codecs/h266_packet_test.go	TestH266_PacketParsing	todo		
+codecs/h266_packet_test.go	TestH266_PacketRoundtrip	todo		
+codecs/h266_packet_test.go	TestH266Packetizer_Single	todo		
+codecs/h266_packet_test.go	TestH266Packetizer_Aggregated	todo		
+codecs/h266_packet_test.go	TestH266Packetizer_Fragmented	todo		
+codecs/h266_packet_test.go	TestH266Depacketizer_Roundtrip	todo		
+codecs/opus_packet_test.go	TestOpusPacket_Unmarshal	todo		
+codecs/opus_packet_test.go	TestOpusPayloader_Payload	todo		
+codecs/opus_packet_test.go	TestOpusIsPartitionHead	named	test_opus_is_partition_head	
+codecs/vp8_packet_test.go	TestVP8Packet_Unmarshal	todo		
+codecs/vp8_packet_test.go	TestVP8Payloader_Payload	todo		
+codecs/vp8_packet_test.go	TestVP8IsPartitionHead	todo		
+codecs/vp9_packet_test.go	TestVP9Packet_Unmarshal	named	test_vp9_packet_unmarshal	
+codecs/vp9_packet_test.go	TestVP9Packet_Unmarshal_ReusedPacket	todo		
+codecs/vp9_packet_test.go	TestVP9Packet_Unmarshal_ReusedPacketDoesNotAllocate	todo		
+codecs/vp9_packet_test.go	TestVP9Payloader_Payload	named	test_vp9_payloader_payload	
+codecs/vp9_packet_test.go	TestVP9IsPartitionHead	todo		
+codecs/av1/frame/av1_test.go	TestAV1_ReadFrames	todo		
+codecs/av1/frame/av1_test.go	TestAV1_ReadFrames_E2E	todo		
+codecs/av1/obu/leb128_test.go	TestLEB128	todo		
+codecs/av1/obu/leb128_test.go	TestReadLeb128	todo		
+codecs/av1/obu/leb128_test.go	TestWriteToLeb128	todo		
+codecs/av1/obu/obu_test.go	TestOBUType	todo		
+codecs/av1/obu/obu_test.go	TestOBUHeader_NoExtension	todo		
+codecs/av1/obu/obu_test.go	TestOBUHeader_Extension	todo		
+codecs/av1/obu/obu_test.go	TestOBUHeader_Short	todo		
+codecs/av1/obu/obu_test.go	TestOBUHeader_Invalid	todo		
+codecs/av1/obu/obu_test.go	TestOBUHeader_MarshalOutbound	todo		
+codecs/av1/obu/obu_test.go	TestOBUMarshal	todo		
+codecs/av1/obu/obu_test.go	TestOBUMarshal_ExtensionHeader	todo		
+codecs/av1/obu/obu_test.go	TestOBUMarshal_HasOBUSize	todo		
+codecs/av1/obu/obu_test.go	TestOBUMarshal_ZeroPayload	todo		
+codecs/h264/spreader_test.go	TestPassthrough	todo		
+codecs/h264/spreader_test.go	TestSmallPktsAreOffsetedOnceSpreadingStart	todo		
+codecs/h264/spreader_test.go	TestExplodingStap	todo		
+codecs/h264/spreader_test.go	TestExplodingStapWithMarker	todo		
+codecs/h264/spreader_test.go	TestSplitSingleNalInFua	todo		
+codecs/h264/spreader_test.go	TestFuaAreSpreadMaxingMtuAcrossPkts	todo		
+codecs/h264/spreader_test.go	TestFuaRealFromSameSrcBuffer	todo		
+codecs/h264/spreader_test.go	TestChunkSlicing	todo		
+codecs/h264/spreader_test.go	TestStapATruncatedNaluSize	todo		
+codecs/h264/spreader_test.go	TestFuaSmallerThanTrailingRoomIsBuffered	todo		
+codecs/h264/spreader_test.go	TestFuaEmptyEndIsEmitted	todo		
+codecs/h264/spreader_test.go	TestRTPHeaderLargerThanMtu	todo		
+codecs/vp9/header_test.go	TestHeaderUnmarshal	todo		

@@ -1,0 +1,16 @@
+# file	test	status	ref	note   (see tools/pion-parity/parity.py)
+datachannel_test.go	TestDataChannel	todo		
+datachannel_test.go	TestDataChannelBufferedAmount	todo		
+datachannel_test.go	TestStats	todo		
+datachannel_test.go	TestDataChannelAcceptWrite	todo		
+datachannel_test.go	TestOnOpen	todo		
+datachannel_test.go	TestReadDeadline	todo		
+datachannel_test.go	TestClose	todo		
+message_test.go	TestChannelOpenMarshal	named	test_channel_open_marshal	
+message_test.go	TestChannelAckMarshal	named	test_channel_ack_marshal	
+message_test.go	TestChannelOpenUnmarshal	golden	matches_pion_datachannel	DCEP parse verdicts replayed from pion
+message_test.go	TestChannelAckUnmarshal	named	test_channel_ack_unmarshal	
+message_test.go	TestChannelString	na		Go fmt.Stringer output
+message_test.go	TestChannelOpenUnmarshalVeryLongMessage	rust	test_channel_open_very_long_message_round_trips	
+message_test.go	TestChannelOpenMarshalTooLongLabel	named	test_channel_open_marshal_too_long_label	
+message_test.go	TestChannelOpenMarshalTooLongProtocol	named	test_channel_open_marshal_too_long_protocol	

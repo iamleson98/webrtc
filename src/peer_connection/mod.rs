@@ -916,8 +916,8 @@ pub(crate) struct PeerConnectionRef {
 fn ice_credentials(desc: &RTCSessionDescription) -> Option<(String, String)> {
     let parsed = desc.unmarshal().ok()?;
 
-    let mut ufrag = parsed.attribute("ice-ufrag").map(String::as_str);
-    let mut pwd = parsed.attribute("ice-pwd").map(String::as_str);
+    let mut ufrag = parsed.attribute("ice-ufrag");
+    let mut pwd = parsed.attribute("ice-pwd");
     let (mut backup_ufrag, mut backup_pwd) = (None, None);
 
     for media in &parsed.media_descriptions {

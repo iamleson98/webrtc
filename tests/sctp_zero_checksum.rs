@@ -14,7 +14,9 @@ use anyhow::Result;
 use bytes::BytesMut;
 use std::sync::Arc;
 use std::time::Duration;
-use webrtc::data_channel::{DataChannel, DataChannelEvent, RTCDataChannelInit, RTCDataChannelState};
+use webrtc::data_channel::{
+    DataChannel, DataChannelEvent, RTCDataChannelInit, RTCDataChannelState,
+};
 use webrtc::peer_connection::{
     PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler, RTCIceGatheringState,
     RTCSessionDescription, SettingEngineBuilder,

@@ -10,7 +10,7 @@
 //!
 //! This is the Rust counterpart of pion's `ice.NewMultiUDPMuxFromPort` +
 //! `SettingEngine.SetICEUDPMux` (the [ice-single-port] example). Applications share a mux by
-//! building every peer connection with [`with_udp_mux`](crate::PeerConnectionBuilder::with_udp_mux):
+//! building every peer connection with [`with_udp_mux`](crate::peer_connection::PeerConnectionBuilder::with_udp_mux):
 //!
 //! ```no_run
 //! # use webrtc::peer_connection::udp_mux::UdpMux;
@@ -43,7 +43,7 @@
 //! # Delivering to the driver
 //!
 //! Each connection gets a [`MuxSocketHandle`] implementing
-//! [`AsyncUdpSocket`](crate::runtime::AsyncUdpSocket), so the driver's existing event loop —
+//! [`AsyncUdpSocket`], so the driver's existing event loop —
 //! recv futures, burst drain, GSO flush — runs unmodified over it. The handle receives from a
 //! bounded per-connection queue filled by one demux task that owns the real socket; it sends
 //! directly through that socket, because a UDP send names its destination and needs no
@@ -68,9 +68,9 @@ use crate::peer_connection::transport::{
     UDP_RECV_BUF_LEN, gro_recv_buf_len, is_retryable_socket_recv_error,
 };
 use crate::runtime::{AsyncUdpSocket, EcnCodepoint, RecvMeta, Runtime, Sender, Transmit, channel};
+use futures::FutureExt;
 use futures::future::poll_fn;
 use futures::task::AtomicWaker;
-use futures::FutureExt;
 use log::{debug, error, trace};
 use rtc::shared::error::{Error, Result};
 use rtc::stun::attributes::ATTR_USERNAME;
@@ -78,7 +78,6 @@ use rtc::stun::message::{Message as StunMessage, is_stun_message};
 use std::collections::{HashMap, VecDeque};
 use std::io::{self, IoSliceMut};
 use std::net::{IpAddr, SocketAddr, ToSocketAddrs};
-use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, Weak};
 use std::task::{Context, Poll};
@@ -105,15 +104,17 @@ const SWEEP_INTERVAL: u64 = 4096;
 /// in one critical section cannot leave the structure itself broken — the next locker
 /// recovers the intact state.
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
-    mutex.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+    mutex
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
 /// A UDP socket shared by many peer connections.
 ///
 /// Created with [`bind`](Self::bind) on the address the deployment wants to *listen* on —
 /// typically one fixed public port, the same socket for every incoming peer. Build each
-/// [`PeerConnectionBuilder`](crate::PeerConnectionBuilder) with
-/// [`with_udp_mux`](crate::PeerConnectionBuilder::with_udp_mux) pointing here and the
+/// [`PeerConnectionBuilder`](crate::peer_connection::PeerConnectionBuilder) with
+/// [`with_udp_mux`](crate::peer_connection::PeerConnectionBuilder::with_udp_mux) pointing here and the
 /// connections it builds answer on this one port. See the [module docs](self) for how
 /// attribution works and what the limitations are.
 pub struct UdpMux {
@@ -203,7 +204,7 @@ impl UdpMux {
     /// Binds the shared socket on `addrs` and starts its demux task on the default runtime.
     ///
     /// Same as [`bind_on`](Self::bind_on) with the runtime that
-    /// [`PeerConnectionBuilder::build`](crate::PeerConnectionBuilder::build) would pick — the
+    /// [`PeerConnectionBuilder::build`](crate::peer_connection::PeerConnectionBuilder::build) would pick — the
     /// built-in one for the enabled runtime feature. Connections built on a *different*
     /// runtime must use [`bind_on`](Self::bind_on) and pass it, or the demux task will never
     /// be polled.
@@ -244,7 +245,7 @@ impl UdpMux {
                 return Err(Error::Other(format!(
                     "udp mux: no address bound{}",
                     last_err.map(|err| format!(": {err}")).unwrap_or_default()
-                )))
+                )));
             }
         };
         let bound_addr = socket.local_addr()?;
@@ -277,7 +278,7 @@ impl UdpMux {
         // task hands it; nothing else ever polls the socket, which is what keeps queue order
         // and waker bookkeeping single-producer and race-free.
         let task = Self::demux_task(Arc::clone(&mux));
-        mux.runtime.spawn(Pin::from(Box::pin(task)));
+        mux.runtime.spawn(Box::pin(task));
 
         debug!(
             "udp mux listening on {} (host candidates: {:?})",
@@ -340,7 +341,9 @@ impl UdpMux {
                 waker: AtomicWaker::new(),
                 overflows: AtomicU64::new(0),
             });
-            state.by_ufrag.insert(ufrag.to_owned(), Arc::downgrade(&queue));
+            state
+                .by_ufrag
+                .insert(ufrag.to_owned(), Arc::downgrade(&queue));
             queue
         };
         Ok(Arc::new(MuxSocketHandle {
@@ -383,38 +386,47 @@ impl UdpMux {
         // 1. Known peer: this address is already owned by a connection.
         if let Some(queue) = take_live(&mut state.by_addr, &from) {
             drop(state);
-            push_routed(&queue, Datagram {
-                data: data.to_vec(),
-                from,
-                dst,
-                ecn,
-            });
+            push_routed(
+                &queue,
+                Datagram {
+                    data: data.to_vec(),
+                    from,
+                    dst,
+                    ecn,
+                },
+            );
             return;
         }
 
         // 2. Unknown peer speaking ICE: the username fragment says whose check this is. Only
         //    requests carry USERNAME (RFC 8445 §7.2.2); a response is a reply to something
         //    *we* sent, which rule 1 already owns via the send-side claim.
-        if let Some(ufrag) = local_ufrag_from_stun_request(data) {
-            if let Some(queue) = take_live(&mut state.by_ufrag, &ufrag) {
-                // Pin the address: every datagram that follows — DTLS, SCTP, SRTP — is this
-                // connection's, and must not pay the STUN parse again.
-                state.by_addr.insert(from, Arc::downgrade(&queue));
-                drop(state);
-                push_routed(&queue, Datagram {
+        if let Some(ufrag) = local_ufrag_from_stun_request(data)
+            && let Some(queue) = take_live(&mut state.by_ufrag, &ufrag)
+        {
+            // Pin the address: every datagram that follows — DTLS, SCTP, SRTP — is this
+            // connection's, and must not pay the STUN parse again.
+            state.by_addr.insert(from, Arc::downgrade(&queue));
+            drop(state);
+            push_routed(
+                &queue,
+                Datagram {
                     data: data.to_vec(),
                     from,
                     dst,
                     ecn,
-                });
-                return;
-            }
+                },
+            );
+            return;
         }
 
         // 3. Nobody's: drop, count, move on. Reclaim dropped-connection keys while here.
         self.unrouted.fetch_add(1, Ordering::Relaxed);
-        trace!("udp mux {}: unrouted datagram from {}", self.bound_addr, from);
-        if state.routed % SWEEP_INTERVAL == 0 {
+        trace!(
+            "udp mux {}: unrouted datagram from {}",
+            self.bound_addr, from
+        );
+        if state.routed.is_multiple_of(SWEEP_INTERVAL) {
             state.by_addr.retain(|_, weak| weak.strong_count() > 0);
             state.by_ufrag.retain(|_, weak| weak.strong_count() > 0);
         }
@@ -545,8 +557,10 @@ fn local_ufrag_from_stun_request(data: &[u8]) -> Option<String> {
     if !is_stun_message(data) {
         return None;
     }
-    let mut message = StunMessage::default();
-    message.raw = data.to_vec();
+    let mut message = StunMessage {
+        raw: data.to_vec(),
+        ..Default::default()
+    };
     message.decode().ok()?;
 
     // Only requests bootstrap an address mapping. A success response carrying the same
@@ -855,10 +869,7 @@ mod tests {
         // peer (or nobody at all) is the correct successor, not the dropped one.
         let successor = Arc::clone(&mux).register("ufragB").expect("register B");
         let state = lock(&mux.state);
-        let claimed_by_dropped = state
-            .by_addr
-            .values()
-            .any(|weak| weak.strong_count() == 0);
+        let claimed_by_dropped = state.by_addr.values().any(|weak| weak.strong_count() == 0);
         drop(state);
         assert!(
             !claimed_by_dropped,

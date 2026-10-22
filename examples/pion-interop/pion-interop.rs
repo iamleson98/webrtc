@@ -48,7 +48,10 @@ const DEFAULT_MESSAGES: usize = 100;
 const MSG_PREFIX: &str = "interop";
 
 #[derive(Parser)]
-#[command(name = "pion-interop", about = "Cross-implementation data-channel echo (pion <-> webrtc-rs)")]
+#[command(
+    name = "pion-interop",
+    about = "Cross-implementation data-channel echo (pion <-> webrtc-rs)"
+)]
 struct Cli {
     #[arg(long)]
     mode: String, // "server" | "client"
@@ -143,37 +146,38 @@ async fn server_mode(cli: &Cli) -> Result<()> {
     runtime.spawn(Box::pin(async move {
         let make_svc = make_service_fn(move |_| async move {
             Ok::<_, hyper::Error>(service_fn(|req: Request<Body>| async move {
-                Ok::<Response<Body>, std::convert::Infallible>(match (req.method(), req.uri().path()) {
-                    (&Method::POST, "/doSignaling") => {
-                        let body_bytes = hyper::body::to_bytes(req.into_body())
-                            .await
-                            .unwrap_or_default();
-                        let offer: Result<RTCSessionDescription> =
-                            serde_json::from_slice(&body_bytes)
-                                .context("bad SDP JSON");
-                        match offer {
-                            Ok(offer) => match answer_offer(offer).await {
-                                Ok(answer_json) => Response::builder()
-                                    .status(StatusCode::OK)
-                                    .header("content-type", "application/json")
-                                    .body(Body::from(answer_json))
-                                    .unwrap(),
+                Ok::<Response<Body>, std::convert::Infallible>(
+                    match (req.method(), req.uri().path()) {
+                        (&Method::POST, "/doSignaling") => {
+                            let body_bytes = hyper::body::to_bytes(req.into_body())
+                                .await
+                                .unwrap_or_default();
+                            let offer: Result<RTCSessionDescription> =
+                                serde_json::from_slice(&body_bytes).context("bad SDP JSON");
+                            match offer {
+                                Ok(offer) => match answer_offer(offer).await {
+                                    Ok(answer_json) => Response::builder()
+                                        .status(StatusCode::OK)
+                                        .header("content-type", "application/json")
+                                        .body(Body::from(answer_json))
+                                        .unwrap(),
+                                    Err(e) => Response::builder()
+                                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                        .body(Body::from(e.to_string()))
+                                        .unwrap(),
+                                },
                                 Err(e) => Response::builder()
-                                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                    .status(StatusCode::BAD_REQUEST)
                                     .body(Body::from(e.to_string()))
                                     .unwrap(),
-                            },
-                            Err(e) => Response::builder()
-                                .status(StatusCode::BAD_REQUEST)
-                                .body(Body::from(e.to_string()))
-                                .unwrap(),
+                            }
                         }
-                    }
-                    _ => Response::builder()
-                        .status(StatusCode::NOT_FOUND)
-                        .body(Body::from("not found"))
-                        .unwrap(),
-                })
+                        _ => Response::builder()
+                            .status(StatusCode::NOT_FOUND)
+                            .body(Body::from("not found"))
+                            .unwrap(),
+                    },
+                )
             }))
         });
         if let Err(e) = Server::bind(&addr).serve(make_svc).await {
@@ -181,7 +185,10 @@ async fn server_mode(cli: &Cli) -> Result<()> {
         }
     }));
 
-    println!("interop rust server: POST /doSignaling on http://0.0.0.0:{}", cli.http_port);
+    println!(
+        "interop rust server: POST /doSignaling on http://0.0.0.0:{}",
+        cli.http_port
+    );
     // Serve until killed — run.sh manages the lifetime.
     loop {
         sleep(Duration::from_secs(3600)).await;
@@ -240,7 +247,11 @@ async fn client_mode(cli: &Cli) -> Result<()> {
     let response = client.request(request).await?;
     if response.status() != StatusCode::OK {
         let bytes = hyper::body::to_bytes(response.into_body()).await?;
-        anyhow::bail!("signaling failed: {} {}", StatusCode::OK, String::from_utf8_lossy(&bytes));
+        anyhow::bail!(
+            "signaling failed: {} {}",
+            StatusCode::OK,
+            String::from_utf8_lossy(&bytes)
+        );
     }
     let bytes = hyper::body::to_bytes(response.into_body()).await?;
     let answer: RTCSessionDescription = serde_json::from_slice(&bytes)?;

@@ -8,8 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use webrtc::data_channel::RTCDataChannelInit;
 use webrtc::peer_connection::{
-    PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler,
-    RTCIceGatheringState,
+    PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler, RTCIceGatheringState,
 };
 use webrtc::runtime::{Runtime, Sender, channel, default_runtime};
 
@@ -42,7 +41,9 @@ async fn run(rt: Arc<dyn Runtime>, n: usize) -> Result<()> {
     for _ in 0..n {
         let (o_gather_tx, mut o_gather_rx) = channel::<()>(1);
         let offerer = PeerConnectionBuilder::new()
-            .with_handler(Arc::new(GatherWaiter { gather_tx: o_gather_tx }))
+            .with_handler(Arc::new(GatherWaiter {
+                gather_tx: o_gather_tx,
+            }))
             .with_runtime(rt.clone())
             .with_udp_addrs(vec!["127.0.0.1:0".to_string()])
             .build()
@@ -60,7 +61,9 @@ async fn run(rt: Arc<dyn Runtime>, n: usize) -> Result<()> {
 
         let (a_gather_tx, mut a_gather_rx) = channel::<()>(1);
         let answerer = PeerConnectionBuilder::new()
-            .with_handler(Arc::new(GatherWaiter { gather_tx: a_gather_tx }))
+            .with_handler(Arc::new(GatherWaiter {
+                gather_tx: a_gather_tx,
+            }))
             .with_runtime(rt.clone())
             .with_udp_addrs(vec!["127.0.0.1:0".to_string()])
             .build()
@@ -99,7 +102,12 @@ fn rss_kib() -> i64 {
     let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
     for line in status.lines() {
         if let Some(rest) = line.strip_prefix("VmRSS:") {
-            return rest.trim().trim_end_matches("kB").trim().parse().unwrap_or(0);
+            return rest
+                .trim()
+                .trim_end_matches("kB")
+                .trim()
+                .parse()
+                .unwrap_or(0);
         }
     }
     -1

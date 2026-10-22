@@ -42,7 +42,9 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
 async fn recv_echoed(rx: &mut Receiver<String>, what: &str) -> Result<String> {
     match timeout(CONNECT_TIMEOUT, rx.recv()).await {
         Ok(Some(msg)) => Ok(msg),
-        Ok(None) => Err(anyhow::anyhow!("{what}: data channel closed before the echo")),
+        Ok(None) => Err(anyhow::anyhow!(
+            "{what}: data channel closed before the echo"
+        )),
         Err(_) => Err(anyhow::anyhow!("{what}: echo never arrived")),
     }
 }
@@ -158,11 +160,7 @@ struct MuxPair {
 }
 
 impl MuxPair {
-    async fn connect(
-        mux: &Arc<UdpMux>,
-        label: &str,
-        offerer_addrs: &[&str],
-    ) -> Result<Self> {
+    async fn connect(mux: &Arc<UdpMux>, label: &str, offerer_addrs: &[&str]) -> Result<Self> {
         let runtime = runtime();
 
         let (offer_gather_tx, mut offer_gather_rx) = channel::<()>(1);
@@ -233,7 +231,10 @@ impl MuxPair {
     async fn advertised_port(&self) -> Result<u16> {
         let sdp = self.answerer.local_description().await.expect("answer").sdp;
         let ports = udp_host_candidate_ports(&sdp);
-        assert!(!ports.is_empty(), "answerer advertised no UDP host candidates");
+        assert!(
+            !ports.is_empty(),
+            "answerer advertised no UDP host candidates"
+        );
         let port = ports[0];
         assert!(
             ports.iter().all(|p| *p == port),
@@ -260,7 +261,8 @@ async fn single_pair_on_one_port() -> Result<()> {
         while let Some(event) = dc.poll().await {
             match event {
                 DataChannelEvent::OnMessage(msg) => {
-                    let _ = received_tx.try_send(String::from_utf8(msg.data.to_vec()).unwrap_or_default());
+                    let _ = received_tx
+                        .try_send(String::from_utf8(msg.data.to_vec()).unwrap_or_default());
                 }
                 DataChannelEvent::OnClose => break,
                 _ => {}
@@ -365,6 +367,36 @@ async fn two_pairs_share_one_port() -> Result<()> {
     Ok(())
 }
 
+/// Whether a datagram sent to this host's own `ip` is actually delivered to a socket bound to
+/// the wildcard address.
+///
+/// Having an interface is not the same as being able to use it: a host firewall (macOS's
+/// Application Firewall holds back unsigned binaries such as test executables), a container
+/// network or a VPN can leave an interface up and addressed yet unreachable from the machine
+/// itself. The test below is about how a mux handles traffic that *does* arrive, so it needs an
+/// address that works; where there is none it is skipped rather than reported as a failure of
+/// the code under test.
+fn host_delivers_to_own_address(ip: IpAddr) -> bool {
+    use std::net::UdpSocket;
+    use std::time::Duration;
+
+    let Ok(receiver) = UdpSocket::bind("0.0.0.0:0") else {
+        return false;
+    };
+    let Ok(sender) = UdpSocket::bind("0.0.0.0:0") else {
+        return false;
+    };
+    let _ = receiver.set_read_timeout(Some(Duration::from_millis(500)));
+    let Ok(port) = receiver.local_addr().map(|a| a.port()) else {
+        return false;
+    };
+    if sender.send_to(b"probe", (ip, port)).is_err() {
+        return false;
+    }
+    let mut buf = [0u8; 16];
+    matches!(receiver.recv_from(&mut buf), Ok((5, _)))
+}
+
 /// A wildcard-bound mux advertises per-interface candidates and rebuilds each datagram's
 /// local address from the interface it arrived on. Only meaningful on a host with a
 /// dialable non-loopback interface; skipped where there is none.
@@ -376,6 +408,7 @@ async fn wildcard_mux_uses_arrival_interface() -> Result<()> {
         .filter(|ip| {
             matches!(ip, IpAddr::V4(v4) if !v4.is_loopback() && !v4.is_unspecified() && !v4.is_link_local())
         })
+        .filter(|ip| host_delivers_to_own_address(*ip))
         .collect();
     if usable.is_empty() {
         log::warn!("skipping wildcard mux test: no usable non-loopback interface");
@@ -390,7 +423,10 @@ async fn wildcard_mux_uses_arrival_interface() -> Result<()> {
     // wildcard itself, which no peer could dial.
     let sdp = pair.answerer.local_description().await.expect("answer").sdp;
     let ports = udp_host_candidate_ports(&sdp);
-    assert!(!ports.is_empty(), "wildcard mux advertised no host candidates");
+    assert!(
+        !ports.is_empty(),
+        "wildcard mux advertised no host candidates"
+    );
     assert!(
         ports.iter().all(|p| *p == mux.local_addr().port()),
         "all host candidates must carry the mux's port: {ports:?}"
@@ -403,7 +439,8 @@ async fn wildcard_mux_uses_arrival_interface() -> Result<()> {
     runtime().spawn(Box::pin(async move {
         while let Some(event) = dc.poll().await {
             if let DataChannelEvent::OnMessage(msg) = event {
-                let _ = received_tx.try_send(String::from_utf8(msg.data.to_vec()).unwrap_or_default());
+                let _ =
+                    received_tx.try_send(String::from_utf8(msg.data.to_vec()).unwrap_or_default());
             }
         }
     }));

@@ -50,7 +50,10 @@ const HTTP_PORT: u16 = 8080;
 static INDEX_HTML: &str = "examples/ice-single-port/index.html";
 
 #[derive(Parser)]
-#[command(name = "ice-single-port", about = "Serve many PeerConnections on one UDP port")]
+#[command(
+    name = "ice-single-port",
+    about = "Serve many PeerConnections on one UDP port"
+)]
 struct Cli {
     #[arg(short, long)]
     debug: bool,
@@ -259,7 +262,10 @@ async fn async_main(cli: Cli) -> Result<()> {
         }
     }));
 
-    println!("Open http://localhost:{} to access this demo", cli.http_port);
+    println!(
+        "Open http://localhost:{} to access this demo",
+        cli.http_port
+    );
     println!("Press ctrl-c to stop");
     ctrlc_rx.recv().await;
     println!();

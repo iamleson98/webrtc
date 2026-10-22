@@ -1,0 +1,74 @@
+# Releasing the `webrtc` crate: tag `vX.Y.Z`.
+#
+# The `rtc` crates it depends on must already be on crates.io at the version `Cargo.toml`
+# names — release the `rtc` repository first. The full platform matrix runs on the tag, and
+# publishing waits for approval on the `crates-io` environment.
+name: release
+
+on:
+  push:
+    tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Actually publish (otherwise a dry run)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  verify:
+    uses: ./.github/workflows/platform.yml
+
+  publish:
+    name: ${{ (github.event_name == 'push' || inputs.publish) && 'publish' || 'dry run' }}
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: crates-io
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Tag matches the crate version
+        if: github.event_name == 'push'
+        run: |
+          version="$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(next(p["version"] for p in json.load(sys.stdin)["packages"] if p["name"]=="webrtc"))')"
+          if [ "${GITHUB_REF_NAME#v}" != "$version" ]; then
+            echo "tag $GITHUB_REF_NAME does not match webrtc version $version" >&2
+            exit 1
+          fi
+      - name: The rtc crates are already published
+        run: |
+          rtc_version="$(grep -m1 '^rtc = ' Cargo.toml | sed -E 's/.*version = "([^"]+)".*/\1/')"
+          code="$(curl -s -o /dev/null -w '%{http_code}' "https://crates.io/api/v1/crates/rtc/${rtc_version}")"
+          if [ "$code" != 200 ]; then
+            echo "rtc ${rtc_version} is not on crates.io yet (HTTP $code); release the rtc repository first" >&2
+            exit 1
+          fi
+      - name: Dry run
+        run: cargo publish --dry-run
+      - name: Publish
+        if: github.event_name == 'push' || inputs.publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish
+
+  github-release:
+    name: GitHub release
+    needs: publish
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes --title "$GITHUB_REF_NAME"

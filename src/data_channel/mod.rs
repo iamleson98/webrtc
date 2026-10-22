@@ -47,9 +47,10 @@ use crate::peer_connection::PeerConnectionRef;
 use crate::runtime::{Mutex, Receiver};
 use bytes::BytesMut;
 use futures::FutureExt;
+use rtc::data_channel::OutstandingBytes;
 use rtc::shared::error::{Error, Result};
-use std::sync::Arc;
 use std::sync::atomic::Ordering;
+use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 pub use rtc::data_channel::{
@@ -292,6 +293,11 @@ pub(crate) struct DataChannelImpl {
 
     /// event receiver
     evt_rx: Mutex<Receiver<DataChannelEvent>>,
+
+    /// Lock-free view of the channel's outstanding send bytes, taken from the core the first
+    /// time it is needed. Sampling it never touches the core lock, so an application polling
+    /// for send room does not contend with the driver that is making room.
+    outstanding: OnceLock<OutstandingBytes>,
 }
 
 impl DataChannelImpl {
@@ -305,7 +311,36 @@ impl DataChannelImpl {
             id,
             inner,
             evt_rx: Mutex::new(evt_rx),
+            outstanding: OnceLock::new(),
         }
+    }
+
+    /// The channel's outstanding send bytes, read without the core lock once the handle has
+    /// been fetched; the first call takes the lock exactly once to fetch it.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::ErrDataChannelClosed`] once the channel has been removed from the core.
+    async fn sample_outstanding(&self) -> Result<usize> {
+        if let Some(outstanding) = self.outstanding.get() {
+            return if outstanding.is_detached() {
+                Err(Error::ErrDataChannelClosed)
+            } else {
+                Ok(outstanding.get())
+            };
+        }
+        let outstanding = {
+            let mut peer_connection = self.inner.core.lock().await;
+            peer_connection
+                .data_channel(self.id)
+                .ok_or(Error::ErrDataChannelClosed)?
+                .outstanding_bytes_handle()
+        };
+        let bytes = outstanding.get();
+        // Losing the race to another caller is fine: every handle observes the same counter,
+        // and the loser's clone is dropped here, leaving exactly one clone cached.
+        let _ = self.outstanding.set(outstanding);
+        Ok(bytes)
     }
 
     /// Park until the driver signals send-buffer progress, or a 50 ms liveness backstop
@@ -442,11 +477,7 @@ impl DataChannel for DataChannelImpl {
     }
 
     async fn outstanding_bytes(&self) -> Result<usize> {
-        let mut peer_connection = self.inner.core.lock().await;
-        Ok(peer_connection
-            .data_channel(self.id)
-            .ok_or(Error::ErrDataChannelClosed)?
-            .outstanding_bytes())
+        self.sample_outstanding().await
     }
 
     // Documented on `DataChannel::set_buffered_amount_low_threshold`.
@@ -519,19 +550,12 @@ impl DataChannel for DataChannelImpl {
             if self.inner.closing.load(Ordering::Acquire) {
                 return Err(Error::ErrDataChannelClosed);
             }
-            {
-                let mut peer_connection = self.inner.core.lock().await;
-                let outstanding = peer_connection
-                    .data_channel(self.id)
-                    .ok_or(Error::ErrDataChannelClosed)?
-                    .outstanding_bytes();
-                // Below the limit ⇒ writable. An empty buffer (`0 < limit`) also passes, so
-                // a lone message larger than the limit can still be sent rather than
-                // blocking forever.
-                if outstanding < limit {
-                    return Ok(());
-                }
-            } // release the core lock before parking
+            // Below the limit ⇒ writable. An empty buffer (`0 < limit`) also passes, so a
+            // lone message larger than the limit can still be sent rather than blocking
+            // forever. Sampled lock-free, so waiting for room never contends with the driver.
+            if self.sample_outstanding().await? < limit {
+                return Ok(());
+            }
             self.await_send_capacity().await;
         }
     }

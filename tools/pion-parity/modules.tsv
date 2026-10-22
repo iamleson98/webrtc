@@ -1,0 +1,15 @@
+# ledger-name	go module path	rust crate(s) that answer to it	directories searched for tests
+webrtc	github.com/pion/webrtc/v4	webrtc (async crate) + rtc	src tests rtc/src rtc/tests
+ice	github.com/pion/ice/v4	rtc-ice	rtc/rtc-ice
+dtls	github.com/pion/dtls/v3	rtc-dtls	rtc/rtc-dtls
+sctp	github.com/pion/sctp	rtc-sctp	rtc/rtc-sctp
+sdp	github.com/pion/sdp/v3	rtc-sdp	rtc/rtc-sdp
+rtp	github.com/pion/rtp	rtc-rtp	rtc/rtc-rtp
+rtcp	github.com/pion/rtcp	rtc-rtcp	rtc/rtc-rtcp
+srtp	github.com/pion/srtp/v3	rtc-srtp	rtc/rtc-srtp
+stun	github.com/pion/stun/v4	rtc-stun	rtc/rtc-stun
+datachannel	github.com/pion/datachannel	rtc-datachannel	rtc/rtc-datachannel
+interceptor	github.com/pion/interceptor	rtc-interceptor	rtc/rtc-interceptor
+mdns	github.com/pion/mdns/v2	rtc-mdns	rtc/rtc-mdns
+turn	github.com/pion/turn/v5	rtc-turn	rtc/rtc-turn
+transport	github.com/pion/transport/v5	rtc-shared	rtc/rtc-shared rtc/rtc-media

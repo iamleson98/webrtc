@@ -111,7 +111,9 @@ async fn connect_pair(
         .with_udp_addrs(vec!["127.0.0.1:0".to_string()]);
     if let Some(logger) = offerer_logger {
         offerer_builder = offerer_builder.with_setting_engine(
-            SettingEngineBuilder::new().with_dtls_key_logger(Some(logger)).build(),
+            SettingEngineBuilder::new()
+                .with_dtls_key_logger(Some(logger))
+                .build(),
         );
     }
     let offerer: Arc<dyn PeerConnection> = Arc::new(offerer_builder.build().await?);
@@ -128,7 +130,9 @@ async fn connect_pair(
         .with_udp_addrs(vec!["127.0.0.1:0".to_string()]);
     if let Some(logger) = answerer_logger {
         answerer_builder = answerer_builder.with_setting_engine(
-            SettingEngineBuilder::new().with_dtls_key_logger(Some(logger)).build(),
+            SettingEngineBuilder::new()
+                .with_dtls_key_logger(Some(logger))
+                .build(),
         );
     }
     let answerer: Arc<dyn PeerConnection> = Arc::new(answerer_builder.build().await?);
@@ -171,13 +175,31 @@ fn assert_valid_lines(collector: &CollectingLogger) {
     );
     for line in lines.iter() {
         let fields: Vec<&str> = line.trim_end().split(' ').collect();
-        assert_eq!(fields.len(), 3, "line must be label + client random + secret: {line:?}");
+        assert_eq!(
+            fields.len(),
+            3,
+            "line must be label + client random + secret: {line:?}"
+        );
         assert_eq!(fields[0], "CLIENT_RANDOM", "the NSS format label: {line:?}");
-        assert_eq!(fields[1].len(), 64, "client random is 32 bytes of hex: {line:?}");
-        assert_eq!(fields[2].len(), 96, "master secret is 48 bytes of hex: {line:?}");
-        assert!(line.ends_with('\n'), "the newline is part of the format: {line:?}");
+        assert_eq!(
+            fields[1].len(),
+            64,
+            "client random is 32 bytes of hex: {line:?}"
+        );
+        assert_eq!(
+            fields[2].len(),
+            96,
+            "master secret is 48 bytes of hex: {line:?}"
+        );
         assert!(
-            fields[1].chars().chain(fields[2].chars()).all(|c| c.is_ascii_hexdigit()),
+            line.ends_with('\n'),
+            "the newline is part of the format: {line:?}"
+        );
+        assert!(
+            fields[1]
+                .chars()
+                .chain(fields[2].chars())
+                .all(|c| c.is_ascii_hexdigit()),
             "both fields are hex: {line:?}"
         );
     }
@@ -193,12 +215,9 @@ fn test_both_ends_log_identical_client_random_lines() {
         let offerer_logger: Arc<dyn KeyLogger> = offerer_collector.clone();
         let answerer_logger: Arc<dyn KeyLogger> = answerer_collector.clone();
 
-        let (offerer, answerer, dc) = connect_pair(
-            Some(offerer_logger),
-            Some(answerer_logger),
-        )
-        .await
-        .expect("pair with key loggers connects");
+        let (offerer, answerer, dc) = connect_pair(Some(offerer_logger), Some(answerer_logger))
+            .await
+            .expect("pair with key loggers connects");
 
         // A message round trip proves the handshake the lines came from was real.
         timeout(CONNECT_TIMEOUT, async {
@@ -235,9 +254,8 @@ fn test_file_key_logger_writes_the_nss_format_to_disk() {
         let path = dir.join("session-keys.log");
         std::fs::remove_file(&path).ok();
 
-        let logger: Arc<dyn KeyLogger> = Arc::new(
-            rtc::dtls::config::FileKeyLogger::create(&path).expect("key log file opens"),
-        );
+        let logger: Arc<dyn KeyLogger> =
+            Arc::new(rtc::dtls::config::FileKeyLogger::create(&path).expect("key log file opens"));
 
         let (offerer, answerer, dc) = connect_pair(Some(logger), None)
             .await

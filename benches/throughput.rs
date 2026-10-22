@@ -9,10 +9,7 @@ use bytes::BytesMut;
 use std::sync::Arc;
 use std::time::Instant;
 use webrtc::data_channel::{DataChannel, DataChannelEvent, RTCDataChannelInit};
-use webrtc::peer_connection::{
-    PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler,
-    RTCIceGatheringState,
-};
+use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler};
 use webrtc::runtime::{Runtime, Sender, channel, default_runtime};
 
 const TOTAL_BYTES: usize = 256 << 20; // 256 MiB
@@ -103,9 +100,13 @@ async fn run(rt: Arc<dyn Runtime>) -> Result<()> {
 
     let offer = offerer.create_offer(None).await?;
     offerer.set_local_description(offer.clone()).await?;
-    webrtc::runtime::timeout(&*rt.clone(), std::time::Duration::from_secs(10), offerer_gather_rx.recv())
-        .await
-        .map_err(|_| anyhow::anyhow!("offerer gathering timed out"))?;
+    webrtc::runtime::timeout(
+        &*rt.clone(),
+        std::time::Duration::from_secs(10),
+        offerer_gather_rx.recv(),
+    )
+    .await
+    .map_err(|_| anyhow::anyhow!("offerer gathering timed out"))?;
     let offer_sdp = offerer
         .local_description()
         .await
@@ -127,9 +128,13 @@ async fn run(rt: Arc<dyn Runtime>) -> Result<()> {
     answerer.set_remote_description(offer_sdp).await?;
     let answer = answerer.create_answer(None).await?;
     answerer.set_local_description(answer.clone()).await?;
-    webrtc::runtime::timeout(&*rt.clone(), std::time::Duration::from_secs(10), answerer_gather_rx.recv())
-        .await
-        .map_err(|_| anyhow::anyhow!("answerer gathering timed out"))?;
+    webrtc::runtime::timeout(
+        &*rt.clone(),
+        std::time::Duration::from_secs(10),
+        answerer_gather_rx.recv(),
+    )
+    .await
+    .map_err(|_| anyhow::anyhow!("answerer gathering timed out"))?;
     let answer_sdp = answerer
         .local_description()
         .await
@@ -186,7 +191,12 @@ fn rss_mib() -> i64 {
     let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
     for line in status.lines() {
         if let Some(rest) = line.strip_prefix("VmRSS:") {
-            let kb: i64 = rest.trim().trim_end_matches("kB").trim().parse().unwrap_or(0);
+            let kb: i64 = rest
+                .trim()
+                .trim_end_matches("kB")
+                .trim()
+                .parse()
+                .unwrap_or(0);
             return kb / 1024;
         }
     }

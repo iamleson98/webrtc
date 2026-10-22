@@ -1,0 +1,256 @@
+# The async `webrtc` crate on Linux and macOS (x86-64 and arm64), on every built-in runtime and
+# crypto provider, in debug and release — plus interoperability with pion over real sockets.
+# `cargo.yml` covers the feature graph and packaging; this one answers "does it work on every
+# platform we support".
+name: platform
+
+on:
+  push:
+    branches: [ master, v1.x, v0.21.x, v0.20.x, v0.17.x ]
+  pull_request:
+    branches: [ master, v1.x, v0.21.x, v0.20.x, v0.17.x ]
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+
+jobs:
+  test:
+    name: test ${{ matrix.target.name }} / ${{ matrix.profile }} / ${{ matrix.cfg.name }}
+    runs-on: ${{ matrix.target.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { name: linux-x64,   os: ubuntu-latest }
+          - { name: linux-arm64, os: ubuntu-24.04-arm }
+          - { name: macos-arm64, os: macos-latest }
+          - { name: macos-x64,   os: macos-15-intel }
+        profile: [ debug, release ]
+        cfg:
+          - { name: tokio+ring,    features: 'runtime-tokio,crypto-ring' }
+          - { name: smol+ring,     features: 'runtime-smol,crypto-ring' }
+          - { name: tokio+aws-lc,  features: 'runtime-tokio,crypto-aws-lc-rs' }
+    env:
+      FLAGS: ${{ matrix.profile == 'release' && '--release' || '' }} --no-default-features --features ${{ matrix.cfg.features }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target.name }}-${{ matrix.profile }}-${{ matrix.cfg.name }}
+      - name: Build everything
+        run: |
+          # FLAGS is deliberately split into words.
+          # shellcheck disable=SC2086
+          cargo build --all-targets $FLAGS --verbose
+      - name: Test
+        run: |
+          # shellcheck disable=SC2086
+          cargo test --no-fail-fast $FLAGS --verbose
+
+  # The sans-I/O core on the same platforms, so a failure there is attributed to the right
+  # repository. `rtc/.github/workflows/platform.yml` is the full matrix; this is the smoke run
+  # from inside the superproject.
+  core:
+    name: core workspace / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rtc
+      - name: Test the sans-I/O workspace
+        working-directory: rtc
+        run: cargo test --workspace --no-fail-fast --verbose
+
+  # pion (Go) and this stack, in both directions, over loopback sockets: ICE, DTLS, SCTP and the
+  # data-channel protocol, each spoken by two independent implementations.
+  interop:
+    name: pion interop / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: interop/pion-interop/go.mod
+          cache-dependency-path: interop/pion-interop/go.sum
+      - uses: Swatinem/rust-cache@v2
+      - name: Run the interop matrix
+        run: bash interop/run.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: interop-${{ matrix.os }}
+          path: interop/interop-results.log
+
+  # Every `Test*` function in the pinned pion releases has a row in tools/pion-parity/ledger: a
+  # Rust test that reproduces it, a differential corpus that replays pion's own inputs, a stated
+  # reason it does not apply, or a counted gap. A new pion test without a row, a ledger row whose
+  # Rust test has gone, or a ceiling that rose, fails this job.
+  pion-parity:
+    name: pion test ledger
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/pion-parity/go.mod
+          cache-dependency-path: tools/pion-parity/go.sum
+      - name: Check the ledger against the pinned pion releases
+        run: python3 tools/pion-parity/parity.py check
+      - name: Coverage table
+        if: always()
+        run: python3 tools/pion-parity/parity.py report --md "$GITHUB_STEP_SUMMARY"
+
+  # pion's own test suites, at the versions the ledger and the golden corpora were recorded
+  # against, on the same runners: proves the reference is green here, so a difference found by the
+  # jobs above is a difference in this stack and not in the reference.
+  pion-reference:
+    name: pion's own tests / ${{ matrix.os }} / ${{ matrix.module }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        module:
+          - github.com/pion/sdp/v3
+          - github.com/pion/rtp
+          - github.com/pion/rtcp
+          - github.com/pion/stun/v4
+          - github.com/pion/srtp/v3
+          - github.com/pion/datachannel
+          - github.com/pion/sctp
+          - github.com/pion/dtls/v3
+          - github.com/pion/ice/v4
+          - github.com/pion/interceptor
+          - github.com/pion/webrtc/v4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/pion-parity/go.mod
+          cache-dependency-path: tools/pion-parity/go.sum
+      - name: go test the pinned release
+        working-directory: tools/pion-parity
+        run: |
+          dir=$(go mod download -json ${{ matrix.module }} | python3 -c 'import json,sys; print(json.load(sys.stdin)["Dir"])')
+          rm -rf "$RUNNER_TEMP/pion" && cp -R "$dir" "$RUNNER_TEMP/pion" && chmod -R u+w "$RUNNER_TEMP/pion"
+          cd "$RUNNER_TEMP/pion" && go test -count=1 -timeout 20m ./...
+
+  lint:
+    name: lint / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+      - name: clippy (library code, warnings are errors)
+        run: cargo clippy --lib --bins -- -D warnings
+      - name: clippy (all targets, correctness lints are errors)
+        run: cargo clippy --all-targets -- -A clippy::all -D clippy::correctness
+      - name: rustdoc (warnings are errors)
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --no-deps
+
+  supply-chain:
+    name: supply chain
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+      - name: cargo deny
+        run: cargo deny check
+
+  msrv:
+    name: MSRV
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Read the declared MSRV
+        id: msrv
+        run: echo "version=$(grep -m1 '^rust-version' Cargo.toml | cut -d'"' -f2)" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
+      - uses: Swatinem/rust-cache@v2
+      - name: Check on the MSRV toolchain
+        env:
+          # Cargo.lock is not committed, so a fresh resolve would otherwise pick dependency
+          # versions newer than the MSRV compiler can build; prefer ones that declare support.
+          CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: fallback
+        run: cargo check --all-targets --verbose
+
+  # Whole-connection numbers against pion on every platform: data-channel throughput, the CPU and
+  # memory the transfer cost, and connect latency, each side measured the way its own bench is
+  # written. Medians of five runs with generous margins, because shared runners are noisy.
+  e2e-vs-pion:
+    name: e2e vs pion / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: benches/pion/go.mod
+          cache-dependency-path: benches/pion/go.sum
+      - uses: Swatinem/rust-cache@v2
+      - name: webrtc-rs vs pion
+        run: python3 benches/pion/compare.py --runs 5 --summary "$GITHUB_STEP_SUMMARY"

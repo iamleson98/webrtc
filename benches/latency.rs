@@ -8,8 +8,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use webrtc::data_channel::{DataChannelEvent, RTCDataChannelInit};
 use webrtc::peer_connection::{
-    PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler,
-    RTCIceGatheringState, SettingEngineBuilder,
+    PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler, RTCIceGatheringState,
+    SettingEngineBuilder,
 };
 use webrtc::runtime::{Runtime, Sender, channel, default_runtime};
 
@@ -57,7 +57,9 @@ async fn connect_once(rt: Arc<dyn Runtime>) -> Result<Duration> {
 
     let (o_gather_tx, mut o_gather_rx) = channel::<()>(1);
     let mut offerer_builder = PeerConnectionBuilder::new()
-        .with_handler(Arc::new(GatherWaiter { gather_tx: o_gather_tx }))
+        .with_handler(Arc::new(GatherWaiter {
+            gather_tx: o_gather_tx,
+        }))
         .with_runtime(rt.clone())
         .with_udp_addrs(vec!["127.0.0.1:0".to_string()]);
     if let Some(se) = setting_engine.clone() {
@@ -81,7 +83,9 @@ async fn connect_once(rt: Arc<dyn Runtime>) -> Result<Duration> {
 
     let (a_gather_tx, mut a_gather_rx) = channel::<()>(1);
     let mut answerer_builder = PeerConnectionBuilder::new()
-        .with_handler(Arc::new(GatherWaiter { gather_tx: a_gather_tx }))
+        .with_handler(Arc::new(GatherWaiter {
+            gather_tx: a_gather_tx,
+        }))
         .with_runtime(rt.clone())
         .with_udp_addrs(vec!["127.0.0.1:0".to_string()]);
     if let Some(se) = setting_engine {
@@ -120,13 +124,20 @@ fn main() -> Result<()> {
     // connect sequence with millisecond timestamps (no logger without this: `RUST_LOG`
     // alone does nothing in a bench binary).
     if std::env::var_os("LATENCY_TRACE").is_some() {
-        env_logger::builder().format_timestamp_millis().parse_env("RUST_LOG").try_init().ok();
+        env_logger::builder()
+            .format_timestamp_millis()
+            .parse_env("RUST_LOG")
+            .try_init()
+            .ok();
     }
     run()
 }
 
 fn run() -> Result<()> {
-    let rounds: usize = std::env::args().nth(1).and_then(|s| s.parse().ok()).unwrap_or(20);
+    let rounds: usize = std::env::args()
+        .nth(1)
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(20);
     let rt = default_runtime().ok_or_else(|| anyhow::anyhow!("no runtime feature enabled"))?;
     let rt2 = rt.clone();
     block_on(&rt, async move {

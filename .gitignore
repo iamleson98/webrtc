@@ -11,3 +11,6 @@
 
 # Editor configs
 Cargo.lock
+
+# Written by interop/run.sh
+/interop/interop-results.log
