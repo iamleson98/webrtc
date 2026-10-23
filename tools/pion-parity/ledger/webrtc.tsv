@@ -409,15 +409,15 @@ settingengine_test.go	TestSetDTLSEllipticCurves	todo
 settingengine_test.go	TestSetDTLSHandShakeTimeout	todo		
 settingengine_test.go	TestSetSCTPMaxReceiverBufferSize	todo		
 settingengine_test.go	TestSetSCTPRTOMax	todo		
-settingengine_test.go	TestSetICEUseCandidateCheckPriority	todo		
-settingengine_test.go	TestSetICEBindingRequestHandler	todo		
+settingengine_test.go	TestSetICEUseCandidateCheckPriority	rust	ice_options_are_stored	new SettingEngine option
+settingengine_test.go	TestSetICEBindingRequestHandler	rust	test_ice_binding_request_handler_sees_both_roles	new SettingEngine option
 settingengine_test.go	TestSetHooks	todo		
 settingengine_test.go	TestSetFireOnTrackBeforeFirstRTP	todo		
 settingengine_test.go	TestDisableCloseByDTLS	todo		
 settingengine_test.go	TestEnableDataChannelBlockWrite	todo		
 settingengine_test.go	TestSettingEngine_getReceiveMTU_Custom	todo		
 settingengine_test.go	TestSettingEngine_ICEAcceptanceAndSTUNSetters	todo		
-settingengine_test.go	TestSettingEngine_CandidateFiltersAndNetworkTypes	todo		
+settingengine_test.go	TestSettingEngine_CandidateFiltersAndNetworkTypes	rust	ice_options_are_stored	ip and remote-ip filters are new SettingEngine options (with_ip_filter, with_remote_ip_filter; behaviour in test_ip_filter_drops_local_candidates and test_remote_ip_filter_ignores_remote_candidates); no interface filter, the sans-I/O connection does not enumerate interfaces
 settingengine_test.go	TestSettingEngine_MDNSAndCredentialsAndFingerprint	todo		
 settingengine_test.go	TestSettingEngine_UDPMuxProxyBindingAndTCPFlags	todo		
 settingengine_test.go	TestSettingEngine_MediaEngineAndMTUFlags	todo		
