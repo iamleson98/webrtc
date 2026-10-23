@@ -1,45 +1,45 @@
 # file	test	status	ref	note   (see tools/pion-parity/parity.py)
-cache_test.go	TestCacheInsertLookupA	todo		
-cache_test.go	TestCacheInsertLookupAAAA	todo		
-cache_test.go	TestCacheInsertLookupPTR	todo		
-cache_test.go	TestCacheInsertLookupSRV	todo		
-cache_test.go	TestCacheInsertLookupTXT	todo		
-cache_test.go	TestCacheLookupRemainingTTL	todo		
-cache_test.go	TestCacheLookupCaseInsensitive	todo		
-cache_test.go	TestCacheMultipleRecordsSameName	todo		
-cache_test.go	TestCacheMultiplePTRTargets	todo		
-cache_test.go	TestCacheTTLExpiration	todo		
-cache_test.go	TestCacheTTLValidBeforeExpiry	todo		
-cache_test.go	TestCacheSweepRemovesExpired	todo		
-cache_test.go	TestCacheSweepEmpty	todo		
-cache_test.go	TestCacheTTLUpdate	todo		
-cache_test.go	TestCacheGoodbyeExistingRecord	todo		
-cache_test.go	TestCacheGoodbyeExpiration	todo		
-cache_test.go	TestCacheGoodbyeUnknownRecord	todo		
-cache_test.go	TestCacheGoodbyeSelectiveByRdata	todo		
-cache_test.go	TestCacheGoodbyeThenReinsert	todo		
-cache_test.go	TestCacheFlushBitStripped	todo		
-cache_test.go	TestCacheFlushOldEntries	todo		
-cache_test.go	TestCacheFlushPreservesRecent	todo		
-cache_test.go	TestCacheFlushPreservesRefreshed	todo		
-cache_test.go	TestCacheFlushTypeIsolation	todo		
-cache_test.go	TestCacheFlushAll	todo		
-cache_test.go	TestCacheReduceTTLs	todo		
-cache_test.go	TestCacheLookupEmpty	todo		
-cache_test.go	TestCacheLookupWrongType	todo		
-cache_test.go	TestCacheLen	todo		
-cache_test.go	TestCacheConcurrency	todo		
-cache_test.go	TestResourceDataEqualA	todo		
-cache_test.go	TestResourceDataEqualAAAA	todo		
-cache_test.go	TestResourceDataEqualPTR	todo		
-cache_test.go	TestResourceDataEqualSRV	todo		
-cache_test.go	TestResourceDataEqualTXT	todo		
-cache_test.go	TestResourceDataEqualDifferentTypes	todo		
-cache_test.go	TestResourceDataEqualNilBody	todo		
-cache_test.go	TestResourceDataEqualDifferentNames	todo		
-cache_test.go	TestCacheTTLClampedToMax	todo		
-cache_test.go	TestCacheCapEvictsSoonestExpiring	todo		
-cache_test.go	TestCacheCapEvictionKeepsSiblingEntries	todo		
+cache_test.go	TestCacheInsertLookupA	rust	test_cache_insert_lookup_a	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheInsertLookupAAAA	rust	test_cache_insert_lookup_aaaa	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheInsertLookupPTR	rust	test_cache_insert_lookup_ptr	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheInsertLookupSRV	rust	test_cache_insert_lookup_srv	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheInsertLookupTXT	rust	test_cache_insert_lookup_txt	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheLookupRemainingTTL	rust	test_cache_lookup_remaining_ttl	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheLookupCaseInsensitive	rust	test_cache_lookup_case_insensitive	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheMultipleRecordsSameName	rust	test_cache_multiple_records_same_name	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheMultiplePTRTargets	rust	test_cache_multiple_ptr_targets	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheTTLExpiration	rust	test_cache_ttl_expiration	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheTTLValidBeforeExpiry	rust	test_cache_ttl_valid_before_expiry	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheSweepRemovesExpired	rust	test_cache_sweep_removes_expired	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheSweepEmpty	rust	test_cache_sweep_empty	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheTTLUpdate	rust	test_cache_ttl_update	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheGoodbyeExistingRecord	rust	test_cache_goodbye_existing_record	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheGoodbyeExpiration	rust	test_cache_goodbye_expiration	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheGoodbyeUnknownRecord	rust	test_cache_goodbye_unknown_record	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheGoodbyeSelectiveByRdata	rust	test_cache_goodbye_selective_by_rdata	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheGoodbyeThenReinsert	rust	test_cache_goodbye_then_reinsert	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheFlushBitStripped	rust	test_cache_flush_bit_stripped	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheFlushOldEntries	rust	test_cache_flush_old_entries	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheFlushPreservesRecent	rust	test_cache_flush_preserves_recent	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheFlushPreservesRefreshed	rust	test_cache_flush_preserves_refreshed	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheFlushTypeIsolation	rust	test_cache_flush_type_isolation	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheFlushAll	rust	test_cache_flush_all	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheReduceTTLs	rust	test_cache_reduce_ttls	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheLookupEmpty	rust	test_cache_lookup_empty	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheLookupWrongType	rust	test_cache_lookup_wrong_type	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheLen	rust	test_cache_len	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheConcurrency	na		goroutine/race test: pion races its RWMutex-guarded cache from goroutines; the Rust cache is single-owner sans-I/O (&mut self) with no interior mutability, so there is no lock to exercise
+cache_test.go	TestResourceDataEqualA	rust	test_resource_data_equal_a	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestResourceDataEqualAAAA	rust	test_resource_data_equal_aaaa	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestResourceDataEqualPTR	rust	test_resource_data_equal_ptr	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestResourceDataEqualSRV	rust	test_resource_data_equal_srv	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestResourceDataEqualTXT	rust	test_resource_data_equal_txt	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestResourceDataEqualDifferentTypes	rust	test_resource_data_equal_different_types	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestResourceDataEqualNilBody	rust	test_resource_data_equal_nil_body	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestResourceDataEqualDifferentNames	rust	test_resource_data_equal_different_names	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheTTLClampedToMax	rust	test_cache_ttl_clamped_to_max	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheCapEvictsSoonestExpiring	rust	test_cache_cap_evicts_soonest_expiring	the Go test's sleeps advance the injected Instant instead
+cache_test.go	TestCacheCapEvictionKeepsSiblingEntries	rust	test_cache_cap_eviction_keeps_sibling_entries	the Go test's sleeps advance the injected Instant instead
 client_test.go	TestAnswerHandlerRegisterUnregister	todo		
 client_test.go	TestAnswerHandlerHandleMatchingAnswer	todo		
 client_test.go	TestAnswerHandlerHandleMatchingAnswerIPv6	todo		
@@ -91,35 +91,35 @@ conn_test.go	TestEnumerateServiceTypesEndToEnd	todo
 conn_test.go	TestQueryAddrAndBrowseCoexist	todo		
 conn_test.go	TestDynamicRegisterAndBrowse	todo		
 conn_test.go	TestIPToBytes	todo		
-dns_sd_test.go	TestServiceInstanceName_Simple	todo		
-dns_sd_test.go	TestServiceInstanceName_DotsEscaped	todo		
-dns_sd_test.go	TestServiceInstanceName_BackslashEscaped	todo		
-dns_sd_test.go	TestServiceInstanceName_DotAndBackslash	todo		
-dns_sd_test.go	TestServiceInstanceName_NoSpecialChars	todo		
-dns_sd_test.go	TestServiceInstanceName_RFC6763_Section13	todo		
-dns_sd_test.go	TestServiceName	todo		
-dns_sd_test.go	TestEscapeUnescapeRoundTrip	todo		
-dns_sd_test.go	TestEscapeInstanceName_NothingToEscape	todo		
-dns_sd_test.go	TestEscapeInstanceName_Dots	todo		
-dns_sd_test.go	TestEscapeInstanceName_Backslashes	todo		
-dns_sd_test.go	TestParseServiceInstanceName_Simple	todo		
-dns_sd_test.go	TestParseServiceInstanceName_EscapedDot	todo		
-dns_sd_test.go	TestParseServiceInstanceName_EscapedBackslash	todo		
-dns_sd_test.go	TestParseServiceInstanceName_DotAndBackslash	todo		
-dns_sd_test.go	TestParseServiceInstanceName_NoTrailingDot	todo		
-dns_sd_test.go	TestParseServiceInstanceName_MultiLabelDomain	todo		
-dns_sd_test.go	TestParseServiceInstanceName_SpaceInInstance	todo		
-dns_sd_test.go	TestParseServiceInstanceName_TooFewLabels	todo		
-dns_sd_test.go	TestParseServiceInstanceName_NoUnderscoreLabels	todo		
-dns_sd_test.go	TestParseServiceInstanceName_Empty	todo		
-dns_sd_test.go	TestParseServiceInstanceName_RoundTrip	todo		
-dns_sd_test.go	TestValidateServiceName_Valid	todo		
-dns_sd_test.go	TestValidateServiceName_Invalid	todo		
-dns_sd_test.go	TestValidateInstanceName_Valid	todo		
-dns_sd_test.go	TestValidateInstanceName_Invalid	todo		
-dns_sd_test.go	TestValidateInstanceName_SpaceIsValid	todo		
-dns_sd_test.go	TestServiceTypeEnumerationName	todo		
-dns_sd_test.go	TestSplitEscapedDots	todo		
+dns_sd_test.go	TestServiceInstanceName_Simple	rust	test_service_instance_name_simple	
+dns_sd_test.go	TestServiceInstanceName_DotsEscaped	rust	test_service_instance_name_dots_escaped	
+dns_sd_test.go	TestServiceInstanceName_BackslashEscaped	rust	test_service_instance_name_backslash_escaped	
+dns_sd_test.go	TestServiceInstanceName_DotAndBackslash	rust	test_service_instance_name_dot_and_backslash	
+dns_sd_test.go	TestServiceInstanceName_NoSpecialChars	rust	test_service_instance_name_no_special_chars	
+dns_sd_test.go	TestServiceInstanceName_RFC6763_Section13	rust	test_service_instance_name_rfc6763_section13	
+dns_sd_test.go	TestServiceName	rust	test_service_name	
+dns_sd_test.go	TestEscapeUnescapeRoundTrip	rust	test_escape_unescape_round_trip	
+dns_sd_test.go	TestEscapeInstanceName_NothingToEscape	rust	test_escape_instance_name_nothing_to_escape	
+dns_sd_test.go	TestEscapeInstanceName_Dots	rust	test_escape_instance_name_dots	
+dns_sd_test.go	TestEscapeInstanceName_Backslashes	rust	test_escape_instance_name_backslashes	
+dns_sd_test.go	TestParseServiceInstanceName_Simple	rust	test_parse_service_instance_name_simple	
+dns_sd_test.go	TestParseServiceInstanceName_EscapedDot	rust	test_parse_service_instance_name_escaped_dot	
+dns_sd_test.go	TestParseServiceInstanceName_EscapedBackslash	rust	test_parse_service_instance_name_escaped_backslash	
+dns_sd_test.go	TestParseServiceInstanceName_DotAndBackslash	rust	test_parse_service_instance_name_dot_and_backslash	
+dns_sd_test.go	TestParseServiceInstanceName_NoTrailingDot	rust	test_parse_service_instance_name_no_trailing_dot	
+dns_sd_test.go	TestParseServiceInstanceName_MultiLabelDomain	rust	test_parse_service_instance_name_multi_label_domain	
+dns_sd_test.go	TestParseServiceInstanceName_SpaceInInstance	rust	test_parse_service_instance_name_space_in_instance	
+dns_sd_test.go	TestParseServiceInstanceName_TooFewLabels	rust	test_parse_service_instance_name_too_few_labels	
+dns_sd_test.go	TestParseServiceInstanceName_NoUnderscoreLabels	rust	test_parse_service_instance_name_no_underscore_labels	
+dns_sd_test.go	TestParseServiceInstanceName_Empty	rust	test_parse_service_instance_name_empty	
+dns_sd_test.go	TestParseServiceInstanceName_RoundTrip	rust	test_parse_service_instance_name_round_trip	
+dns_sd_test.go	TestValidateServiceName_Valid	rust	test_validate_service_name_valid	
+dns_sd_test.go	TestValidateServiceName_Invalid	rust	test_validate_service_name_invalid	
+dns_sd_test.go	TestValidateInstanceName_Valid	rust	test_validate_instance_name_valid	
+dns_sd_test.go	TestValidateInstanceName_Invalid	rust	test_validate_instance_name_invalid	
+dns_sd_test.go	TestValidateInstanceName_SpaceIsValid	rust	test_validate_instance_name_space_is_valid	
+dns_sd_test.go	TestServiceTypeEnumerationName	rust	test_service_type_enumeration_name	
+dns_sd_test.go	TestSplitEscapedDots	rust	test_split_escaped_dots	
 networking_test.go	TestConfigurePacketConn4Nil	todo		
 networking_test.go	TestConfigurePacketConn6Nil	todo		
 networking_test.go	TestEnableLoopback4Nil	todo		
@@ -130,47 +130,47 @@ networking_test.go	TestEnableLoopback4WithConn	todo
 networking_test.go	TestEnableLoopback6WithConn	todo		
 networking_test.go	TestIPPacketConn4RoundTrip	todo		
 networking_test.go	TestIPPacketConn6RoundTrip	todo		
-records_test.go	TestEncodeTXTRecordStrings_RFC6763_Section6_6	todo		
-records_test.go	TestEncodeTXTRecordStrings_EmptyValue	todo		
-records_test.go	TestEncodeTXTRecordStrings_EmptyInput	todo		
-records_test.go	TestEncodeTXTRecordStrings_EmptyKey	todo		
-records_test.go	TestEncodeTXTRecordStrings_MaxLength	todo		
-records_test.go	TestEncodeTXTRecordStrings_BooleanMaxLength	todo		
-records_test.go	TestDecodeTXTRecordStrings_RFC6763_Section6_6	todo		
-records_test.go	TestDecodeTXTRecordStrings_FourCategories	todo		
-records_test.go	TestDecodeTXTRecordStrings_ValueContainingEquals	todo		
-records_test.go	TestDecodeTXTRecordStrings_EmptyKeyIgnored	todo		
-records_test.go	TestDecodeTXTRecordStrings_EmptyStringIgnored	todo		
-records_test.go	TestDecodeTXTRecordStrings_DuplicateKeys_CaseInsensitive	todo		
-records_test.go	TestDecodeTXTRecordStrings_SpacesInKey	todo		
-records_test.go	TestTXTRoundTrip	todo		
-records_test.go	TestNewTXTString	todo		
-records_test.go	TestNewTXTBinary	todo		
-records_test.go	TestNewTXTFlag	todo		
-records_test.go	TestNewTXTConstructors_Encode	todo		
-records_test.go	TestValidateTXTEntries	todo		
-records_test.go	TestBuildPTRResource	todo		
-records_test.go	TestBuildPTRResource_InvalidName	todo		
-records_test.go	TestBuildPTRResource_CustomTTL	todo		
-records_test.go	TestBuildSRVResource	todo		
-records_test.go	TestBuildSRVResource_NonZeroPriorityWeight	todo		
-records_test.go	TestBuildTXTResource	todo		
-records_test.go	TestBuildTXTResource_Empty	todo		
-records_test.go	TestBuildAResource	todo		
-records_test.go	TestBuildAResource_RejectsIPv6	todo		
-records_test.go	TestBuildAAAAResource	todo		
-records_test.go	TestBuildAAAAResource_RejectsIPv4	todo		
-records_test.go	TestPTRRoundTrip	todo		
-records_test.go	TestSRVRoundTrip	todo		
-records_test.go	TestTXTRoundTrip_DNS	todo		
-records_test.go	TestARoundTrip	todo		
-records_test.go	TestAAAARoundTrip	todo		
-records_test.go	TestTXTFullRoundTrip	todo		
-records_test.go	TestTTLConstants	todo		
-records_test.go	TestParsePTRTarget_WrongType	todo		
-records_test.go	TestParseSRVData_WrongType	todo		
-records_test.go	TestParseTXTData_WrongType	todo		
-records_test.go	TestMultiRecordMessage	todo		
+records_test.go	TestEncodeTXTRecordStrings_RFC6763_Section6_6	rust	test_encode_txt_record_strings_rfc6763_section_6_6	
+records_test.go	TestEncodeTXTRecordStrings_EmptyValue	rust	test_encode_txt_record_strings_empty_value	
+records_test.go	TestEncodeTXTRecordStrings_EmptyInput	rust	test_encode_txt_record_strings_empty_input	
+records_test.go	TestEncodeTXTRecordStrings_EmptyKey	rust	test_encode_txt_record_strings_empty_key	
+records_test.go	TestEncodeTXTRecordStrings_MaxLength	rust	test_encode_txt_record_strings_max_length	
+records_test.go	TestEncodeTXTRecordStrings_BooleanMaxLength	rust	test_encode_txt_record_strings_boolean_max_length	
+records_test.go	TestDecodeTXTRecordStrings_RFC6763_Section6_6	rust	test_decode_txt_record_strings_rfc6763_section_6_6	
+records_test.go	TestDecodeTXTRecordStrings_FourCategories	rust	test_decode_txt_record_strings_four_categories	
+records_test.go	TestDecodeTXTRecordStrings_ValueContainingEquals	rust	test_decode_txt_record_strings_value_containing_equals	
+records_test.go	TestDecodeTXTRecordStrings_EmptyKeyIgnored	rust	test_decode_txt_record_strings_empty_key_ignored	
+records_test.go	TestDecodeTXTRecordStrings_EmptyStringIgnored	rust	test_decode_txt_record_strings_empty_string_ignored	
+records_test.go	TestDecodeTXTRecordStrings_DuplicateKeys_CaseInsensitive	rust	test_decode_txt_record_strings_duplicate_keys_case_insensitive	
+records_test.go	TestDecodeTXTRecordStrings_SpacesInKey	rust	test_decode_txt_record_strings_spaces_in_key	
+records_test.go	TestTXTRoundTrip	rust	test_txt_round_trip	
+records_test.go	TestNewTXTString	rust	test_new_txt_string	
+records_test.go	TestNewTXTBinary	rust	test_new_txt_binary	
+records_test.go	TestNewTXTFlag	rust	test_new_txt_flag	
+records_test.go	TestNewTXTConstructors_Encode	rust	test_new_txt_constructors_encode	
+records_test.go	TestValidateTXTEntries	rust	test_validate_txt_entries	
+records_test.go	TestBuildPTRResource	rust	test_build_ptr_resource	
+records_test.go	TestBuildPTRResource_InvalidName	rust	test_build_ptr_resource_invalid_name	
+records_test.go	TestBuildPTRResource_CustomTTL	rust	test_build_ptr_resource_custom_ttl	
+records_test.go	TestBuildSRVResource	rust	test_build_srv_resource	
+records_test.go	TestBuildSRVResource_NonZeroPriorityWeight	rust	test_build_srv_resource_non_zero_priority_weight	
+records_test.go	TestBuildTXTResource	rust	test_build_txt_resource	
+records_test.go	TestBuildTXTResource_Empty	rust	test_build_txt_resource_empty	
+records_test.go	TestBuildAResource	rust	test_build_a_resource	
+records_test.go	TestBuildAResource_RejectsIPv6	rust	test_build_a_resource_rejects_ipv6	
+records_test.go	TestBuildAAAAResource	rust	test_build_aaaa_resource	
+records_test.go	TestBuildAAAAResource_RejectsIPv4	rust	test_build_aaaa_resource_rejects_ipv4	
+records_test.go	TestPTRRoundTrip	rust	test_ptr_round_trip	
+records_test.go	TestSRVRoundTrip	rust	test_srv_round_trip	
+records_test.go	TestTXTRoundTrip_DNS	rust	test_txt_round_trip_dns	
+records_test.go	TestARoundTrip	rust	test_a_round_trip	
+records_test.go	TestAAAARoundTrip	rust	test_aaaa_round_trip	
+records_test.go	TestTXTFullRoundTrip	rust	test_txt_full_round_trip	
+records_test.go	TestTTLConstants	rust	test_ttl_constants	
+records_test.go	TestParsePTRTarget_WrongType	rust	test_parse_ptr_target_wrong_type	
+records_test.go	TestParseSRVData_WrongType	rust	test_parse_srv_data_wrong_type	
+records_test.go	TestParseTXTData_WrongType	rust	test_parse_txt_data_wrong_type	
+records_test.go	TestMultiRecordMessage	rust	test_multi_record_message	
 refresh_test.go	TestRefreshAt80Percent	todo		
 refresh_test.go	TestRefreshAllFourThresholds	todo		
 refresh_test.go	TestRefreshResetOnUpdate	todo		
