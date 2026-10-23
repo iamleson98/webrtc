@@ -1,98 +1,98 @@
 # file	test	status	ref	note   (see tools/pion-parity/parity.py)
-attributes_test.go	TestAttributesGetRTPHeader	todo		
-attributes_test.go	TestAttributesGetRTCPPackets	todo		
-errors_test.go	TestMultiError	todo		
-internal/cc/feedback_adapter_test.go	TestUnpackRunLengthChunk	todo		
-internal/cc/feedback_adapter_test.go	TestUnpackStatusVectorChunk	todo		
-internal/cc/feedback_adapter_test.go	TestFeedbackAdapterTWCC	todo		
-internal/ntp/ntp_test.go	TestNTPToTimeConverstion	todo		
-internal/ntp/ntp_test.go	TestTimeToNTPConverstion	todo		
-internal/ntp/ntp_test.go	TestNTPTime32	todo		
-internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer	todo		
-internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_WithRTX	todo		
-internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Overridden	todo		
-internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Overridden_WithRTX_AND_Padding	todo		
-internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Overridden_WithRTX_NILPayload	todo		
-internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Clear	todo		
-internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_ClearReleasesPacketsToPool	todo		
-internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_ClearPartiallyFilled	todo		
-internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Padding	todo		
-internal/sequencenumber/unwrapper_test.go	TestIsNewer	todo		
-internal/sequencenumber/unwrapper_test.go	TestUnwrapper	todo		
-internal/test/mock_stream_test.go	TestMockStream	todo		
-pkg/ccfb/interceptor_test.go	TestInterceptor	todo		
-pkg/ccfb/interceptor_test.go	TestReadAfterClose	todo		
-pkg/ccfb/interceptor_test.go	TestConcurrentClose	todo		
-pkg/ccfb/recorder_test.go	TestGetArrivalTimeOffset	todo		
-pkg/ccfb/recorder_test.go	TestRecorder	todo		
-pkg/ccfb/stream_log_test.go	TestStreamLogAdd	todo		
-pkg/ccfb/stream_log_test.go	TestStreamLogMetricsAfter	todo		
-pkg/ccfb/stream_log_test.go	TestRemoveOldestPackets	todo		
-pkg/ccfb/stream_log_test.go	TestStreamLogDoesNotLeakBelowReportPointer	todo		
-pkg/flexfec/encoder_interceptor_test.go	TestFecInterceptor_GenerateAndWriteFecPackets	todo		
-pkg/flexfec/encoder_interceptor_test.go	TestFecInterceptor_BypassStreamWhenFecPtAndSsrcAreZero	todo		
-pkg/flexfec/encoder_interceptor_test.go	TestFecInterceptor_EncodeOnlyPacketsWithMediaSsrc	todo		
-pkg/flexfec/encoder_interceptor_test.go	TestFecInterceptor_HandleMultipleStreamsCorrectly	todo		
-pkg/flexfec/flexfec_03_test.go	TestFlexFec03_SimpleRoundTrip	todo		
-pkg/flexfec/flexfec_03_test.go	TestFlexFec03_WholeRangeRoundTrip	todo		
-pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParitySingleFECShortWindow	todo		
-pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParityDualFECMask2Coverage	todo		
-pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParityTripleFECMask3Coverage	todo		
-pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParityWrapAroundSequences	todo		
-pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParityHighMediaCount	todo		
-pkg/flexfec/flexfec_coverage_test.go	TestMaskExtractors	todo		
-pkg/flexfec/flexfec_decoder_03_test.go	TestFECDecoderInsertPacketRemovesOldFEC	todo		
-pkg/flexfec/flexfec_decoder_03_test.go	TestFECDecoderInsertPacketKeepsRecentFEC	todo		
-pkg/flexfec/flexfec_encoder_03_test.go	TestFlexEncoder03_EncodeFec_EmptyMediaPackets	todo		
-pkg/flexfec/flexfec_encoder_03_test.go	TestFlexEncoder03_EncodeFec_OutOfOrderPackets	todo		
-pkg/flexfec/flexfec_encoder_03_test.go	TestFlexEncoder03_EncodeFec_MissingPackets	todo		
-pkg/flexfec/flexfec_encoder_03_test.go	TestFlexEncoder03_EncodeFec_DifferentPayloadSizes	todo		
-pkg/flexfec/util/media_packet_iterator_test.go	TestNewMediaPacketIterator	todo		
-pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorReset	todo		
-pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorHasNext	todo		
-pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorNext	todo		
-pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorFirst	todo		
-pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorEmptyCoveredIndices	todo		
-pkg/gcc/adaptive_threshold_test.go	TestAdaptiveThreshold	todo		
-pkg/gcc/arrival_group_accumulator_test.go	TestArrivalGroupAccumulator	todo		
-pkg/gcc/arrival_group_test.go	TestArrivalGroup	todo		
-pkg/gcc/gcc_test.go	TestClamp	todo		
-pkg/gcc/kalman_test.go	TestKalman	todo		
-pkg/gcc/overuse_detector_test.go	TestOveruseDetectorWithoutDelay	todo		
-pkg/gcc/rate_calculator_test.go	TestRateCalculator	todo		
-pkg/gcc/rate_controller_test.go	TestRateControllerRun	todo		
-pkg/gcc/send_side_bwe_test.go	TestSendSideBWE	todo		
-pkg/gcc/send_side_bwe_test.go	TestSendSideBWE_ErrorOnWriteRTCPAtClosedState	todo		
-pkg/gcc/slope_estimator_test.go	TestSlopeEstimator	todo		
-pkg/intervalpli/generator_interceptor_test.go	TestPLIGeneratorInterceptor_Unsupported	todo		
-pkg/intervalpli/generator_interceptor_test.go	TestPLIGeneratorInterceptor	todo		
-pkg/jitterbuffer/jitter_buffer_test.go	TestJitterBuffer	todo		
-pkg/jitterbuffer/priority_queue_test.go	TestPriorityQueue	todo		
-pkg/jitterbuffer/priority_queue_test.go	TestPriorityQueue_Find	todo		
-pkg/jitterbuffer/priority_queue_test.go	TestPriorityQueue_Clean	todo		
-pkg/jitterbuffer/priority_queue_test.go	TestPriorityQueue_Unreference	todo		
-pkg/jitterbuffer/receiver_interceptor_test.go	TestBufferStart	todo		
-pkg/jitterbuffer/receiver_interceptor_test.go	TestReceiverBuffersAndPlaysout	todo		
-pkg/mock/interceptor_test.go	TestInterceptor	todo		
-pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor	todo		
-pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor_InvalidSize	todo		
-pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor_StreamFilter	todo		
-pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor_UnbindRemovesCorrespondingSSRC	todo		
-pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor_NoDeadlockWithReentrantRTCPWriter	todo		
-pkg/nack/receive_log_test.go	TestReceivedBuffer	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_InvalidSize	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_DisableCopy	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_Race	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_RaceConcurrentStreams	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_StreamFilter	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_RFC4588	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_BypassUnknownSSRCs	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_UnbindReleasesBufferedPackets	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_CloseReleasesAllStreams	todo		
-pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_NoDeadlockWithReentrantRTPWriter	todo		
-pkg/pacing/interceptor_test.go	TestBurst	todo		
-pkg/pacing/interceptor_test.go	TestInterceptor	todo		
+attributes_test.go	TestAttributesGetRTPHeader	na		Go-only API: the typed Packet enum carries the RTP header directly; there is no attributes map to fetch it from
+attributes_test.go	TestAttributesGetRTCPPackets	na		Go-only API: the typed Packet enum carries the RTCP packets directly; there is no attributes map to fetch them from
+errors_test.go	TestMultiError	na		Go-only API: error flattening is Go's error model; Rust uses the typed shared::error::Error enum
+internal/cc/feedback_adapter_test.go	TestUnpackRunLengthChunk	rust	a_run_of_lost_packets_converts_to_losses	run-length chunk unpacking lives in convert_twcc (rtpfb/convert.rs)
+internal/cc/feedback_adapter_test.go	TestUnpackStatusVectorChunk	rust	a_status_vector_converts_symbol_by_symbol	status-vector chunk unpacking lives in convert_twcc (rtpfb/convert.rs)
+internal/cc/feedback_adapter_test.go	TestFeedbackAdapterTWCC	rust	deltas_accumulate_from_the_reference_time	the adapter is convert_twcc; delta accumulation from the reference time, negative deltas and symbol semantics all pinned in rtpfb/convert.rs
+internal/ntp/ntp_test.go	TestNTPToTimeConverstion	rust	test_ntp_conversion	rtc-rtp abs_send_time_extension_test.rs round-trips SystemInstant::ntp2unix
+internal/ntp/ntp_test.go	TestTimeToNTPConverstion	rust	test_ntp_conversion	rtc-rtp abs_send_time_extension_test.rs pins SystemInstant::unix2ntp against fixed vectors
+internal/ntp/ntp_test.go	TestNTPTime32	na		Go-only helper: the 32-bit NTP form is not represented; RFC 8888 arrival times are carried as Durations against an injected Instant
+internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer	rust	test_send_buffer_basic	add/get/evict semantics; overwrite, gap-clear, out-of-range and wraparound pinned by the sibling tests in nack/send_buffer.rs
+internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_WithRTX	rust	test_send_buffer_out_of_order	late adds do not invalidate others; RTX is applied at retransmit time (architecture), so the buffered form is asserted through test_nack_responder_rtx_retransmission
+internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Overridden	rust	test_send_buffer_overwrite	the evicted predecessor is invisible; copy-on-add holds by ownership
+internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Overridden_WithRTX_AND_Padding	rust	test_nack_responder_rtx_strips_legacy_padding	padding is stripped from the RTX copy at the retransmission boundary
+internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Overridden_WithRTX_NILPayload	rust	test_nack_responder_rtx_payload_of_empty_packet_is_only_the_osn	an empty payload retransmits as exactly the two-byte OSN
+internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Clear	na		Go-only API: no Clear()/packet pool; the buffer is torn down when the stream unbinds (test_nack_responder_unbind_releases_buffered_packets)
+internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_ClearReleasesPacketsToPool	na		Go-only API: sync.Pool refcounting has no Rust counterpart; eviction and unbind drop by ownership
+internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_ClearPartiallyFilled	na		Go-only API: no Clear(); the buffer is dropped with the stream
+internal/rtpbuffer/rtpbuffer_test.go	TestRTPBuffer_Padding	rust	test_nack_responder_rtx_strips_legacy_padding	P-bit cleared and legacy padding trimmed on the RTX copy; overflow count never buffered (test_nack_responder_never_retransmits_malformed_padding); pion's Header.PaddingSize subtest is Go-only (rtc-rtp keeps padding out of the payload)
+internal/sequencenumber/unwrapper_test.go	TestIsNewer	rust	a_jump_of_more_than_half_the_space_is_read_as_reordering	the half-space newer/older decision boundary; the same comparison drives the twcc unwrapper and flexfec ordering
+internal/sequencenumber/unwrapper_test.go	TestUnwrapper	rust	test_sequence_unwrapper	twcc/recorder.rs; multi-cycle wrapping also pinned by jitterbuffer/sequence.rs
+internal/test/mock_stream_test.go	TestMockStream	na		Go-only test double; Rust tests drive sans-I/O handle_read/handle_write directly
+pkg/ccfb/interceptor_test.go	TestInterceptor	rust	arrivals_are_reported_on_the_interval	all four subtests ported: no packets, arrivals, loss and per-packet offsets (tests/rfc8888_feedback.rs)
+pkg/ccfb/interceptor_test.go	TestReadAfterClose	na		Go-only API: no Close in the sans-I/O Protocol trait; handle_read is synchronous and cannot block
+pkg/ccfb/interceptor_test.go	TestConcurrentClose	na		goroutine concurrency test; no threads or locks here
+pkg/ccfb/recorder_test.go	TestGetArrivalTimeOffset	rust	an_offset_is_measured_back_from_the_report_timestamp	all four pion cases including both clamp edges (offsets_clamp_at_both_edges)
+pkg/ccfb/recorder_test.go	TestRecorder	rust	each_stream_gets_its_own_report_block	per-stream blocks, budget split and loss flags; offset clamping in stream_log.rs
+pkg/ccfb/stream_log_test.go	TestStreamLogAdd	rust	a_contiguous_run_is_reported_once_and_then_forgotten	empty, in-order, reordered and wrapping additions
+pkg/ccfb/stream_log_test.go	TestStreamLogMetricsAfter	rust	reordered_arrivals_keep_their_own_arrival_times	the reordered offset vector; in-order offsets asserted by arrival_time_offsets_reflect_when_each_packet_arrived (tests/rfc8888_feedback.rs)
+pkg/ccfb/stream_log_test.go	TestRemoveOldestPackets	rust	the_window_gives_up_its_oldest_end_rather_than_overflowing_the_block	the capped window gives up its oldest end
+pkg/ccfb/stream_log_test.go	TestStreamLogDoesNotLeakBelowReportPointer	rust	a_packet_older_than_the_window_is_not_reported_again	throughput cap and late-duplicate subtests; the loss-grown cap is a_cap_grown_by_a_loss_does_not_leak_below_the_report_pointer
+pkg/flexfec/encoder_interceptor_test.go	TestFecInterceptor_GenerateAndWriteFecPackets	rust	repair_packets_appear_only_when_a_block_completes	with the real encoder (tests/flexfec_send.rs); pion's mock factory seam is Go-only
+pkg/flexfec/encoder_interceptor_test.go	TestFecInterceptor_BypassStreamWhenFecPtAndSsrcAreZero	rust	a_stream_without_a_repair_association_is_not_protected	
+pkg/flexfec/encoder_interceptor_test.go	TestFecInterceptor_EncodeOnlyPacketsWithMediaSsrc	rust	an_unprotected_stream_passes_through_untouched	
+pkg/flexfec/encoder_interceptor_test.go	TestFecInterceptor_HandleMultipleStreamsCorrectly	rust	two_protected_streams_each_get_their_own_repair_packets	two protected streams, each with its own repair SSRC/PT
+pkg/flexfec/flexfec_03_test.go	TestFlexFec03_SimpleRoundTrip	rust	a_single_loss_is_recovered_byte_identically	first/last/wrap shapes; recovery is byte-identical, stronger than pion's struct equality
+pkg/flexfec/flexfec_03_test.go	TestFlexFec03_WholeRangeRoundTrip	rust	the_whole_maskable_range_round_trips	109 media packets - the most the draft-03 masks describe
+pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParitySingleFECShortWindow	rust	one_repair_packet_covering_the_whole_block_recovers_any_single_loss	
+pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParityDualFECMask2Coverage	rust	dual_fec_mask2_coverage_round_trips	40 media packets under two repair packets
+pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParityTripleFECMask3Coverage	rust	triple_fec_mask3_coverage_round_trips	90 media packets under three repair packets
+pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParityWrapAroundSequences	rust	a_block_that_wraps_the_sequence_space_round_trips	
+pkg/flexfec/flexfec_03_test.go	TestFlexFec03_EncoderDecoderParityHighMediaCount	rust	high_media_count_round_trips	100 media packets under ten repair packets
+pkg/flexfec/flexfec_coverage_test.go	TestMaskExtractors	rust	mask_extraction_matches_upstream_vectors	bit-exact port of the four mask extractors
+pkg/flexfec/flexfec_decoder_03_test.go	TestFECDecoderInsertPacketRemovesOldFEC	rust	an_incoming_repair_packet_retires_distant_held_ones	the stale-distance retention rule
+pkg/flexfec/flexfec_decoder_03_test.go	TestFECDecoderInsertPacketKeepsRecentFEC	rust	a_repair_packet_within_the_window_keeps_the_held_ones	
+pkg/flexfec/flexfec_encoder_03_test.go	TestFlexEncoder03_EncodeFec_EmptyMediaPackets	rust	nothing_to_protect_produces_nothing	
+pkg/flexfec/flexfec_encoder_03_test.go	TestFlexEncoder03_EncodeFec_OutOfOrderPackets	rust	an_out_of_order_block_is_refused	
+pkg/flexfec/flexfec_encoder_03_test.go	TestFlexEncoder03_EncodeFec_MissingPackets	rust	a_block_with_a_gap_is_refused	
+pkg/flexfec/flexfec_encoder_03_test.go	TestFlexEncoder03_EncodeFec_DifferentPayloadSizes	rust	the_repair_payload_is_as_long_as_the_largest_protected_packet	same numbers: 3- and 8-byte payloads, repair length 8
+pkg/flexfec/util/media_packet_iterator_test.go	TestNewMediaPacketIterator	na		Go-only API: the stateful iterator was replaced by the stateless ProtectionCoverage::covered_by (flexfec/coverage.rs)
+pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorReset	na		Go-only API: covered_by is stateless, so reset semantics do not apply
+pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorHasNext	rust	every_media_packet_is_covered_exactly_once	iteration bounds implied by the covered_by Vec
+pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorNext	rust	repair_packets_interleave_rather_than_taking_contiguous_blocks	the covered indices each repair packet iterates
+pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorFirst	na		Go-only API: covered_by is pure and repeatable, subsuming peek-without-advance
+pkg/flexfec/util/media_packet_iterator_test.go	TestMediaPacketIteratorEmptyCoveredIndices	rust	surplus_repair_packets_cover_nothing	
+pkg/gcc/adaptive_threshold_test.go	TestAdaptiveThreshold	rust	it_rises_faster_than_it_falls	adaptation value covered; the numDeltas multiplier lives inside the overuse detector whose outcomes are pinned in gcc/overuse.rs
+pkg/gcc/arrival_group_accumulator_test.go	TestArrivalGroupAccumulator	rust	a_growing_queue_has_a_positive_gradient	burst formation and inter-departure splits; out-of-order arrivals are max()ed rather than dropped - documented divergence in gcc/arrival_group.rs
+pkg/gcc/arrival_group_test.go	TestArrivalGroup	rust	packets_sent_together_form_one_group	group construction semantics; Rust retains counts and bounds rather than packet lists
+pkg/gcc/gcc_test.go	TestClamp	rust	the_target_stays_within_configured_bounds	std clamp applied inline; the bounds property is asserted behaviourally in rate_control/loss/estimator
+pkg/gcc/kalman_test.go	TestKalman	rust	a_sustained_gradient_is_tracked	tracking properties pinned; the exact kalmanfilter.net vector needs injectable initial estimate/error/measurement-variance parameters the Kalman type deliberately does not expose
+pkg/gcc/overuse_detector_test.go	TestOveruseDetectorWithoutDelay	rust	a_sustained_growing_trend_is_overuse	every usage outcome including the decreasing-estimate case; injected instants replace pion's sleeps
+pkg/gcc/rate_calculator_test.go	TestRateCalculator	rust	it_measures_a_steady_stream	window expiry, empty window and rate ratios; a single sample is deliberately None rather than pion's size*8
+pkg/gcc/rate_controller_test.go	TestRateControllerRun	rust	a_quiet_path_increases	the 1.08 multiplicative factor is shared; exact 108_000 pinning needs RTT/EMA injection seams the controller does not have
+pkg/gcc/send_side_bwe_test.go	TestSendSideBWE	rust	gcc_climbs_on_a_healthy_path	the real Gcc driven end to end (tests/path_simulation.rs); the estimator-to-pacer loop also closed in the_pacer_follows_the_estimate
+pkg/gcc/send_side_bwe_test.go	TestSendSideBWE_ErrorOnWriteRTCPAtClosedState	na		Go-only API: no Close lifecycle in the sans-I/O Protocol trait; drop is the teardown
+pkg/gcc/slope_estimator_test.go	TestSlopeEstimator	rust	a_steady_path_reads_flat	accumulator and filter are fused with no injectable filter seam; trend and group-size behaviour is pinned
+pkg/intervalpli/generator_interceptor_test.go	TestPLIGeneratorInterceptor_Unsupported	rust	only_streams_that_negotiated_pli_are_asked	
+pkg/intervalpli/generator_interceptor_test.go	TestPLIGeneratorInterceptor	rust	requests_repeat_on_the_interval	immediate ask, interval gating and repeats; plus nothing_is_asked_before_the_interval_elapses (tests/interval_pli.rs)
+pkg/jitterbuffer/jitter_buffer_test.go	TestJitterBuffer	rust	reordering_is_counted	12 counterparts across buffer.rs and tests/jitter_buffer_playout.rs; playout is released by time depth rather than a packet count - deliberate, webrtc#846
+pkg/jitterbuffer/priority_queue_test.go	TestPriorityQueue	rust	packets_come_out_in_sequence_order_however_they_went_in	BTreeMap keyed by extended sequence replaces the linked list; duplicates rejected by design
+pkg/jitterbuffer/priority_queue_test.go	TestPriorityQueue_Find	rust	pop_at_and_find_address_packets_by_extended_sequence_number	
+pkg/jitterbuffer/priority_queue_test.go	TestPriorityQueue_Clean	rust	reset_clears_the_contents_but_keeps_the_stream_and_counters	
+pkg/jitterbuffer/priority_queue_test.go	TestPriorityQueue_Unreference	na		Go GC finalizer test; Rust pop moves the packet out by value, so liveness is guaranteed by ownership
+pkg/jitterbuffer/receiver_interceptor_test.go	TestBufferStart	rust	a_packet_is_held_for_the_configured_depth	nothing released inside the depth; RTCP forwarded unbuffered
+pkg/jitterbuffer/receiver_interceptor_test.go	TestReceiverBuffersAndPlaysout	rust	reordered_and_delayed_packets_are_released_in_order	
+pkg/mock/interceptor_test.go	TestInterceptor	na		Go-only mock package
+pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor	rust	test_nack_generator_nack_content_respects_skip_last_n	exact NACK content: packet id 13, bitmap 0b10, skip_last_n holding 17 back
+pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor_InvalidSize	rust	test_nack_invalid_size_is_rejected_or_inert_not_panicking	try_build returns ErrNackInvalidSize as pion does at construction; the infallible build stays inert rather than panicking
+pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor_StreamFilter	rust	test_nack_streams_filter_excludes_one_of_two_nack_streams	with_streams_filter, both generator and responder legs
+pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor_UnbindRemovesCorrespondingSSRC	rust	test_nack_generator_unbind_removes_only_that_ssrc	the unbound stream stops being tracked while the other keeps generating
+pkg/nack/generator_interceptor_test.go	TestGeneratorInterceptor_NoDeadlockWithReentrantRTCPWriter	na		lock re-entrance test; no locks in the sans-I/O crate
+pkg/nack/receive_log_test.go	TestReceivedBuffer	rust	test_receive_log_pion_compat	ported through the 129-gap stage; wraparound, skip-last-n and out-of-order stages in the sibling receive_log tests
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor	rust	test_nack_responder_retransmits_exactly_the_sent_packets_in_one_nack	one NACK covering 11,12,13,15 retransmits exactly the sent ones
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_InvalidSize	rust	test_nack_invalid_size_is_rejected_or_inert_not_panicking	
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_DisableCopy	na		Go-only packet-factory internals; the Rust responder always clones - ownership makes zero-copy meaningless
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_Race	na		race detector test
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_RaceConcurrentStreams	na		race detector test
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_StreamFilter	rust	test_nack_streams_filter_excludes_one_of_two_nack_streams	responder leg: the filtered stream has nothing buffered to retransmit
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_RFC4588	rust	test_nack_responder_rtx_retransmits_exactly_the_sent_packets	per-packet OSN decode for the exact retransmission set
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_BypassUnknownSSRCs	rust	test_nack_responder_bypasses_unknown_ssrcs	unbound-SSRC packets pass through unbuffered
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_UnbindReleasesBufferedPackets	rust	test_nack_responder_unbind_releases_buffered_packets	a late NACK after unbind retransmits nothing
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_CloseReleasesAllStreams	na		Go-only API: no Close in the sans-I/O lifecycle; unbind releases per stream and drop is the teardown
+pkg/nack/responder_interceptor_test.go	TestResponderInterceptor_NoDeadlockWithReentrantRTPWriter	na		lock re-entrance test; no locks in the sans-I/O crate
+pkg/pacing/interceptor_test.go	TestBurst	rust	a_derived_burst_follows_the_rate	derived burst is rate/10 floored at 8x1500 bytes; there is no interval parameter by design - the affordability schedule replaces pion's ticker
+pkg/pacing/interceptor_test.go	TestInterceptor	rust	a_burst_is_released_at_the_configured_rate	exact release schedule asserted; pacing bypasses RTCP; growMTU is a known gap - the burst is fixed at construction
 pkg/packetdump/packet_dumper_test.go	TestCustomLogger	rust	test_packetdump_custom_sink	
 pkg/packetdump/receiver_interceptor_test.go	TestReceiverFilterEverythingOut	rust	test_packetdump_receiver_filter_everything_out	
 pkg/packetdump/receiver_interceptor_test.go	TestReceiverFilterNothing	rust	test_packetdump_receiver_filter_nothing	
@@ -102,40 +102,40 @@ pkg/packetdump/sender_interceptor_test.go	TestSenderFilterEverythingOut	rust	tes
 pkg/packetdump/sender_interceptor_test.go	TestSenderFilterNothing	rust	test_packetdump_sender_filter_nothing	
 pkg/packetdump/sender_interceptor_test.go	TestSenderCustomBinaryFormatter	rust	test_packetdump_binary_formatters_write_raw_bytes	
 pkg/packetdump/sender_interceptor_test.go	TestSenderRTCPPerPacketFilter	rust	test_packetdump_sender_rtcp_per_packet_filter	
-pkg/report/receiver_interceptor_test.go	TestReceiverInterceptor	todo		
-pkg/report/receiver_stream_test.go	TestReceiverStream	todo		
-pkg/report/sender_interceptor_test.go	TestSenderInterceptor	todo		
-pkg/rtpfb/ccfb_receiver_test.go	TestConvertCCFB	todo		
-pkg/rtpfb/ccfb_receiver_test.go	TestConvertMetricBlock	todo		
-pkg/rtpfb/history_test.go	TestHistoryCCFB	todo		
-pkg/rtpfb/history_test.go	TestHistoryPrunesPackets	todo		
-pkg/rtpfb/history_test.go	TestHistoryCleanUntilDoesNotUnderflow	todo		
-pkg/rtpfb/history_test.go	TestHistorySetsIsTWCC	todo		
-pkg/rtpfb/history_test.go	TestHistoryConcurrentFeedback	todo		
-pkg/rtpfb/history_test.go	TestHistoryArrivedIsNotDowngraded	todo		
-pkg/rtpfb/interceptor_test.go	TestInterceptor	todo		
-pkg/rtpfb/interceptor_test.go	TestProcessFeedbackRTT	todo		
-pkg/rtpfb/twcc_receiver_test.go	TestConvertTWCC	todo		
-pkg/rtpfb/twcc_receiver_test.go	TestConvertTWCCUncappedRunLength	todo		
-pkg/stats/interceptor_test.go	TestInterceptor	todo		
-pkg/stats/stats_recorder_test.go	TestStatsRecorder	todo		
-pkg/stats/stats_recorder_test.go	TestStatsRecorder_DLRR_Precision	todo		
-pkg/stats/stats_recorder_test.go	TestGetStatsNotBlocking	todo		
-pkg/stats/stats_recorder_test.go	TestQueueNotBlocking	todo		
-pkg/stats/stats_recorder_test.go	TestContains	todo		
-pkg/twcc/arrival_time_map_test.go	TestArrivalTimeMap	todo		
-pkg/twcc/header_extension_interceptor_test.go	TestHeaderExtensionInterceptor	todo		
-pkg/twcc/sender_interceptor_test.go	TestSenderInterceptor	todo		
-pkg/twcc/sender_interceptor_test.go	TestSenderInterceptor_Leak	todo		
-pkg/twcc/twcc_test.go	Test_chunk_add	todo		
-pkg/twcc/twcc_test.go	Test_feedback	todo		
-pkg/twcc/twcc_test.go	TestBuildFeedbackPacket	todo		
-pkg/twcc/twcc_test.go	TestBuildFeedbackPacket_Rolling	todo		
-pkg/twcc/twcc_test.go	TestBuildFeedbackPacket_MinInput	todo		
-pkg/twcc/twcc_test.go	TestBuildFeedbackPacket_MissingPacketsBetweenFeedbacks	todo		
-pkg/twcc/twcc_test.go	TestBuildFeedbackPacketCount	todo		
-pkg/twcc/twcc_test.go	TestDuplicatePackets	todo		
-pkg/twcc/twcc_test.go	TestShortDeltas	todo		
-pkg/twcc/twcc_test.go	TestReorderedPackets	todo		
-pkg/twcc/twcc_test.go	TestPacketsHheld	todo		
-pkg/twcc/twcc_test.go	TestRecordDoesNotAllocateInSteadyState	todo		
+pkg/report/receiver_interceptor_test.go	TestReceiverInterceptor	rust	test_receiver_report_interceptor_generates_rr_on_timeout	report content pinned at stream level (report/receiver_stream.rs); Rust arms the report timer from the first RTP rather than emitting an empty RR per interval - documented deviation
+pkg/report/receiver_stream_test.go	TestReceiverStream	rust	test_can_use_entire_history_size	faithful port with pion's assert messages
+pkg/report/sender_interceptor_test.go	TestSenderInterceptor	rust	test_sender_report_interceptor_generates_sr_on_timeout	NTP/RTP-time mapping pinned at stream level (report/sender_stream.rs); write-error and bogus-stream subtests are Go-specific
+pkg/rtpfb/ccfb_receiver_test.go	TestConvertCCFB	rust	report_blocks_for_the_same_stream_are_merged	same-SSRC blocks merge; offsets, delay and symbols in a_ccfb_report_converts_per_stream
+pkg/rtpfb/ccfb_receiver_test.go	TestConvertMetricBlock	rust	a_ccfb_report_converts_per_stream	offset-to-arrival, reserved offset and newest-arrival semantics
+pkg/rtpfb/history_test.go	TestHistoryCCFB	rust	later_feedback_reports_only_what_follows	all five cases: partial ack, loss-marked, ack-again, wrap, unknown packet
+pkg/rtpfb/history_test.go	TestHistoryPrunesPackets	rust	packets_are_reported_once	plus time-based pruning pion lacks (old_unacknowledged_packets_are_pruned)
+pkg/rtpfb/history_test.go	TestHistoryCleanUntilDoesNotUnderflow	rust	nothing_is_reported_until_something_is_acknowledged	u64 window pointer cannot underflow; window advance after acks
+pkg/rtpfb/history_test.go	TestHistorySetsIsTWCC	rust	reports_carry_the_transport_wide_sequence_numbers	is_twcc and the twcc index cleanup on release
+pkg/rtpfb/history_test.go	TestHistoryConcurrentFeedback	na		goroutine race test; History takes &mut self
+pkg/rtpfb/history_test.go	TestHistoryArrivedIsNotDowngraded	rust	an_arrived_packet_is_not_downgraded_by_later_feedback	porting this found and fixed a real divergence: History::apply used to overwrite an arrived packet with a later not-arrived report
+pkg/rtpfb/interceptor_test.go	TestInterceptor	rust	ccfb_feedback_reaches_the_estimator	TWCC recording half: every_departing_packet_is_recorded_at_its_release_instant; CCFB ingestion half ported here
+pkg/rtpfb/interceptor_test.go	TestProcessFeedbackRTT	gap		both halves exist separately - per-ack raw RTT (History::on_*_feedback) and per-report ack delay (convert_ccfb) - but pion's combination (min RTT minus ack delay) is computed nowhere and RateController takes no RTT input
+pkg/rtpfb/twcc_receiver_test.go	TestConvertTWCC	rust	conversion_stops_at_the_declared_packet_status_count	porting this found and fixed a real divergence: convert_twcc ignored packet_status_count; missing-delta symbols are now dropped as in pion
+pkg/rtpfb/twcc_receiver_test.go	TestConvertTWCCUncappedRunLength	rust	conversion_stops_at_the_declared_packet_status_count	a run longer than the declared count is clamped to it
+pkg/stats/interceptor_test.go	TestInterceptor	rust	test_video_call_statistics_flow	statistics live in the rtc crate's accumulator fed by the peer-connection handler, not an interceptor (rtc/src/statistics)
+pkg/stats/stats_recorder_test.go	TestStatsRecorder	rust	test_video_call_statistics_flow	in/out RTP accounting, RR-driven remote-inbound and NACK/FIR/PLI counters in rtc/src/statistics; RTT is a known gap (handler passes 0.0)
+pkg/stats/stats_recorder_test.go	TestStatsRecorder_DLRR_Precision	gap		no XR/DLRR consumer anywhere: rtc-rtcp ships the codecs but nothing parses them for stats or computes RTT from LastRR/DLRR
+pkg/stats/stats_recorder_test.go	TestGetStatsNotBlocking	na		goroutine concurrency test; the accumulator is single-threaded by design
+pkg/stats/stats_recorder_test.go	TestQueueNotBlocking	na		goroutine concurrency test
+pkg/stats/stats_recorder_test.go	TestContains	na		trivial Go slice helper; Rust uses HashMap/HashSet lookups
+pkg/twcc/arrival_time_map_test.go	TestArrivalTimeMap	rust	test_erase_to_removes_elements	all erase_to subtests plus grows-buffer, jump-deletes-all, expands-before-beginning and shrink-to-min-capacity
+pkg/twcc/header_extension_interceptor_test.go	TestHeaderExtensionInterceptor	rust	a_bound_stream_is_numbered_consecutively	the Rust TwccSender is pion's HeaderExtensionInterceptor; counter shared across streams, unbind stops numbering
+pkg/twcc/sender_interceptor_test.go	TestSenderInterceptor	rust	test_twcc_receiver_after_rtp_packets	the Rust TwccReceiver plays this role; before-packets, different-delays, packet-loss and overflow subtests each ported (tests/twcc_integration.rs)
+pkg/twcc/sender_interceptor_test.go	TestSenderInterceptor_Leak	na		goroutine leak test; sans-I/O interceptors spawn no threads
+pkg/twcc/twcc_test.go	Test_chunk_add	rust	test_chunk_fill_with_not_received	all four fill subtests with the exact marshalled bytes, plus overfill-and-encode
+pkg/twcc/twcc_test.go	Test_feedback	rust	test_feedback_rejects_an_unrepresentable_delta	too-large rejection, missing-sequence chunk joining and the full report field for field
+pkg/twcc/twcc_test.go	TestBuildFeedbackPacket	rust	test_build_feedback_packet_full_content	field-for-field including chunk split and deltas
+pkg/twcc/twcc_test.go	TestBuildFeedbackPacket_Rolling	rust	test_build_feedback_packet_rolling	across the 16-bit wrap, fb_pkt_count 1
+pkg/twcc/twcc_test.go	TestBuildFeedbackPacket_MinInput	rust	test_build_feedback_packet_min_input	
+pkg/twcc/twcc_test.go	TestBuildFeedbackPacket_MissingPacketsBetweenFeedbacks	rust	test_build_feedback_packet_missing_packets_between_feedbacks	second report bases one past the previous end
+pkg/twcc/twcc_test.go	TestBuildFeedbackPacketCount	rust	test_build_feedback_packet_count	
+pkg/twcc/twcc_test.go	TestDuplicatePackets	rust	test_duplicate_packets	
+pkg/twcc/twcc_test.go	TestShortDeltas	rust	test_short_deltas_split_across_two_vectors	the one-bit split subtest; the padded two-bit subtest is test_short_deltas_pad_the_last_vector
+pkg/twcc/twcc_test.go	TestReorderedPackets	rust	test_reordered_packets	the negative delta and its large-delta symbol
+pkg/twcc/twcc_test.go	TestPacketsHheld	rust	test_packets_held	
+pkg/twcc/twcc_test.go	TestRecordDoesNotAllocateInSteadyState	rust	twcc_recording_allocates_nothing_in_steady_state	thread-local counting allocator (tests/allocation_steady_state.rs); porting this found and fixed a per-packet allocation - Header::get_extension cloned its payload Bytes, now a borrowed get_extension_payload reads it

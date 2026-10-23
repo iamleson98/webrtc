@@ -19,8 +19,8 @@ stun 0
 stun:todo 75
 datachannel 0
 datachannel:todo 7
-interceptor 0
-interceptor:todo 131
+interceptor 2
+interceptor:todo 0
 mdns 0
 mdns:todo 251
 turn 24
