@@ -13,8 +13,8 @@ rtp 0
 rtp:todo 185
 rtcp 0
 rtcp:todo 26
-srtp 0
-srtp:todo 83
+srtp 11
+srtp:todo 0
 stun 0
 stun:todo 75
 datachannel 0

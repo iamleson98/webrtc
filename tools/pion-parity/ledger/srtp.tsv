@@ -1,99 +1,99 @@
 # file	test	status	ref	note   (see tools/pion-parity/parity.py)
-context_test.go	TestContextROC	named	test_context_roc	
-context_test.go	TestContextIndex	named	test_context_index	
-context_test.go	TestContextWithoutMKI	todo		
-context_test.go	TestAddMKIToContextWithMKI	todo		
-context_test.go	TestContextSetSendMKI	todo		
-context_test.go	TestContextRemoveMKI	todo		
-context_test.go	TestInvalidContextOptions	todo		
-crypto_test.go	TestXorBytesCTR	todo		
-crypto_test.go	TestXorBytesCTRInvalidIvLength	todo		
-key_derivation_test.go	TestValidSessionKeys_AesCm128	todo		
-key_derivation_test.go	TestValidSessionKeys_AesCm256	todo		
-key_derivation_test.go	TestIndexOverKDR	named	test_index_over_kdr	
-keying_test.go	TestExtractSessionKeysFromDTLS	todo		
-option_test.go	TestContextOptions	todo		
-option_test.go	TestRuntimeUpdatableContextOptions	todo		
-protection_profile_test.go	TestInvalidProtectionProfile	todo		
-session_srtcp_test.go	TestSessionSRTCPBadInit	todo		
-session_srtcp_test.go	TestSessionSRTCP	todo		
-session_srtcp_test.go	TestSessionSRTCPWithIODeadline	todo		
-session_srtcp_test.go	TestSessionSRTCPOpenReadStream	todo		
-session_srtcp_test.go	TestSessionSRTCPReplayProtection	todo		
-session_srtcp_test.go	TestSessionSRTCPCompoundPacket	todo		
-session_srtcp_test.go	TestSessionSRTCPCompoundPacketWithEmptyDestinationSSRC	todo		
-session_srtcp_test.go	TestSessionSRTCPDuplicateDestinations	todo		
-session_srtcp_test.go	TestSessionSRTCPDecryptInvalidRTCP	todo		
-session_srtcp_test.go	TestSessionSRTCPDecryptDestinationParseFailure	todo		
-session_srtcp_test.go	TestSessionSRTCPDecryptClosedSession	todo		
-session_srtcp_test.go	TestSessionSRTCPDecryptWrongStreamType	todo		
-session_srtcp_test.go	TestSessionSRTCPDecryptClosedReadStream	todo		
-session_srtcp_test.go	TestSessionSRTCPAcceptStreamClearsTimeout	todo		
-session_srtcp_test.go	TestSessionSRTCPAcceptStreamTimeout	todo		
-session_srtcp_test.go	TestSessionSRTCPFailedAuthDoesNotGrowStreams	todo		
-session_srtcp_test.go	TestSessionSRTCPReadWriteDoesNotAllocate	todo		
-session_srtp_test.go	TestSessionSRTPBadInit	todo		
-session_srtp_test.go	TestSessionSRTP	todo		
-session_srtp_test.go	TestSessionSRTPWithIODeadline	todo		
-session_srtp_test.go	TestSessionSRTPOpenReadStream	todo		
-session_srtp_test.go	TestSessionSRTPSetRTX	todo		
-session_srtp_test.go	TestSessionSRTPSelectRTXWithoutReaderGoroutine	todo		
-session_srtp_test.go	TestSessionSRTPSetRTXShutdown	todo		
-session_srtp_test.go	TestSessionSRTPMultiSSRC	todo		
-session_srtp_test.go	TestSessionSRTPReplayProtection	todo		
-session_srtp_test.go	TestSessionSRTPAcceptStreamTimeout	todo		
-session_srtp_test.go	TestSessionSRTPFailedAuthDoesNotGrowStreams	todo		
-session_srtp_test.go	TestSessionSRTPPacketWithPadding	todo		
-session_srtp_test.go	TestSessionSRTPRejectedPacketDoesNotGrowRetainedHeader	todo		
-session_srtp_test.go	TestSessionSRTPReadWriteDoesNotAllocate	todo		
-session_srtp_test.go	TestSessionSRTPUpdateOptionsCryptex	todo		
-session_srtp_test.go	TestSessionSRTPUpdateLocalRemoteOptions	todo		
-session_srtp_test.go	TestSessionSRTPUpdateLocalRemoteOptionsError	todo		
-session_srtp_test.go	TestSessionSRTPUpdateKey	todo		
-srtcp_test.go	TestRTCPLifecycle	named	test_rtcp_lifecycle	
-srtcp_test.go	TestRTCPLifecycleInPlace	todo		
-srtcp_test.go	TestRTCPLifecyclePartialAllocation	todo		
-srtcp_test.go	TestRTCPInvalidAuthTag	named	test_rtcp_invalid_auth_tag	
-srtcp_test.go	TestRTCPReplayDetectorSeparation	named	test_rtcp_replay_detector_separation	
-srtcp_test.go	TestEncryptRTCPSeparation	named	test_encrypt_rtcp_separation	
-srtcp_test.go	TestRTCPDecryptShortenedPacket	todo		
-srtcp_test.go	TestRTCPMaxPackets	todo		
-srtcp_test.go	TestRTCPReplayDetectorFactory	todo		
-srtcp_test.go	TestRTCPLegacyReplayDetector	todo		
-srtcp_test.go	TestDecryptInvalidSRTCP	todo		
-srtcp_test.go	TestEncryptInvalidRTCP	todo		
-srtcp_test.go	TestRTCPInvalidMKI	todo		
-srtcp_test.go	TestRTCPHandleMultipleMKI	todo		
-srtcp_test.go	TestRTCPSwitchMKI	todo		
-srtcp_test.go	TestSRTCPFailedAuthDoesNotGrowSSRCMap	todo		
-srtp_cipher_aead_aes_gcm_rfc_test.go	TestAeadCiphersWithRfcTestVectors	todo		
-srtp_cipher_aes_cm_hmac_sha1_rfc_test.go	TestAesCiphersWithRfcTestVectors	todo		
-srtp_cipher_rcc_test.go	TestRCC	todo		
-srtp_cipher_test.go	TestSrtpCipher	todo		
+context_test.go	TestContextROC	rust	test_context_roc	
+context_test.go	TestContextIndex	rust	test_context_index	
+context_test.go	TestContextWithoutMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+context_test.go	TestAddMKIToContextWithMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+context_test.go	TestContextSetSendMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+context_test.go	TestContextRemoveMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+context_test.go	TestInvalidContextOptions	na		exercises the RCC/MKI/auth-tag-length options; RCC and MKI are the gap rows, SRTPAuthenticationTagLength has no equivalent
+crypto_test.go	TestXorBytesCTR	na		internal helper: rtc-srtp uses the crypto provider's StreamCipher, there is no local xorBytesCTR
+crypto_test.go	TestXorBytesCTRInvalidIvLength	na		internal helper: rtc-srtp uses the crypto provider's StreamCipher, there is no local xorBytesCTR
+key_derivation_test.go	TestValidSessionKeys_AesCm128	rust	test_valid_session_keys	RFC 3711 appendix B.3 vectors, all three derived keys
+key_derivation_test.go	TestValidSessionKeys_AesCm256	rust	test_aes_256_cm_key_derivation	RFC 6188 section 7.2 vectors
+key_derivation_test.go	TestIndexOverKDR	rust	test_index_over_kdr	
+keying_test.go	TestExtractSessionKeysFromDTLS	rust	extracts_session_keys_in_dtls_order	the exporter call belongs to the DTLS layer above; set_session_keys_from_keying_material checks the RFC 5764 layout it hands down
+option_test.go	TestContextOptions	na		Go functional-options API: the replay windows are ContextOption factories passed to Context::new, exercised by test_rtp_replay_protection and test_rtcp_max_packets
+option_test.go	TestRuntimeUpdatableContextOptions	rust	cryptex_mode_can_be_flipped_at_runtime	set_cryptex_mode on a context already in use
+protection_profile_test.go	TestInvalidProtectionProfile	na		no invalid profile value exists: ProtectionProfile is a closed enum and every variant has fixed lengths
+session_srtcp_test.go	TestSessionSRTCPBadInit	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCP	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPWithIODeadline	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPOpenReadStream	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPReplayProtection	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPCompoundPacket	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPCompoundPacketWithEmptyDestinationSSRC	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPDuplicateDestinations	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPDecryptInvalidRTCP	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPDecryptDestinationParseFailure	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPDecryptClosedSession	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPDecryptWrongStreamType	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPDecryptClosedReadStream	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPAcceptStreamClearsTimeout	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPAcceptStreamTimeout	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPFailedAuthDoesNotGrowStreams	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtcp_test.go	TestSessionSRTCPReadWriteDoesNotAllocate	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPBadInit	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTP	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPWithIODeadline	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPOpenReadStream	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPSetRTX	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPSelectRTXWithoutReaderGoroutine	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPSetRTXShutdown	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPMultiSSRC	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPReplayProtection	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPAcceptStreamTimeout	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPFailedAuthDoesNotGrowStreams	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPPacketWithPadding	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPRejectedPacketDoesNotGrowRetainedHeader	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPReadWriteDoesNotAllocate	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPUpdateOptionsCryptex	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPUpdateLocalRemoteOptions	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPUpdateLocalRemoteOptionsError	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+session_srtp_test.go	TestSessionSRTPUpdateKey	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+srtcp_test.go	TestRTCPLifecycle	rust	test_rtcp_lifecycle	both option sets, as pion; the upper-index cases assert the ErrExceededMaxPackets limit
+srtcp_test.go	TestRTCPLifecycleInPlace	na		Go in-place dst API; no decrypt_rtcp_in_place/encrypt_rtcp_into exists, the same vectors round-trip through the owned-buffer calls (test_rtcp_lifecycle)
+srtcp_test.go	TestRTCPLifecyclePartialAllocation	na		Go partial dst API; no decrypt_rtcp_in_place/encrypt_rtcp_into exists, the same vectors round-trip through the owned-buffer calls (test_rtcp_lifecycle)
+srtcp_test.go	TestRTCPInvalidAuthTag	rust	test_rtcp_invalid_auth_tag	
+srtcp_test.go	TestRTCPReplayDetectorSeparation	rust	test_rtcp_replay_detector_separation	
+srtcp_test.go	TestEncryptRTCPSeparation	rust	test_encrypt_rtcp_separation	
+srtcp_test.go	TestRTCPDecryptShortenedPacket	rust	test_rtcp_decrypt_shortened_packet	every truncation, both cipher families
+srtcp_test.go	TestRTCPMaxPackets	rust	test_rtcp_max_packets	found and fixed: the SRTCP index used to wrap to 0 instead of ErrExceededMaxPackets
+srtcp_test.go	TestRTCPReplayDetectorFactory	rust	test_rtcp_replay_detector_factory	
+srtcp_test.go	TestRTCPLegacyReplayDetector	rust	test_rtcp_legacy_replay_detector	our ReplayDetector is two-phase by construction; the legacy one-phase detector is the plain sliding window
+srtcp_test.go	TestDecryptInvalidSRTCP	rust	test_decrypt_invalid_srtcp	
+srtcp_test.go	TestEncryptInvalidRTCP	rust	test_encrypt_invalid_rtcp	
+srtcp_test.go	TestRTCPInvalidMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+srtcp_test.go	TestRTCPHandleMultipleMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+srtcp_test.go	TestRTCPSwitchMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+srtcp_test.go	TestSRTCPFailedAuthDoesNotGrowSSRCMap	rust	test_srtcp_failed_auth_does_not_grow_ssrc_map	
+srtp_cipher_aead_aes_gcm_rfc_test.go	TestAeadCiphersWithRfcTestVectors	rust	test_aead_ciphers_with_rfc_test_vectors	RFC 7714 sections 16/17, RTP and RTCP both key sizes; the NULL-cipher subtests are the encryption-off feature this crate does not have
+srtp_cipher_aes_cm_hmac_sha1_rfc_test.go	TestAesCiphersWithRfcTestVectors	rust	test_aes_ciphers_with_rfc_test_vectors	RFC 3711 appendix B.2 and RFC 6188 section 7.1 keystreams through the context, keyed from the test-only new_with_session_keys
+srtp_cipher_rcc_test.go	TestRCC	gap		RCC (RFC 4771 rollover counter carrying) is not supported in rtc-srtp
+srtp_cipher_test.go	TestSrtpCipher	rust	test_srtp_cipher	all six profiles through Context, fresh and in place; pion's MKI subtests are the MKI gap and its NULL profiles do not exist here
 srtp_cryptex_test.go	TestCryptexRFC	rust	rfc9335_appendix_a_encrypt	RFC 9335 Appendix A vectors, encrypt and decrypt (rfc9335_appendix_a_decrypt)
 srtp_cryptex_test.go	TestCryptexUnsupportedHeaderExtension	rust	unsupported_header_extension_profile_is_refused	
 srtp_cryptex_test.go	TestCryptexModes	rust	modes_decide_what_is_accepted	
-srtp_cryptex_test.go	TestUpdateOptionsCryptexRuntime	todo		
-srtp_cryptex_test.go	TestUpdateOptionsCryptexRuntimeDecrypt	todo		
-srtp_test.go	TestKeyLen	named	test_key_len	
-srtp_test.go	TestValidPacketCounter	named	test_valid_packet_counter	
-srtp_test.go	TestRolloverCount	named	test_rollover_count	
-srtp_test.go	TestRolloverCountOverflow	named	test_rollover_count_overflow	
-srtp_test.go	TestRTPInvalidAuth	named	test_rtp_invalid_auth	
-srtp_test.go	TestRTPLifecycleNewAlloc	todo		
-srtp_test.go	TestRTPLifecycleInPlace	todo		
-srtp_test.go	TestRTPReplayProtection	todo		
-srtp_test.go	TestRTPReplayDetectorFactory	todo		
-srtp_test.go	TestRTPLegacyReplayDetector	todo		
-srtp_test.go	TestRolloverCount2	todo		
-srtp_test.go	TestProtectionProfileAes128CmHmacSha1_32	todo		
-srtp_test.go	TestRTPDecryptShotenedPacket	todo		
-srtp_test.go	TestRTPMaxPackets	todo		
-srtp_test.go	TestRTPBurstLossWithSetROC	todo		
-srtp_test.go	TestDecryptInvalidSRTP	todo		
-srtp_test.go	TestRTPInvalidMKI	todo		
-srtp_test.go	TestRTPHandleMultipleMKI	todo		
-srtp_test.go	TestRTPSwitchMKI	todo		
-srtp_test.go	TestSRTPFailedAuthDoesNotGrowSSRCMap	todo		
-stream_srtp_test.go	TestPeek	todo		
-stream_srtp_test.go	TestBufferFactory	todo		
+srtp_cryptex_test.go	TestUpdateOptionsCryptexRuntime	rust	cryptex_mode_can_be_flipped_at_runtime	
+srtp_cryptex_test.go	TestUpdateOptionsCryptexRuntimeDecrypt	rust	cryptex_mode_flip_applies_to_decrypt	
+srtp_test.go	TestKeyLen	rust	test_key_len	
+srtp_test.go	TestValidPacketCounter	rust	test_valid_packet_counter	
+srtp_test.go	TestRolloverCount	rust	test_rollover_count	
+srtp_test.go	TestRolloverCountOverflow	rust	test_rollover_count_overflow	
+srtp_test.go	TestRTPInvalidAuth	rust	test_rtp_invalid_auth	
+srtp_test.go	TestRTPLifecycleNewAlloc	rust	test_rtp_lifecyle	both profiles, the golden vectors, through the allocating calls
+srtp_test.go	TestRTPLifecycleInPlace	rust	test_rtp_lifecycle_in_place	
+srtp_test.go	TestRTPReplayProtection	rust	test_rtp_replay_protection	found and fixed: the window now slides over the full 48-bit packet index, as in pion, not the bare 16-bit seq
+srtp_test.go	TestRTPReplayDetectorFactory	rust	test_rtp_replay_detector_factory	
+srtp_test.go	TestRTPLegacyReplayDetector	rust	test_rtp_legacy_replay_detector	our ReplayDetector is two-phase by construction; the legacy one-phase detector is the plain sliding window over the 48-bit index
+srtp_test.go	TestRolloverCount2	rust	test_rollover_count_2	
+srtp_test.go	TestProtectionProfileAes128CmHmacSha1_32	rust	test_protection_profile_aes128_cm_hmac_sha1_32	
+srtp_test.go	TestRTPDecryptShotenedPacket	rust	test_rtp_decrypt_shotened_packet	every truncation, both cipher families
+srtp_test.go	TestRTPMaxPackets	rust	test_rtp_max_packets	
+srtp_test.go	TestRTPBurstLossWithSetROC	rust	test_rtp_burst_loss_with_set_roc	
+srtp_test.go	TestDecryptInvalidSRTP	rust	test_decrypt_invalid_srtp	
+srtp_test.go	TestRTPInvalidMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+srtp_test.go	TestRTPHandleMultipleMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+srtp_test.go	TestRTPSwitchMKI	gap		MKI (RFC 3711 section 3.1.1) is not supported in rtc-srtp
+srtp_test.go	TestSRTPFailedAuthDoesNotGrowSSRCMap	rust	test_srtp_failed_auth_does_not_grow_ssrc_map	
+stream_srtp_test.go	TestPeek	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
+stream_srtp_test.go	TestBufferFactory	na		Go Session/stream API: goroutines, deadlines, Accept streams and buffers; this crate is the sans-I/O context
