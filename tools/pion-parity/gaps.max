@@ -1,22 +1,22 @@
 # <module>[:todo]  ceiling. May only ever be lowered; `parity.py baseline` rewrites it.
 webrtc 0
-webrtc:todo 543
+webrtc:todo 497
 ice 0
 ice:todo 372
 dtls 0
 dtls:todo 249
 sctp 13
-sctp:todo 177
+sctp:todo 175
 sdp 0
-sdp:todo 175
+sdp:todo 1
 rtp 0
-rtp:todo 185
+rtp:todo 116
 rtcp 0
 rtcp:todo 26
 srtp 11
 srtp:todo 0
 stun 0
-stun:todo 75
+stun:todo 7
 datachannel 0
 datachannel:todo 7
 interceptor 2

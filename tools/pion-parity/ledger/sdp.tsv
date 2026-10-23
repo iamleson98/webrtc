@@ -1,186 +1,186 @@
 # file	test	status	ref	note   (see tools/pion-parity/parity.py)
-base_lexer_test.go	TestLexer	todo		
-base_lexer_test.go	TestSyntaxError_Error	todo		
-base_lexer_test.go	TestUnreadByte_ErrorAtStart	todo		
-base_lexer_test.go	TestReadByte_ReturnsEOFAtEnd	todo		
-base_lexer_test.go	TestNextLine_NoErrorOnEOF	todo		
-base_lexer_test.go	TestReadWhitespace_NoErrorOnEOF	todo		
-base_lexer_test.go	TestReadUint64Field_Errors	todo		
-base_lexer_test.go	TestReadField_Errors	todo		
-base_lexer_test.go	TestReadRequiredField_PropagatesReadFieldError	todo		
-base_lexer_test.go	TestReadRequiredField_FieldMissingOnLeadingWhitespace	todo		
-base_lexer_test.go	TestReadLine_CRLFTrimsCorrectly	todo		
-base_lexer_test.go	TestReadLine_EOFOnEmptyInput	todo		
-base_lexer_test.go	TestReadLine_EOFWhenNoNewlinePresent	todo		
-base_lexer_test.go	TestUnmarshalDoesNotRetainInput	todo		
-common_description_test.go	TestInformation_String	todo		
-common_description_test.go	TestConnectionInformation_String	todo		
-common_description_test.go	TestAddress_String_Variants	todo		
-common_description_test.go	TestAddress_marshal_RangePaths	todo		
-common_description_test.go	TestBandwidth_String	todo		
-common_description_test.go	TestEncryptionKey_String	todo		
-common_description_test.go	TestAttribute_IsICECandidate	todo		
+base_lexer_test.go	TestLexer	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestSyntaxError_Error	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestUnreadByte_ErrorAtStart	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestReadByte_ReturnsEOFAtEnd	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestNextLine_NoErrorOnEOF	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestReadWhitespace_NoErrorOnEOF	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestReadUint64Field_Errors	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestReadField_Errors	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestReadRequiredField_PropagatesReadFieldError	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestReadRequiredField_FieldMissingOnLeadingWhitespace	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestReadLine_CRLFTrimsCorrectly	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestReadLine_EOFOnEmptyInput	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestReadLine_EOFWhenNoNewlinePresent	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+base_lexer_test.go	TestUnmarshalDoesNotRetainInput	na		pion baseLexer byte-level internals; rtc-sdp's lexer is a line-oriented design with the same verdicts (golden corpus)
+common_description_test.go	TestInformation_String	rust	test_pion_string_representations	field strings pinned through the session marshal
+common_description_test.go	TestConnectionInformation_String	rust	test_pion_string_representations	field strings pinned through the session marshal
+common_description_test.go	TestAddress_String_Variants	rust	test_pion_string_representations	field strings pinned through the session marshal
+common_description_test.go	TestAddress_marshal_RangePaths	rust	test_pion_string_representations	field strings pinned through the session marshal
+common_description_test.go	TestBandwidth_String	rust	test_pion_string_representations	field strings pinned through the session marshal
+common_description_test.go	TestEncryptionKey_String	rust	test_s13_to_s16_media_keys_and_syntax	field strings pinned through the session marshal
+common_description_test.go	TestAttribute_IsICECandidate	rust	test_attribute_is_ice_candidate	
 direction_test.go	TestNewDirection	named	test_new_direction	
 direction_test.go	TestDirection_String	named	test_direction_string	
 extmap_test.go	TestExtmap	named	test_extmap	
-extmap_test.go	TestTransportCCExtMap	todo		
-extmap_test.go	TestExtMap_Clone	todo		
-extmap_test.go	TestExtMap_Unmarshal_Error_LenParts	todo		
-extmap_test.go	TestExtMap_Unmarshal_Error_LenFields	todo		
-extmap_test.go	TestExtMap_Unmarshal_Error_NewDirection	todo		
-extmap_test.go	TestExtMap_Unmarshal_Error_URLParse	todo		
-jsep_test.go	TestNewJSEPSessionDescription	todo		
-jsep_test.go	TestSessionDescriptionAttributes	todo		
-jsep_test.go	TestSessionDescription_ICEOptions_Combined	todo		
-jsep_test.go	TestNewJSEPMediaDescription	todo		
-jsep_test.go	TestMediaDescriptionAttributes	todo		
-jsep_test.go	TestMediaDescriptionCodec	todo		
-jsep_test.go	Test_extMapURI_TransportCC	todo		
-jsep_test.go	TestSessionDescription_WithMedia_Appends	todo		
-jsep_test.go	TestMediaDescription_WithExtMap_AddsPropertyAttribute	todo		
-jsep_test.go	TestMediaDescription_WithTransportCCExtMap_AddsExpectedAttribute	todo		
-marshal_test.go	TestMarshalCanonical	todo		
-media_description_test.go	TestWithFingerprint	todo		
-media_description_test.go	TestMediaDescription_Attribute	todo		
-media_description_test.go	TestRangedPort_String	todo		
-media_description_test.go	TestRangedPort_marshalInto_RangeBranch	todo		
-media_description_test.go	TestRangedPort_marshalSize_RangeBranch	todo		
-media_description_test.go	TestMediaName_String	todo		
-sessiondescription_test.go	TestSessionDescription_Attribute	todo		
-sessiondescription_test.go	TestVersion_String	todo		
-sessiondescription_test.go	TestOrigin_String	todo		
-sessiondescription_test.go	TestSessionName_String	todo		
-sessiondescription_test.go	TestEmailAddress_String	todo		
-sessiondescription_test.go	TestPhoneNumber_String	todo		
-sessiondescription_test.go	TestTimeZone_String	todo		
-time_description_test.go	TestTiming_String	todo		
-time_description_test.go	TestRepeatTime_String	todo		
+extmap_test.go	TestTransportCCExtMap	rust	test_transport_cc_extmap	
+extmap_test.go	TestExtMap_Clone	rust	test_extmap_clone	
+extmap_test.go	TestExtMap_Unmarshal_Error_LenParts	rust	test_extmap_unmarshal_errors	
+extmap_test.go	TestExtMap_Unmarshal_Error_LenFields	rust	test_extmap_unmarshal_errors	
+extmap_test.go	TestExtMap_Unmarshal_Error_NewDirection	rust	test_extmap_unmarshal_errors	
+extmap_test.go	TestExtMap_Unmarshal_Error_URLParse	rust	test_extmap_unmarshal_errors	
+jsep_test.go	TestNewJSEPSessionDescription	rust	test_new_jsep_session_description	
+jsep_test.go	TestSessionDescriptionAttributes	rust	test_session_description_attributes	
+jsep_test.go	TestSessionDescription_ICEOptions_Combined	todo		combined ice-options attribute not ported in this pass
+jsep_test.go	TestNewJSEPMediaDescription	rust	test_new_jsep_media_description	
+jsep_test.go	TestMediaDescriptionAttributes	rust	test_media_description_attributes	
+jsep_test.go	TestMediaDescriptionCodec	rust	test_media_description_codec	
+jsep_test.go	Test_extMapURI_TransportCC	rust	test_transport_cc_extmap	
+jsep_test.go	TestSessionDescription_WithMedia_Appends	rust	test_session_description_with_media_appends	
+jsep_test.go	TestMediaDescription_WithExtMap_AddsPropertyAttribute	rust	test_media_description_with_extmap	
+jsep_test.go	TestMediaDescription_WithTransportCCExtMap_AddsExpectedAttribute	rust	test_media_description_with_extmap	
+marshal_test.go	TestMarshalCanonical	rust	test_marshal	
+media_description_test.go	TestWithFingerprint	rust	test_media_description_attributes	
+media_description_test.go	TestMediaDescription_Attribute	rust	test_media_description_attributes	
+media_description_test.go	TestRangedPort_String	rust	test_pion_string_representations	
+media_description_test.go	TestRangedPort_marshalInto_RangeBranch	rust	test_pion_string_representations	
+media_description_test.go	TestRangedPort_marshalSize_RangeBranch	rust	test_pion_string_representations	
+media_description_test.go	TestMediaName_String	rust	test_pion_string_representations	
+sessiondescription_test.go	TestSessionDescription_Attribute	rust	test_session_description_attributes	
+sessiondescription_test.go	TestVersion_String	rust	test_pion_string_representations	
+sessiondescription_test.go	TestOrigin_String	rust	test_unmarshal_delegates_to_unmarshal_string	
+sessiondescription_test.go	TestSessionName_String	rust	test_pion_string_representations	
+sessiondescription_test.go	TestEmailAddress_String	rust	test_pion_string_representations	
+sessiondescription_test.go	TestPhoneNumber_String	rust	test_pion_string_representations	
+sessiondescription_test.go	TestTimeZone_String	rust	test_pion_string_representations	
+time_description_test.go	TestTiming_String	rust	test_pion_string_representations	
+time_description_test.go	TestRepeatTime_String	rust	test_pion_string_representations	
 unmarshal_test.go	TestRoundTrip	named	test_round_trip	
 unmarshal_test.go	TestUnmarshalRepeatTimes	named	test_unmarshal_repeat_times	
 unmarshal_test.go	TestUnmarshalTimeZones	named	test_unmarshal_time_zones	
 unmarshal_test.go	TestUnmarshalNonNilAddress	named	test_unmarshal_non_nil_address	
-unmarshal_test.go	TestUnmarshalZeroValues	todo		
-unmarshal_test.go	TestUnmarshalPortRange	todo		
-unmarshal_test.go	TestUnmarshalOriginIncomplete	todo		
-unmarshal_test.go	TestUnmarshalOriginInvalidFields	todo		
-unmarshal_test.go	TestUnmarshalOriginEdgeCases	todo		
-unmarshal_test.go	TestUnmarshalString_ErrSDPCacheInvalid	todo		
-unmarshal_test.go	TestUnmarshal_DelegatesToUnmarshalString	todo		
-unmarshal_test.go	TestS1_SyntaxError	todo		
-unmarshal_test.go	TestS2_SyntaxError	todo		
-unmarshal_test.go	TestS3_SyntaxError	todo		
-unmarshal_test.go	TestS4_SyntaxError	todo		
-unmarshal_test.go	TestS5_SyntaxError	todo		
-unmarshal_test.go	TestS6_KeyC_UnmarshalSessionConnectionInformation	todo		
-unmarshal_test.go	TestS6_KeyB_UnmarshalSessionBandwidth	todo		
-unmarshal_test.go	TestS6_SyntaxError	todo		
-unmarshal_test.go	TestS7_KeyE_UnmarshalEmail	todo		
-unmarshal_test.go	TestS7_KeyP_UnmarshalPhone	todo		
-unmarshal_test.go	TestS7_KeyC_UnmarshalSessionConnectionInformation	todo		
-unmarshal_test.go	TestS7_KeyB_UnmarshalSessionBandwidth	todo		
-unmarshal_test.go	TestS7_SyntaxError	todo		
-unmarshal_test.go	TestS8_KeyB_UnmarshalSessionBandwidth	todo		
-unmarshal_test.go	TestS8_SyntaxError	todo		
-unmarshal_test.go	TestS9_SyntaxError	todo		
-unmarshal_test.go	TestS10_KeyP_UnmarshalPhone	todo		
-unmarshal_test.go	TestS10_KeyC_UnmarshalSessionConnectionInformation	todo		
-unmarshal_test.go	TestS10_KeyB_UnmarshalSessionBandwidth	todo		
-unmarshal_test.go	TestS10_SyntaxError	todo		
-unmarshal_test.go	TestS11_SyntaxError	todo		
-unmarshal_test.go	TestS12_SyntaxError	todo		
-unmarshal_test.go	TestS13_KeyA_UnmarshalSessionAttribute	todo		
-unmarshal_test.go	TestS13_KeyM_UnmarshalMediaDescription	todo		
-unmarshal_test.go	TestS13_SyntaxError	todo		
-unmarshal_test.go	TestS14_KeyK_UnmarshalMediaEncryptionKey	todo		
-unmarshal_test.go	TestS14_KeyB_UnmarshalMediaBandwidth	todo		
-unmarshal_test.go	TestS14_KeyI_UnmarshalMediaTitle	todo		
-unmarshal_test.go	TestS14_SyntaxError	todo		
-unmarshal_test.go	TestS15_KeyA_UnmarshalMediaAttribute	todo		
-unmarshal_test.go	TestS15_KeyC_UnmarshalMediaConnectionInformation	todo		
-unmarshal_test.go	TestS15_KeyM_UnmarshalMediaDescription	todo		
-unmarshal_test.go	TestS15_SyntaxError	todo		
-unmarshal_test.go	TestS16_KeyA_UnmarshalMediaAttribute	todo		
-unmarshal_test.go	TestS16_KeyK_UnmarshalMediaEncryptionKey	todo		
-unmarshal_test.go	TestS16_KeyB_UnmarshalMediaBandwidth	todo		
-unmarshal_test.go	TestS16_KeyI_UnmarshalMediaTitle	todo		
-unmarshal_test.go	TestS16_KeyM_UnmarshalMediaDescription	todo		
-unmarshal_test.go	TestS16_SyntaxError	todo		
-unmarshal_test.go	TestUnmarshalProtocolVersion_Error_ReadUint64Field	todo		
-unmarshal_test.go	TestUnmarshalProtocolVersion_Error_InvalidNonZeroVersion	todo		
-unmarshal_test.go	TestUnmarshalOrigin_Error_ReadUsernameField	todo		
-unmarshal_test.go	TestUnmarshalOrigin_Error_ReadNetworkTypeField	todo		
-unmarshal_test.go	TestUnmarshalOrigin_Error_ReadUint64_SessionID	todo		
-unmarshal_test.go	TestUnmarshalOrigin_Error_ReadUint64_SessionVersion	todo		
-unmarshal_test.go	TestUnmarshalOrigin_Error_InvalidNetworkType	todo		
-unmarshal_test.go	TestUnmarshalOrigin_Error_HandleAddressType_Propagates	todo		
-unmarshal_test.go	TestUnmarshalOrigin_Error_HandleUnicastAddress_Propagates	todo		
-unmarshal_test.go	TestHandleAddressType_ReturnsUnderlyingError	todo		
-unmarshal_test.go	TestHandleUnicastAddress_ReturnsUnderlyingError	todo		
-unmarshal_test.go	TestUnmarshalSessionName_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalSessionInformation_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalURI_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalURI_Error_Parse	todo		
-unmarshal_test.go	TestUnmarshalEmail_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalPhone_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalSessionConnectionInformation_Error_FromInner	todo		
-unmarshal_test.go	TestUnmarshalConnectionInformation_ErrInvalidNetworkType	todo		
-unmarshal_test.go	TestUnmarshalConnectionInformation_ErrReadAddressType	todo		
-unmarshal_test.go	TestUnmarshalConnectionInformation_ErrInvalidAddressType	todo		
-unmarshal_test.go	TestUnmarshalConnectionInformation_ErrReadAddress	todo		
-unmarshal_test.go	TestUnmarshalSessionBandwidth_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalSessionBandwidth_Error_InvalidBandwidthValue	todo		
-unmarshal_test.go	TestUnmarshalBandwidth_InvalidType	todo		
-unmarshal_test.go	TestUnmarshalBandwidth_InvalidNumeric	todo		
-unmarshal_test.go	TestUnmarshalTiming_Error_StartTime	todo		
-unmarshal_test.go	TestUnmarshalTiming_Error_StopTime	todo		
-unmarshal_test.go	TestUnmarshalRepeatTimes_Error_FirstFieldRead	todo		
-unmarshal_test.go	TestUnmarshalRepeatTimes_Error_SecondFieldRead	todo		
-unmarshal_test.go	TestUnmarshalRepeatTimes_Error_DurationParse	todo		
-unmarshal_test.go	TestUnmarshalRepeatTimes_Error_OffsetParse	todo		
-unmarshal_test.go	TestUnmarshalRepeatTimes_Error_ReadFieldInsideLoop	todo		
-unmarshal_test.go	TestUnmarshalTimeZones_Error_ReadUint64Field	todo		
-unmarshal_test.go	TestUnmarshalTimeZones_Error_ReadField	todo		
-unmarshal_test.go	TestUnmarshalTimeZones_Error_ParseOffset	todo		
-unmarshal_test.go	TestUnmarshalSessionEncryptionKey_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalSessionAttribute_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalMediaDescription_Error_ReadMediaField	todo		
-unmarshal_test.go	TestUnmarshalMediaDescription_Error_InvalidMediaToken	todo		
-unmarshal_test.go	TestUnmarshalMediaDescription_Error_ReadPortField	todo		
-unmarshal_test.go	TestUnmarshalMediaDescription_Error_PortRangeInvalid	todo		
-unmarshal_test.go	TestUnmarshalMediaDescription_Error_ReadProtoField	todo		
-unmarshal_test.go	TestUnmarshalMediaDescription_Error_ReadFieldInFormatsLoop	todo		
-unmarshal_test.go	TestUnmarshalMediaDescription_SetsPortRange	todo		
-unmarshal_test.go	TestUnmarshalMediaDescription_Error_InvalidProto	todo		
-unmarshal_test.go	TestUnmarshalMediaTitle_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalMediaConnectionInformation_Error_FromInner	todo		
-unmarshal_test.go	TestUnmarshalMediaBandwidth_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalMediaBandwidth_Error_InvalidBandwidth	todo		
-unmarshal_test.go	TestUnmarshalMediaEncryptionKey_Error_ReadLine	todo		
-unmarshal_test.go	TestUnmarshalMediaAttribute_Error_ReadLine	todo		
-unmarshal_test.go	TestTimeShorthand_MinutesAndSeconds	todo		
+unmarshal_test.go	TestUnmarshalZeroValues	rust	test_unmarshal_zero_values	
+unmarshal_test.go	TestUnmarshalPortRange	rust	test_unmarshal_port_range	
+unmarshal_test.go	TestUnmarshalOriginIncomplete	rust	test_unmarshal_origin_incomplete	
+unmarshal_test.go	TestUnmarshalOriginInvalidFields	rust	test_unmarshal_origin_invalid_fields	
+unmarshal_test.go	TestUnmarshalOriginEdgeCases	rust	test_unmarshal_origin_edge_cases	
+unmarshal_test.go	TestUnmarshalString_ErrSDPCacheInvalid	na		Go sync.Pool cache internals
+unmarshal_test.go	TestUnmarshal_DelegatesToUnmarshalString	rust	test_unmarshal_delegates_to_unmarshal_string	
+unmarshal_test.go	TestS1_SyntaxError	rust	test_s1_to_s5_syntax_error	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS2_SyntaxError	rust	test_s1_to_s5_syntax_error	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS3_SyntaxError	rust	test_s1_to_s5_syntax_error	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS4_SyntaxError	rust	test_s1_to_s5_syntax_error	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS5_SyntaxError	rust	test_s1_to_s5_syntax_error	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS6_KeyC_UnmarshalSessionConnectionInformation	rust	test_s6_key_c_and_key_b	
+unmarshal_test.go	TestS6_KeyB_UnmarshalSessionBandwidth	rust	test_s6_key_c_and_key_b	
+unmarshal_test.go	TestS6_SyntaxError	rust	test_s1_to_s5_syntax_error	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS7_KeyE_UnmarshalEmail	rust	test_s7_keys_email_phone_connection_bandwidth	
+unmarshal_test.go	TestS7_KeyP_UnmarshalPhone	rust	test_s7_keys_email_phone_connection_bandwidth	
+unmarshal_test.go	TestS7_KeyC_UnmarshalSessionConnectionInformation	rust	test_s7_keys_email_phone_connection_bandwidth	
+unmarshal_test.go	TestS7_KeyB_UnmarshalSessionBandwidth	rust	test_s7_keys_email_phone_connection_bandwidth	
+unmarshal_test.go	TestS7_SyntaxError	rust	test_s1_to_s5_syntax_error	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS8_KeyB_UnmarshalSessionBandwidth	rust	test_s8_through_s12_keys_and_syntax	pion's s8 follows i= and s10 follows u=
+unmarshal_test.go	TestS8_SyntaxError	rust	test_s13_to_s16_media_keys_and_syntax	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS9_SyntaxError	rust	test_s13_to_s16_media_keys_and_syntax	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS10_KeyP_UnmarshalPhone	rust	test_s8_through_s12_keys_and_syntax	pion's s8 follows i= and s10 follows u=
+unmarshal_test.go	TestS10_KeyC_UnmarshalSessionConnectionInformation	rust	test_s8_through_s12_keys_and_syntax	pion's s8 follows i= and s10 follows u=
+unmarshal_test.go	TestS10_KeyB_UnmarshalSessionBandwidth	rust	test_s8_through_s12_keys_and_syntax	pion's s8 follows i= and s10 follows u=
+unmarshal_test.go	TestS10_SyntaxError	rust	test_s13_to_s16_media_keys_and_syntax	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS11_SyntaxError	rust	test_s13_to_s16_media_keys_and_syntax	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS12_SyntaxError	rust	test_s13_to_s16_media_keys_and_syntax	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS13_KeyA_UnmarshalSessionAttribute	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS13_KeyM_UnmarshalMediaDescription	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS13_SyntaxError	rust	test_s13_to_s16_media_keys_and_syntax	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS14_KeyK_UnmarshalMediaEncryptionKey	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS14_KeyB_UnmarshalMediaBandwidth	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS14_KeyI_UnmarshalMediaTitle	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS14_SyntaxError	rust	test_s13_to_s16_media_keys_and_syntax	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS15_KeyA_UnmarshalMediaAttribute	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS15_KeyC_UnmarshalMediaConnectionInformation	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS15_KeyM_UnmarshalMediaDescription	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS15_SyntaxError	rust	test_s13_to_s16_media_keys_and_syntax	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestS16_KeyA_UnmarshalMediaAttribute	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS16_KeyK_UnmarshalMediaEncryptionKey	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS16_KeyB_UnmarshalMediaBandwidth	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS16_KeyI_UnmarshalMediaTitle	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS16_KeyM_UnmarshalMediaDescription	rust	test_s13_to_s16_media_keys_and_syntax	
+unmarshal_test.go	TestS16_SyntaxError	rust	test_s13_to_s16_media_keys_and_syntax	state-machine syntax error expressed as a whole session (s8+ arms in test_s8_through_s12_keys_and_syntax)
+unmarshal_test.go	TestUnmarshalProtocolVersion_Error_ReadUint64Field	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalProtocolVersion_Error_InvalidNonZeroVersion	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalOrigin_Error_ReadUsernameField	rust	test_unmarshal_origin_edge_cases	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalOrigin_Error_ReadNetworkTypeField	rust	test_unmarshal_origin_edge_cases	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalOrigin_Error_ReadUint64_SessionID	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalOrigin_Error_ReadUint64_SessionVersion	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalOrigin_Error_InvalidNetworkType	rust	test_unmarshal_origin_invalid_fields	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalOrigin_Error_HandleAddressType_Propagates	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalOrigin_Error_HandleUnicastAddress_Propagates	rust	test_unmarshal_origin_error_handle_unicast_address_propagates		
+unmarshal_test.go	TestHandleAddressType_ReturnsUnderlyingError	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestHandleUnicastAddress_ReturnsUnderlyingError	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalSessionName_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalSessionInformation_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalURI_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalURI_Error_Parse	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalEmail_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalPhone_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalSessionConnectionInformation_Error_FromInner	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalConnectionInformation_ErrInvalidNetworkType	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalConnectionInformation_ErrReadAddressType	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalConnectionInformation_ErrInvalidAddressType	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalConnectionInformation_ErrReadAddress	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalSessionBandwidth_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalSessionBandwidth_Error_InvalidBandwidthValue	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalBandwidth_InvalidType	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalBandwidth_InvalidNumeric	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalTiming_Error_StartTime	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalTiming_Error_StopTime	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalRepeatTimes_Error_FirstFieldRead	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalRepeatTimes_Error_SecondFieldRead	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalRepeatTimes_Error_DurationParse	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalRepeatTimes_Error_OffsetParse	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalRepeatTimes_Error_ReadFieldInsideLoop	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalTimeZones_Error_ReadUint64Field	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalTimeZones_Error_ReadField	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalTimeZones_Error_ParseOffset	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalSessionEncryptionKey_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalSessionAttribute_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalMediaDescription_Error_ReadMediaField	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalMediaDescription_Error_InvalidMediaToken	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalMediaDescription_Error_ReadPortField	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalMediaDescription_Error_PortRangeInvalid	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalMediaDescription_Error_ReadProtoField	na		pion-internal error injection into private state functions; rtc-sdp accepts unregistered m= protocols (RFC 8866 5.14)
+unmarshal_test.go	TestUnmarshalMediaDescription_Error_ReadFieldInFormatsLoop	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalMediaDescription_SetsPortRange	rust	test_unmarshal_port_range	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalMediaDescription_Error_InvalidProto	na		pion-internal error injection into private state functions; rtc-sdp accepts unregistered m= protocols (RFC 8866 5.14)
+unmarshal_test.go	TestUnmarshalMediaTitle_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalMediaConnectionInformation_Error_FromInner	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalMediaBandwidth_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalMediaBandwidth_Error_InvalidBandwidth	rust	test_unmarshal_malformed_lines_rejected	pion injects the error through its private lexer; the malformed whole-session text reproduces the verdict
+unmarshal_test.go	TestUnmarshalMediaEncryptionKey_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestUnmarshalMediaAttribute_Error_ReadLine	na		pion-internal error injection into private state functions
+unmarshal_test.go	TestTimeShorthand_MinutesAndSeconds	rust	test_unmarshal_time_shorthand_minutes_and_seconds		
 util_test.go	TestGetPayloadTypeForVP8	named	test_get_payload_type_for_vp8	
 util_test.go	TestGetCodecForPayloadType	named	test_get_codec_for_payload_type	
-util_test.go	TestGetCodecsForPayloadTypes	todo		
+util_test.go	TestGetCodecsForPayloadTypes	rust	test_codec_lookup_helpers	
 util_test.go	TestNewSessionID	named	test_new_session_id	
-util_test.go	TestConnectionRole_String	todo		
-util_test.go	TestCodec_String	todo		
-util_test.go	TestParseRtpmap_NoEncodingParams	todo		
-util_test.go	TestParseRtpmap_WithEncodingParams	todo		
-util_test.go	TestParseRtpmap_Error_MissingSpace	todo		
-util_test.go	TestParseRtpmap_Error_MissingColon	todo		
-util_test.go	TestParseRtpmap_Error_NonNumericPayload	todo		
-util_test.go	TestParseRtpmap_Error_NonNumericClockRate	todo		
-util_test.go	TestParseFmtp_Error_MissingSpace	todo		
-util_test.go	TestParseFmtp_Error_MissingColon	todo		
-util_test.go	TestParseFmtp_Error_NonNumericPayload	todo		
-util_test.go	TestEquivalentFmtp_MismatchAfterSortAndTrim	todo		
-util_test.go	TestParseRtcpFb_MissingSpace	todo		
-util_test.go	TestParseRtcpFb_MissingColon	todo		
-util_test.go	TestParseRtcpFb_NonNumeric	todo		
-util_test.go	TestBuildCodecMap_RtcpFbError	todo		
-util_test.go	TestCodecsMatch_MiddleFalse_ClockRateMismatch	todo		
-util_test.go	TestCodecsMatch_MiddleFalse_EncodingParamsMismatch	todo		
-util_test.go	TestGetCodecForPayloadType_Error_NotFound	todo		
-util_test.go	TestGetPayloadTypeForCodec_Error_NotFound	todo		
-util_test.go	TestLexer_HandleType_ElseIfErrorFromReadType	todo		
-util_test.go	TestLexer_HandleType_SyntaxErrorWhenFnReturnsNil	todo		
+util_test.go	TestConnectionRole_String	rust	test_connection_role_string	
+util_test.go	TestCodec_String	rust	test_codec_string	
+util_test.go	TestParseRtpmap_NoEncodingParams	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseRtpmap_WithEncodingParams	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseRtpmap_Error_MissingSpace	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseRtpmap_Error_MissingColon	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseRtpmap_Error_NonNumericPayload	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseRtpmap_Error_NonNumericClockRate	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseFmtp_Error_MissingSpace	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseFmtp_Error_MissingColon	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseFmtp_Error_NonNumericPayload	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestEquivalentFmtp_MismatchAfterSortAndTrim	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseRtcpFb_MissingSpace	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseRtcpFb_MissingColon	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestParseRtcpFb_NonNumeric	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestBuildCodecMap_RtcpFbError	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestCodecsMatch_MiddleFalse_ClockRateMismatch	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestCodecsMatch_MiddleFalse_EncodingParamsMismatch	na		pion-internal parse helper; rtc-sdp parses rtpmap/fmtp/rtcp-fb inline in codec_map
+util_test.go	TestGetCodecForPayloadType_Error_NotFound	rust	test_codec_lookup_helpers	
+util_test.go	TestGetPayloadTypeForCodec_Error_NotFound	rust	test_codec_lookup_helpers	
+util_test.go	TestLexer_HandleType_ElseIfErrorFromReadType	na		pion-internal lexer state function
+util_test.go	TestLexer_HandleType_SyntaxErrorWhenFnReturnsNil	na		pion-internal lexer state function

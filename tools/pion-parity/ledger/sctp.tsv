@@ -212,8 +212,8 @@ reassembly_queue_test.go	TestChunkSet	todo
 receive_payload_queue_test.go	TestReceivePayloadQueue	todo		
 receive_payload_queue_test.go	TestReceivePayloadQueueAdvanceCumulativeTSN	todo		
 receive_payload_queue_test.go	TestBitfunc	todo		
-rtx_timer_test.go	TestRTOManager	todo		
-rtx_timer_test.go	TestRtxTimer	todo		
+rtx_timer_test.go	TestRTOManager	rust	test_rto_manager	
+rtx_timer_test.go	TestRtxTimer	rust	test_rtx_timer	
 stream_test.go	TestSessionBufferedAmount	todo		
 stream_test.go	TestStreamHandleForwardTSNForMID	todo		
 stream_test.go	TestStreamPacketizeInterleavingMIDAllocation	todo		
