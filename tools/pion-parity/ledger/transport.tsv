@@ -1,131 +1,131 @@
 # file	test	status	ref	note   (see tools/pion-parity/parity.py)
-deadline/deadline_test.go	TestDeadline	todo		
-deadline/deadline_test.go	TestContext	todo		
-deadline/deadline_test.go	TestDeadlineContext	todo		
-dpipe/dpipe_test.go	TestNetTest	todo		
-dpipe/dpipe_test.go	TestPipe	todo		
-netchange/detector_test.go	TestCheckInitialInterfaces	todo		
-netchange/detector_test.go	TestInterfaceChanges	todo		
-netchange/detector_test.go	TestCheckCancellationPreservesChange	todo		
-netchange/detector_test.go	TestCheckUpdatesNet	todo		
-netchange/socket_linux_test.go	TestDrainDatagrams	todo		
-netchange/socket_linux_test.go	TestWaitSocket	todo		
-netchange/socket_linux_test.go	TestDetectorSystemBackend	todo		
-netchange/socket_linux_test.go	TestPlatformTimeout	todo		
-netctx/conn_test.go	TestRead	todo		
-netctx/conn_test.go	TestReadTimeout	todo		
-netctx/conn_test.go	TestReadCancel	todo		
-netctx/conn_test.go	TestReadClosed	todo		
-netctx/conn_test.go	TestWrite	todo		
-netctx/conn_test.go	TestWriteTimeout	todo		
-netctx/conn_test.go	TestWriteCancel	todo		
-netctx/conn_test.go	TestWriteClosed	todo		
-netctx/conn_test.go	TestLocalAddrAndRemoteAddr	todo		
-netctx/packetconn_test.go	TestReadFrom	todo		
-netctx/packetconn_test.go	TestReadFromTimeout	todo		
-netctx/packetconn_test.go	TestReadFromCancel	todo		
-netctx/packetconn_test.go	TestReadFromClosed	todo		
-netctx/packetconn_test.go	TestWriteTo	todo		
-netctx/packetconn_test.go	TestWriteToTimeout	todo		
-netctx/packetconn_test.go	TestWriteToCancel	todo		
-netctx/packetconn_test.go	TestWriteToClosed	todo		
-netctx/packetconn_test.go	TestPacketConnLocalAddrAndRemoteAddr	todo		
-packetio/buffer_test.go	TestBufferWraparound	todo		
-packetio/buffer_test.go	TestBufferLimitSize	todo		
-packetio/buffer_test.go	TestBufferAlloc	todo		
-packetio/buffer_test.go	TestBufferConcurrentRead	todo		
-packetio/buffer_test.go	TestBufferAttributes	todo		
-packetio/buffer_test.go	TestBufferAttributesDeadlineAndClose	todo		
-packetio/buffer_test.go	TestBufferTruncationPreservesAttributes	todo		
-packetio/buffer_test.go	TestBufferAttributeLimits	todo		
-packetio/buffer_test.go	TestBufferAttributeStorageCap	todo		
-packetio/buffer_test.go	TestBufferAttributesConcurrent	todo		
-replaydetector/fixedbig_test.go	TestFixedBigIntShiftAcrossWindow	todo		
-replaydetector/replaydetector_test.go	TestReplayDetector	named	test_replay_detector	
-replaydetector/replaydetector_test.go	TestReplayDetectorWrapped	todo		
-replaydetector/replaydetector_test.go	TestCheckSeqDoesNotCommit	todo		
-replaydetector/replaydetector_test.go	TestRejectedTokenIsInert	todo		
-replaydetector/replaydetector_test.go	TestCheckAccepterNoAllocation	todo		
-reuseport/reuse_test.go	TestDialFromListeningPortTCP4	todo		
-reuseport/reuse_test.go	TestDialFromListeningPortTCP6	todo		
-reuseport/reuse_test.go	TestDialFromListeningPortUdp4	todo		
-reuseport/reuse_test.go	TestDialFromListeningPortUdp6	todo		
-stdnet/net_test.go	TestStdNet	todo		
-test/bridge_test.go	TestBridge	todo		
-test/bridge_test.go	TestNetTest	todo		
-test/test_test.go	TestStressIOPipe	todo		
-test/test_test.go	TestStressDuplexNetPipe	todo		
-test/util_test.go	TestCheckRoutines	todo		
-test/util_test.go	TestCheckRoutinesStrict	todo		
-udp/batchconn_test.go	TestBatchConn_WriteBatchInterval	todo		
-udp/batchconn_test.go	TestBatchConn_WriteBatchSize	todo		
-udp/conn_test.go	TestStressDuplex	todo		
-udp/conn_test.go	TestListenerCloseTimeout	todo		
-udp/conn_test.go	TestListenerCloseUnaccepted	todo		
-udp/conn_test.go	TestListenerAcceptFilter	todo		
-udp/conn_test.go	TestListenerConcurrent	todo		
-udp/conn_test.go	TestConnClose	todo		
-udp/conn_test.go	TestBatchIO	todo		
-utils/xor/xor_test.go	TestXOR	todo		
-vnet/chunk_queue_test.go	TestChunkQueue	todo		
-vnet/chunk_test.go	TestChunkUDPClone	todo		
-vnet/chunk_test.go	TestChunkTCPClone	todo		
-vnet/chunk_test.go	TestTCPFragString	todo		
-vnet/chunk_test.go	TestChunk	todo		
-vnet/conn_map_test.go	TestUDPConnMap	todo		
-vnet/conn_test.go	TestUDPConn	todo		
-vnet/delay_filter_test.go	TestNewDelayFilterOptions	todo		
-vnet/duplication_filter_test.go	TestDuplicationFilterConfigValidation	todo		
-vnet/duplication_filter_test.go	TestValidateDuplicationConfig_Errors	todo		
-vnet/duplication_filter_test.go	TestDuplicationImmediateOption	todo		
-vnet/duplication_filter_test.go	TestDuplicationFilterClosedSkipsDuplication	todo		
-vnet/duplication_filter_test.go	TestDuplicationDelayRangeInclusive	todo		
-vnet/duplication_filter_test.go	TestDuplicationFilterBurstMultiplier	todo		
-vnet/duplication_filter_test.go	TestDuplicationFilterProbabilityLongRun	todo		
-vnet/duplication_filter_test.go	TestDuplicationFilterBurstStartSetsWindow	todo		
-vnet/duplication_filter_test.go	TestDuplicationFilterOnBucketFiredClosedCleans	todo		
-vnet/duplication_filter_test.go	TestDuplicationFilterScheduleDuplicateClosedNoop	todo		
-vnet/duplication_filter_test.go	TestNewDuplicationFilter_NilOptionIgnored	todo		
-vnet/duplication_filter_test.go	TestNewDuplicationFilter_ValidateCalledOnOptions	todo		
-vnet/duplication_filter_test.go	TestDuplicationFilterBurstImmediateAppliesMultiplier	todo		
-vnet/duplication_filter_test.go	TestDuplicationFilterBurstBoundaryEqualityNotInBurst	todo		
-vnet/loss_filter_test.go	TestLossFilterFullLoss	todo		
-vnet/loss_filter_test.go	TestLossFilterNoLoss	todo		
-vnet/loss_filter_test.go	TestLossFilterSomeLoss	todo		
-vnet/loss_filter_test.go	TestLossFilterLossRateChangeRandomShuffleHandler	todo		
-vnet/loss_filter_test.go	TestLossFilterImmediateLossRateChangeRandomShuffleHandler	todo		
-vnet/loss_filter_test.go	TestLossFilterNonImmediateLossRateChangeRandomShuffleHandler	todo		
-vnet/loss_filter_test.go	TestLossFilterOptionsPattern	todo		
-vnet/loss_filter_test.go	TestLossFilterShuffleRounding	todo		
-vnet/loss_filter_test.go	TestLossFilterResetImmediately	todo		
-vnet/loss_filter_test.go	TestLossFilterWithSeed_DeterministicShuffle	todo		
-vnet/loss_filter_test.go	TestLossFilterWithSeed_DeterministicRandom	todo		
-vnet/loss_filter_test.go	TestLossFilterWithSeed_Reproducibility	todo		
-vnet/loss_filter_test.go	TestLossFilterSeed_NoSeedRandomization	todo		
-vnet/loss_filter_test.go	TestLossFilterOptionValidation	todo		
-vnet/loss_filter_test.go	TestLossFilterDeterminismProperty	todo		
-vnet/loss_filter_test.go	TestLossFilterBoundaryChances	todo		
-vnet/loss_filter_test.go	TestLossFilterRoundingComprehensive	todo		
-vnet/loss_filter_test.go	TestLossFilterConcurrencySmoke	todo		
-vnet/loss_filter_test.go	TestLossFilterNilOptionSkip	todo		
-vnet/nat_test.go	TestNATTypeDefaults	todo		
-vnet/nat_test.go	TestNATMappingBehavior	todo		
-vnet/nat_test.go	TestNATMappingTimeout	todo		
-vnet/nat_test.go	TestNAT1To1Behavior	todo		
-vnet/net_test.go	TestNetVirtual	todo		
-vnet/queue_test.go	TestQueue	todo		
-vnet/resolver_test.go	TestResolver	todo		
-vnet/router_test.go	TestRouterStandalone	todo		
-vnet/router_test.go	TestRouterDelay	todo		
-vnet/router_test.go	TestRouterOneChild	todo		
-vnet/router_test.go	TestRouterStaticIPs	todo		
-vnet/router_test.go	TestRouterFailures	todo		
-vnet/stress_test.go	TestStressTestUDP	todo		
-vnet/synctest_test.go	TestDelayFilter	todo		
-vnet/synctest_test.go	TestDuplicationFilterDuplicates	todo		
-vnet/synctest_test.go	TestDuplicationFilterZeroDelayNoLoop	todo		
-vnet/synctest_test.go	TestDuplicationFilterCloseCancelsPending	todo		
-vnet/synctest_test.go	TestDuplicationFilterBucketCoalescing	todo		
-vnet/tbf_queue_test.go	TestTBFQueue	todo		
-vnet/tcp_map_test.go	TestTCPListenerMap	todo		
-vnet/tcp_map_test.go	TestTCPConnMap	todo		
+deadline/deadline_test.go	TestDeadline	na		Go-only net.Conn deadline wrapper (timers, goroutines); no Rust counterpart
+deadline/deadline_test.go	TestContext	na		Go-only net.Conn deadline wrapper (timers, goroutines); no Rust counterpart
+deadline/deadline_test.go	TestDeadlineContext	na		Go-only net.Conn deadline wrapper (timers, goroutines); no Rust counterpart
+dpipe/dpipe_test.go	TestNetTest	na		Go net.Conn in-memory pipe; the Rust async layer uses tokio duplex streams
+dpipe/dpipe_test.go	TestPipe	na		Go net.Conn in-memory pipe; the Rust async layer uses tokio duplex streams
+netchange/detector_test.go	TestCheckInitialInterfaces	na		Linux netlink interface-change monitoring over real rtnetlink sockets; no Rust counterpart
+netchange/detector_test.go	TestInterfaceChanges	na		Linux netlink interface-change monitoring over real rtnetlink sockets; no Rust counterpart
+netchange/detector_test.go	TestCheckCancellationPreservesChange	na		Linux netlink interface-change monitoring over real rtnetlink sockets; no Rust counterpart
+netchange/detector_test.go	TestCheckUpdatesNet	na		Linux netlink interface-change monitoring over real rtnetlink sockets; no Rust counterpart
+netchange/socket_linux_test.go	TestDrainDatagrams	na		Linux netlink interface-change monitoring over real rtnetlink sockets; no Rust counterpart
+netchange/socket_linux_test.go	TestWaitSocket	na		Linux netlink interface-change monitoring over real rtnetlink sockets; no Rust counterpart
+netchange/socket_linux_test.go	TestDetectorSystemBackend	na		Linux netlink interface-change monitoring over real rtnetlink sockets; no Rust counterpart
+netchange/socket_linux_test.go	TestPlatformTimeout	na		Linux netlink interface-change monitoring over real rtnetlink sockets; no Rust counterpart
+netctx/conn_test.go	TestRead	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/conn_test.go	TestReadTimeout	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/conn_test.go	TestReadCancel	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/conn_test.go	TestReadClosed	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/conn_test.go	TestWrite	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/conn_test.go	TestWriteTimeout	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/conn_test.go	TestWriteCancel	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/conn_test.go	TestWriteClosed	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/conn_test.go	TestLocalAddrAndRemoteAddr	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/packetconn_test.go	TestReadFrom	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/packetconn_test.go	TestReadFromTimeout	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/packetconn_test.go	TestReadFromCancel	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/packetconn_test.go	TestReadFromClosed	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/packetconn_test.go	TestWriteTo	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/packetconn_test.go	TestWriteToTimeout	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/packetconn_test.go	TestWriteToCancel	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/packetconn_test.go	TestWriteToClosed	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+netctx/packetconn_test.go	TestPacketConnLocalAddrAndRemoteAddr	na		Go-only net.Conn/net.PacketConn wrapper adding context.Context cancellation; Rust async layer uses tokio
+packetio/buffer_test.go	TestBufferWraparound	gap		packetio.Buffer (byte-ring packet queue with per-packet Attributes, size/count limits, ErrFull, grow) has no Rust counterpart - the async layer buffers via tokio channels, no BufferFactory hook; follow-up issue #31
+packetio/buffer_test.go	TestBufferLimitSize	gap		packetio.Buffer (byte-ring packet queue with per-packet Attributes, size/count limits, ErrFull, grow) has no Rust counterpart - the async layer buffers via tokio channels, no BufferFactory hook; follow-up issue #31
+packetio/buffer_test.go	TestBufferAlloc	na		Go testing.AllocsPerRun zero-allocation accounting
+packetio/buffer_test.go	TestBufferConcurrentRead	na		blocking goroutine readers with SetReadDeadline over the Go buffer
+packetio/buffer_test.go	TestBufferAttributes	gap		packetio.Buffer (byte-ring packet queue with per-packet Attributes, size/count limits, ErrFull, grow) has no Rust counterpart - the async layer buffers via tokio channels, no BufferFactory hook; follow-up issue #31
+packetio/buffer_test.go	TestBufferAttributesDeadlineAndClose	na		SetReadDeadline/net.Error timeout semantics of the Go buffer (close-drain behaviour tracked by the gap rows)
+packetio/buffer_test.go	TestBufferTruncationPreservesAttributes	gap		packetio.Buffer (byte-ring packet queue with per-packet Attributes, size/count limits, ErrFull, grow) has no Rust counterpart - the async layer buffers via tokio channels, no BufferFactory hook; follow-up issue #31
+packetio/buffer_test.go	TestBufferAttributeLimits	gap		packetio.Buffer (byte-ring packet queue with per-packet Attributes, size/count limits, ErrFull, grow) has no Rust counterpart - the async layer buffers via tokio channels, no BufferFactory hook; follow-up issue #31
+packetio/buffer_test.go	TestBufferAttributeStorageCap	gap		packetio.Buffer (byte-ring packet queue with per-packet Attributes, size/count limits, ErrFull, grow) has no Rust counterpart - the async layer buffers via tokio channels, no BufferFactory hook; follow-up issue #31
+packetio/buffer_test.go	TestBufferAttributesConcurrent	na		goroutine stress with deadlines over the Go buffer
+replaydetector/fixedbig_test.go	TestFixedBigIntShiftAcrossWindow	rust	test_fixed_big_int_shift_across_window	
+replaydetector/replaydetector_test.go	TestReplayDetector	rust	test_replay_detector	
+replaydetector/replaydetector_test.go	TestReplayDetectorWrapped	rust	test_replay_detector_wrapped	
+replaydetector/replaydetector_test.go	TestCheckSeqDoesNotCommit	rust	test_check_seq_does_not_commit	
+replaydetector/replaydetector_test.go	TestRejectedTokenIsInert	rust	test_rejected_token_is_inert	
+replaydetector/replaydetector_test.go	TestCheckAccepterNoAllocation	na		Go testing.AllocsPerRun allocation counting; no Rust counterpart without a workspace-global counting allocator
+reuseport/reuse_test.go	TestDialFromListeningPortTCP4	na		SO_REUSEPORT dial-from-listening-port over real TCP/UDP sockets; Go-only syscall facility
+reuseport/reuse_test.go	TestDialFromListeningPortTCP6	na		SO_REUSEPORT dial-from-listening-port over real TCP/UDP sockets; Go-only syscall facility
+reuseport/reuse_test.go	TestDialFromListeningPortUdp4	na		SO_REUSEPORT dial-from-listening-port over real TCP/UDP sockets; Go-only syscall facility
+reuseport/reuse_test.go	TestDialFromListeningPortUdp6	na		SO_REUSEPORT dial-from-listening-port over real TCP/UDP sockets; Go-only syscall facility
+stdnet/net_test.go	TestStdNet	na		vnet.Net adapter over the real Go network stack; Go-only vnet API
+test/bridge_test.go	TestBridge	na		pion's own Go test helpers (vnet bridge, net.Pipe stress, goroutine-leak checker); not library code
+test/bridge_test.go	TestNetTest	na		pion's own Go test helpers (vnet bridge, net.Pipe stress, goroutine-leak checker); not library code
+test/test_test.go	TestStressIOPipe	na		pion's own Go test helpers (vnet bridge, net.Pipe stress, goroutine-leak checker); not library code
+test/test_test.go	TestStressDuplexNetPipe	na		pion's own Go test helpers (vnet bridge, net.Pipe stress, goroutine-leak checker); not library code
+test/util_test.go	TestCheckRoutines	na		pion's own Go test helpers (vnet bridge, net.Pipe stress, goroutine-leak checker); not library code
+test/util_test.go	TestCheckRoutinesStrict	na		pion's own Go test helpers (vnet bridge, net.Pipe stress, goroutine-leak checker); not library code
+udp/batchconn_test.go	TestBatchConn_WriteBatchInterval	na		Go-only batch-write API over real sockets (WriteBatch timing/size); no Rust counterpart
+udp/batchconn_test.go	TestBatchConn_WriteBatchSize	na		Go-only batch-write API over real sockets (WriteBatch timing/size); no Rust counterpart
+udp/conn_test.go	TestStressDuplex	na		real-socket UDP listener/conn (accept filtering, deadlines, goroutines); Rust UDP lives in the async layer over tokio
+udp/conn_test.go	TestListenerCloseTimeout	na		real-socket UDP listener/conn (accept filtering, deadlines, goroutines); Rust UDP lives in the async layer over tokio
+udp/conn_test.go	TestListenerCloseUnaccepted	na		real-socket UDP listener/conn (accept filtering, deadlines, goroutines); Rust UDP lives in the async layer over tokio
+udp/conn_test.go	TestListenerAcceptFilter	na		real-socket UDP listener/conn (accept filtering, deadlines, goroutines); Rust UDP lives in the async layer over tokio
+udp/conn_test.go	TestListenerConcurrent	na		real-socket UDP listener/conn (accept filtering, deadlines, goroutines); Rust UDP lives in the async layer over tokio
+udp/conn_test.go	TestConnClose	na		real-socket UDP listener/conn (accept filtering, deadlines, goroutines); Rust UDP lives in the async layer over tokio
+udp/conn_test.go	TestBatchIO	na		real-socket UDP listener/conn (accept filtering, deadlines, goroutines); Rust UDP lives in the async layer over tokio
+utils/xor/xor_test.go	TestXOR	rust	test_xor_matches_pion_xor	xor_bytes is rtc-stun's xoraddr::xor_bytes
+vnet/chunk_queue_test.go	TestChunkQueue	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/chunk_test.go	TestChunkUDPClone	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/chunk_test.go	TestChunkTCPClone	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/chunk_test.go	TestTCPFragString	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/chunk_test.go	TestChunk	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/conn_map_test.go	TestUDPConnMap	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/conn_test.go	TestUDPConn	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/delay_filter_test.go	TestNewDelayFilterOptions	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationFilterConfigValidation	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestValidateDuplicationConfig_Errors	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationImmediateOption	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationFilterClosedSkipsDuplication	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationDelayRangeInclusive	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationFilterBurstMultiplier	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationFilterProbabilityLongRun	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationFilterBurstStartSetsWindow	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationFilterOnBucketFiredClosedCleans	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationFilterScheduleDuplicateClosedNoop	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestNewDuplicationFilter_NilOptionIgnored	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestNewDuplicationFilter_ValidateCalledOnOptions	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationFilterBurstImmediateAppliesMultiplier	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/duplication_filter_test.go	TestDuplicationFilterBurstBoundaryEqualityNotInBurst	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterFullLoss	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterNoLoss	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterSomeLoss	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterLossRateChangeRandomShuffleHandler	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterImmediateLossRateChangeRandomShuffleHandler	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterNonImmediateLossRateChangeRandomShuffleHandler	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterOptionsPattern	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterShuffleRounding	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterResetImmediately	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterWithSeed_DeterministicShuffle	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterWithSeed_DeterministicRandom	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterWithSeed_Reproducibility	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterSeed_NoSeedRandomization	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterOptionValidation	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterDeterminismProperty	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterBoundaryChances	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterRoundingComprehensive	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterConcurrencySmoke	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/loss_filter_test.go	TestLossFilterNilOptionSkip	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/nat_test.go	TestNATTypeDefaults	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/nat_test.go	TestNATMappingBehavior	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/nat_test.go	TestNATMappingTimeout	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/nat_test.go	TestNAT1To1Behavior	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/net_test.go	TestNetVirtual	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/queue_test.go	TestQueue	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/resolver_test.go	TestResolver	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/router_test.go	TestRouterStandalone	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/router_test.go	TestRouterDelay	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/router_test.go	TestRouterOneChild	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/router_test.go	TestRouterStaticIPs	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/router_test.go	TestRouterFailures	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/stress_test.go	TestStressTestUDP	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/synctest_test.go	TestDelayFilter	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/synctest_test.go	TestDuplicationFilterDuplicates	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/synctest_test.go	TestDuplicationFilterZeroDelayNoLoop	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/synctest_test.go	TestDuplicationFilterCloseCancelsPending	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/synctest_test.go	TestDuplicationFilterBucketCoalescing	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/tbf_queue_test.go	TestTBFQueue	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/tcp_map_test.go	TestTCPListenerMap	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart
+vnet/tcp_map_test.go	TestTCPConnMap	na		Go-only vnet network simulator (virtual NICs, routers, filters); no Rust counterpart

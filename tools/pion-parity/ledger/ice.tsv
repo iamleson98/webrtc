@@ -8,18 +8,18 @@ active_tcp_test.go	TestActiveTCPConn_WriteLoop_WriteStreamingError	todo
 active_tcp_test.go	TestActiveTCPConn_LocalAddr_DefaultWhenUnset	todo		
 active_tcp_test.go	TestActiveTCPConn_SetDeadlines_ReturnEOF	todo		
 active_tcp_test.go	TestActiveTCPConn_SetDeadlines_WhenConnected	todo		
-addr_test.go	TestParseAddrFromIface_ErrFromParseAddr	todo		
-addr_test.go	TestParseAddr_ErrorBranches	todo		
-addr_test.go	TestParseAddr_IPAddr_Success	todo		
-addr_test.go	TestAddrParseError_Error	todo		
-addr_test.go	TestIPConvertError_Error	todo		
-addr_test.go	TestIPAddrToNetIP_Error_InvalidBytes	todo		
-addr_test.go	TestIPAddrToNetIP_OK_IPv4	todo		
-addr_test.go	TestAddrEqual_FirstParseError	todo		
-addr_test.go	TestAddrEqual_SecondParseError	todo		
-addr_test.go	TestAddrEqual_SameTypeIPPort	todo		
-addr_test.go	TestAddrPortEqual	todo		
-addr_test.go	TestAsAddrPortReaderWriter	todo		
+addr_test.go	TestParseAddrFromIface_ErrFromParseAddr	na		Go net.Addr interface polymorphism (parseAddr over IPNet/IPAddr/UDPAddr/TCPAddr); Rust uses SocketAddr/IpAddr directly
+addr_test.go	TestParseAddr_ErrorBranches	na		Go net.Addr interface polymorphism (parseAddr over IPNet/IPAddr/UDPAddr/TCPAddr/unknown); Rust uses SocketAddr/IpAddr directly
+addr_test.go	TestParseAddr_IPAddr_Success	na		Go net.IPAddr zone handling in parseAddr; Rust SocketAddr carries no zone (zone stripped at candidate edges)
+addr_test.go	TestAddrParseError_Error	na		Go error formatting for the net.Addr type switch; no Rust counterpart type
+addr_test.go	TestIPConvertError_Error	na		Go net.IP-to-netip.Addr conversion error; Rust parses IpAddr directly
+addr_test.go	TestIPAddrToNetIP_Error_InvalidBytes	na		Go net.IP byte-slice validation (AddrFromSlice); Rust parses IpAddr from strings
+addr_test.go	TestIPAddrToNetIP_OK_IPv4	na		Go net.IP byte-slice to netip.Addr conversion; Rust parses IpAddr from strings
+addr_test.go	TestAddrEqual_FirstParseError	na		Go net.Addr interface equality with parse errors; Rust compares SocketAddr values
+addr_test.go	TestAddrEqual_SecondParseError	na		Go net.Addr interface equality with parse errors; Rust compares SocketAddr values
+addr_test.go	TestAddrEqual_SameTypeIPPort	na		Go net.Addr interface equality; Rust compares SocketAddr values directly
+addr_test.go	TestAddrPortEqual	na		Go netip.AddrPort comparison semantics (IPv4-in-IPv6, zones); Rust SocketAddr equality has no mapped-address or zone concepts
+addr_test.go	TestAsAddrPortReaderWriter	na		Go interface detection (type assertion to AddrPortReaderWriter); no Rust counterpart
 agent_config_test.go	TestAgentConfig_initWithDefaults	todo		
 agent_config_test.go	TestDefaultRelayAcceptanceMinWaitForCandidates	todo		
 agent_get_best_available_candidate_pair_test.go	TestNoBestAvailableCandidatePairAfterAgentConstruction	todo		
@@ -30,43 +30,43 @@ agent_handlers_test.go	TestHandlerNotifier_EnqueueConnectionState_AfterClose	tod
 agent_handlers_test.go	TestHandlerNotifier_EnqueueCandidate_AfterClose	todo		
 agent_handlers_test.go	TestHandlerNotifier_EnqueueSelectedCandidatePair_AfterClose	todo		
 agent_on_selected_candidate_pair_change_test.go	TestOnSelectedCandidatePairChange	named	test_on_selected_candidate_pair_change	
-agent_options_test.go	TestDefaultNominationValueGenerator	todo		
-agent_options_test.go	TestWithLite	todo		
-agent_options_test.go	TestWithUrls	todo		
-agent_options_test.go	TestWithPortRange	todo		
-agent_options_test.go	TestWithTimeoutOptions	todo		
-agent_options_test.go	TestICELiteDisconnectedTimeoutDefault	todo		
-agent_options_test.go	TestWithAcceptanceWaitOptions	todo		
-agent_options_test.go	TestWithSTUNGatherTimeout	todo		
-agent_options_test.go	TestWithIPFilterOption	todo		
-agent_options_test.go	TestWithRemoteIPFilterOption	todo		
-agent_options_test.go	TestWithNetOption	todo		
-agent_options_test.go	TestWithMulticastDNSOptions	todo		
-agent_options_test.go	TestWithLocalCredentials	todo		
-agent_options_test.go	TestLocalCredentialsLength	todo		
-agent_options_test.go	TestWithMuxOptions	todo		
-agent_options_test.go	TestWithProxyDialer	todo		
-agent_options_test.go	TestWithMaxBindingRequests	todo		
-agent_options_test.go	TestWithRenomination	todo		
-agent_options_test.go	TestWithNominationAttribute	todo		
-agent_options_test.go	TestWithIncludeLoopback	todo		
-agent_options_test.go	TestWithTCPPriorityOffset	todo		
-agent_options_test.go	TestWithDisableActiveTCP	todo		
-agent_options_test.go	TestWithBindingRequestHandler	todo		
-agent_options_test.go	TestWithEnableUseCandidateCheckPriority	todo		
-agent_options_test.go	TestMultipleConfigOptions	todo		
-agent_options_test.go	TestWithInterfaceFilter	todo		
-agent_options_test.go	TestWithLoggerFactory	todo		
-agent_options_test.go	TestWithNetworkTypesAppliedBeforeRestart	todo		
-agent_options_test.go	TestWithNetworkTypes	todo		
-agent_options_test.go	TestWithTURNTransportProtocols	todo		
-agent_options_test.go	TestWithCandidateTypesAffectsURLValidation	todo		
-agent_options_test.go	TestWithAddressRewriteRulesAccumulatesAndCopies	todo		
-agent_options_test.go	TestWithAddressRewriteRulesOverlapWarnings	todo		
-agent_options_test.go	TestLegacyAddressRewriteTranslationAndOrdering	todo		
-agent_options_test.go	TestWithCandidateTypesValidatesLegacyAddressRewrite	todo		
-agent_options_test.go	TestAddressRewriteMapper	todo		
-agent_options_test.go	TestAddressRewritePortValidation	todo		
+agent_options_test.go	TestDefaultNominationValueGenerator	gap		renomination (aggressive nomination with a per-check value generator) is not implemented in rtc-ice
+agent_options_test.go	TestWithLite	rust	test_with_lite	
+agent_options_test.go	TestWithUrls	rust	test_with_urls	Go slice-aliasing assertion dropped; Rust config is moved
+agent_options_test.go	TestWithPortRange	na		port-range binding is the async parent's with_udp_port_range; the sans-I/O agent has no portMin/portMax
+agent_options_test.go	TestWithTimeoutOptions	rust	test_with_timeout_options	
+agent_options_test.go	TestICELiteDisconnectedTimeoutDefault	rust	test_ice_lite_disconnected_timeout_default	
+agent_options_test.go	TestWithAcceptanceWaitOptions	rust	test_with_acceptance_wait_options	
+agent_options_test.go	TestWithSTUNGatherTimeout	na		STUN gather timeout belongs to the async gatherer (parent repo); the sans-I/O agent is told the time
+agent_options_test.go	TestWithIPFilterOption	na		gathering-time local IP filter; Rust gathering (interface enumeration) lives in the async parent
+agent_options_test.go	TestWithRemoteIPFilterOption	gap		remote-candidate IP filtering (pion remoteIPFilter applied when remote candidates are added) is not implemented in rtc-ice
+agent_options_test.go	TestWithNetOption	na		vnet/transport.Net injection; Go-only network abstraction
+agent_options_test.go	TestWithMulticastDNSOptions	rust	test_with_multicast_dns_options	
+agent_options_test.go	TestWithLocalCredentials	rust	test_with_local_credentials	
+agent_options_test.go	TestLocalCredentialsLength	rust	test_local_credentials_length	
+agent_options_test.go	TestWithMuxOptions	na		UDP/TCP muxes are async-layer facilities (parent repo UdpMux); the sans-I/O agent has no mux
+agent_options_test.go	TestWithProxyDialer	na		golang.org/x/net/proxy dialer; Go-only, TURN-over-proxy lives in the async layer
+agent_options_test.go	TestWithMaxBindingRequests	rust	test_with_max_binding_requests	
+agent_options_test.go	TestWithRenomination	gap		renomination (aggressive nomination with a per-check value generator) is not implemented in rtc-ice
+agent_options_test.go	TestWithNominationAttribute	gap		custom nomination STUN attribute (default 0xC001) is not implemented; Rust nominates via USE-CANDIDATE only
+agent_options_test.go	TestWithIncludeLoopback	na		loopback inclusion during interface gathering; Rust gathering lives in the async parent (expand_wildcard skips loopback)
+agent_options_test.go	TestWithTCPPriorityOffset	rust	test_with_tcp_priority_offset	
+agent_options_test.go	TestWithDisableActiveTCP	na		active TCP dialing is the async layer's; the sans-I/O agent does not open connections
+agent_options_test.go	TestWithBindingRequestHandler	gap		user binding-request handler (inspect/modify inbound checks) is not implemented in rtc-ice
+agent_options_test.go	TestWithEnableUseCandidateCheckPriority	gap		use-candidate priority check hook is not implemented in rtc-ice
+agent_options_test.go	TestMultipleConfigOptions	rust	test_multiple_config_options	ported for the options with a Rust counterpart (lite, tcp priority offset)
+agent_options_test.go	TestWithInterfaceFilter	na		interface filter during gathering; Rust interface enumeration lives in the async parent
+agent_options_test.go	TestWithLoggerFactory	na		pion logging.LoggerFactory injection; the Rust stack uses the log crate facade
+agent_options_test.go	TestWithNetworkTypesAppliedBeforeRestart	na		counts real IPv6 listens through a stubbed transport.Net during restart; socket handling is the async layer's
+agent_options_test.go	TestWithNetworkTypes	rust	test_with_network_types	
+agent_options_test.go	TestWithTURNTransportProtocols	gap		TURN transport protocol selection (udp/tcp/tls/dtls filtering of relay URLs) is not implemented in rtc-ice
+agent_options_test.go	TestWithCandidateTypesAffectsURLValidation	rust	test_with_candidate_types_affects_url_validation	
+agent_options_test.go	TestWithAddressRewriteRulesAccumulatesAndCopies	gap		NAT 1:1 address rewrite rules are not implemented in rtc-ice
+agent_options_test.go	TestWithAddressRewriteRulesOverlapWarnings	gap		NAT 1:1 address rewrite rules are not implemented in rtc-ice
+agent_options_test.go	TestLegacyAddressRewriteTranslationAndOrdering	gap		NAT 1:1 address rewrite rules are not implemented in rtc-ice
+agent_options_test.go	TestWithCandidateTypesValidatesLegacyAddressRewrite	gap		NAT 1:1 address rewrite rules are not implemented in rtc-ice
+agent_options_test.go	TestAddressRewriteMapper	gap		NAT 1:1 address rewrite rules are not implemented in rtc-ice
+agent_options_test.go	TestAddressRewritePortValidation	gap		NAT 1:1 address rewrite rules are not implemented in rtc-ice
 agent_test.go	TestAgentCloseAbortsBlockedCandidateWrite	todo		
 agent_test.go	TestAgentCloseAbortsBlockedSharedCandidateWrite	todo		
 agent_test.go	TestHandlePeerReflexive	todo		
@@ -128,23 +128,23 @@ agent_udpmux_test.go	TestMuxAgentPreservesPrecreatedConn	todo
 agent_udpmux_test.go	TestMuxAgent	todo		
 candidate_relay_test.go	TestRelayOnlyConnection	named	test_relay_only_connection	
 candidate_server_reflexive_test.go	TestServerReflexiveOnlyConnection	named	test_server_reflexive_only_connection	
-candidate_test.go	TestCandidateTypePreference	todo		
-candidate_test.go	TestCandidatePriority	named	test_candidate_priority	
-candidate_test.go	TestCandidateLastSent	named	test_candidate_last_sent	
-candidate_test.go	TestCandidateLastReceived	named	test_candidate_last_received	
-candidate_test.go	TestCandidateFoundation	named	test_candidate_foundation	
-candidate_test.go	TestCandidateMarshal	named	test_candidate_marshal	
-candidate_test.go	TestUnmarshalCandidateNumericBounds	todo		
-candidate_test.go	TestCandidateWriteTo	todo		
-candidate_test.go	TestMarshalUnmarshalCandidateWithZoneID	todo		
-candidate_test.go	TestCandidateExtensionsMarshal	todo		
-candidate_test.go	TestCandidateExtensionsDeepEqual	todo		
-candidate_test.go	TestUnmarshalCandidateExtensions	todo		
-candidate_test.go	TestCandidateGetExtension	todo		
-candidate_test.go	TestBaseCandidateMarshalExtensions	todo		
-candidate_test.go	TestBaseCandidateExtensionsEqual	todo		
-candidate_test.go	TestCandidateAddExtension	todo		
-candidate_test.go	TestCandidateRemoveExtension	todo		
+candidate_test.go	TestCandidateTypePreference	rust	test_candidate_type_preference	
+candidate_test.go	TestCandidatePriority	rust	test_candidate_priority	expectations updated to pion v4.4.8 values (TCP offset, relay protocol preference)
+candidate_test.go	TestCandidateLastSent	rust	test_candidate_last_sent	
+candidate_test.go	TestCandidateLastReceived	rust	test_candidate_last_received	
+candidate_test.go	TestCandidateFoundation	rust	test_candidate_foundation	
+candidate_test.go	TestCandidateMarshal	rust	test_candidate_marshal	full pion v4.4.8 table incl. extensions and candidate: prefix
+candidate_test.go	TestUnmarshalCandidateNumericBounds	rust	test_unmarshal_candidate_numeric_bounds	
+candidate_test.go	TestCandidateWriteTo	na		writes through a real TCP conn via tcpPacketConn; the sans-I/O agent writes through poll_write, no socket on the candidate
+candidate_test.go	TestMarshalUnmarshalCandidateWithZoneID	rust	test_marshal_unmarshal_candidate_with_zone_id	
+candidate_test.go	TestCandidateExtensionsMarshal	rust	test_candidate_extensions_marshal	
+candidate_test.go	TestCandidateExtensionsDeepEqual	rust	test_candidate_extensions_deep_equal	
+candidate_test.go	TestUnmarshalCandidateExtensions	rust	test_unmarshal_candidate_extensions	
+candidate_test.go	TestCandidateGetExtension	rust	test_candidate_get_extension	
+candidate_test.go	TestBaseCandidateMarshalExtensions	rust	test_base_candidate_marshal_extensions	
+candidate_test.go	TestBaseCandidateExtensionsEqual	rust	test_base_candidate_extensions_equal	
+candidate_test.go	TestCandidateAddExtension	rust	test_candidate_add_extension	
+candidate_test.go	TestCandidateRemoveExtension	rust	test_candidate_remove_extension	
 candidatepair_test.go	TestCandidatePairPriority	named	test_candidate_pair_priority	
 candidatepair_test.go	TestCandidatePairEquality	named	test_candidate_pair_equality	
 candidatepair_test.go	TestNilCandidatePairString	todo		
@@ -222,16 +222,16 @@ mdns_test.go	TestMulticastDNSOnlyConnection	named	test_multicast_dns_only_connec
 mdns_test.go	TestMulticastDNSMixedConnection	named	test_multicast_dns_mixed_connection	
 mdns_test.go	TestMulticastDNSStaticHostName	named	test_multicast_dns_static_host_name	
 mdns_test.go	TestGenerateMulticastDNSName	todo		
-net_test.go	TestIsSupportedIPv6Partial	todo		
-net_test.go	TestCreateAddr	todo		
-net_test.go	TestLocalInterfaces_ErrorFromInterfaces	todo		
-net_test.go	TestLocalInterfaces_SkipInterfaceDown	todo		
-net_test.go	TestLocalInterfaces_SkipLoopbackAddrs_WhenIncludeLoopbackFalse	todo		
-net_test.go	TestListenUDPInPortRange_DefaultsPortMinTo1024	todo		
-net_test.go	TestListenUDPInPortRange_BailsOnEADDRNOTAVAIL	todo		
-net_test.go	TestListenUDPInPortRange_ContinuesOnPortBusyError	todo		
-net_test.go	TestListenUDPInPortRange_RealEADDRNOTAVAIL	todo		
-net_test.go	TestListenUDPInPortRange_DefaultsPortMaxToFFFF	todo		
+net_test.go	TestIsSupportedIPv6Partial	na		pion gathering-layer IPv6 filter (excludes deprecated IPv4-compatible + site-local); Rust host-candidate filtering lives in the async parent (driver::expand_wildcard)
+net_test.go	TestCreateAddr	na		Go net.Addr (UDPAddr/TCPAddr) construction from NetworkType; Rust uses SocketAddr::new directly
+net_test.go	TestLocalInterfaces_ErrorFromInterfaces	na		pion localInterfaces over the mockable transport.Net interface; Rust interface enumeration is the async parent's expand_wildcard over FFI ifaces
+net_test.go	TestLocalInterfaces_SkipInterfaceDown	na		pion localInterfaces over the mockable transport.Net interface; Rust interface enumeration is the async parent's expand_wildcard over FFI ifaces
+net_test.go	TestLocalInterfaces_SkipLoopbackAddrs_WhenIncludeLoopbackFalse	na		pion localInterfaces over the mockable transport.Net interface; Rust interface enumeration is the async parent's expand_wildcard over FFI ifaces
+net_test.go	TestListenUDPInPortRange_DefaultsPortMinTo1024	na		real-socket port-range binding over mockable transport.Net; the sans-I/O crate has no sockets (async parent binds, with a random-start policy)
+net_test.go	TestListenUDPInPortRange_BailsOnEADDRNOTAVAIL	na		real-socket port-range binding over mockable transport.Net (EADDRNOTAVAIL via os.SyscallError); no sans-I/O counterpart
+net_test.go	TestListenUDPInPortRange_ContinuesOnPortBusyError	na		real-socket port-range binding over mockable transport.Net (EADDRINUSE); no sans-I/O counterpart
+net_test.go	TestListenUDPInPortRange_RealEADDRNOTAVAIL	na		binds a real UDP socket on a TEST-NET-1 address; real sockets live in the async parent
+net_test.go	TestListenUDPInPortRange_DefaultsPortMaxToFFFF	na		real-socket port-range binding over mockable transport.Net; the sans-I/O crate has no sockets
 networktype_test.go	TestNetworkTypeParsing_Success	named	test_network_type_parsing_success	
 networktype_test.go	TestNetworkTypeParsing_Failure	named	test_network_type_parsing_failure	
 networktype_test.go	TestNetworkTypeIsUDP	named	test_network_type_is_udp	
@@ -304,16 +304,16 @@ tcp_mux_test.go	TestTCPMux_NoDeadlockWhenClosingUnusedPacketConn	todo
 tcp_mux_test.go	TestTCPMux_FirstPacketTimeout	todo		
 tcp_mux_test.go	TestTCPMux_NoLeakForConnectionFromStun	todo		
 tcp_mux_test.go	TestTCPMux_GetConnByUfrag_SharedRefcount	todo		
-tcp_packet_conn_test.go	TestBufferedConn_Write_ErrorAfterClose	todo		
-tcp_packet_conn_test.go	TestBufferedConn_writeProcess_ReadError	todo		
-tcp_packet_conn_test.go	TestBufferedConn_writeProcess_WriteError	todo		
-tcp_packet_conn_test.go	TestTCPPacketConn_AddConn_ReturnsClosed	todo		
-tcp_packet_conn_test.go	TestTCPPacketConn_AddConn_DuplicateRemoteAddr	todo		
-tcp_packet_conn_test.go	TestTCPPacketConn_AddConn_FirstPacket_BailsOnClosed	todo		
-tcp_packet_conn_test.go	TestTCPPacketConn_ReadFrom_ShortBuffer	todo		
-tcp_packet_conn_test.go	TestTCPPacketConn_WriteTo_ErrorBranch_WithProvidedMock	todo		
-tcp_packet_conn_test.go	TestTCPPacketConn_SetDeadlines	todo		
-tcp_packet_conn_test.go	TestTCPPacketConn_String	todo		
+tcp_packet_conn_test.go	TestBufferedConn_Write_ErrorAfterClose	na		Go net.Pipe + goroutine bufferedConn; Rust TCP framing is rtc-shared's sans-I/O tcp_framing driven by the async layer
+tcp_packet_conn_test.go	TestBufferedConn_writeProcess_ReadError	na		goroutine read-error branch with a hook logger; no sans-I/O counterpart
+tcp_packet_conn_test.go	TestBufferedConn_writeProcess_WriteError	na		goroutine write-error branch over net.Pipe; no sans-I/O counterpart
+tcp_packet_conn_test.go	TestTCPPacketConn_AddConn_ReturnsClosed	na		Go conn-map over real net.Conn; the Rust stack frames via tcp_framing, connections live in the async layer
+tcp_packet_conn_test.go	TestTCPPacketConn_AddConn_DuplicateRemoteAddr	na		Go conn-map duplicate detection over real net.Conn; connections live in the async layer
+tcp_packet_conn_test.go	TestTCPPacketConn_AddConn_FirstPacket_BailsOnClosed	na		goroutine first-packet handling over real net.Conn; connections live in the async layer
+tcp_packet_conn_test.go	TestTCPPacketConn_ReadFrom_ShortBuffer	na		channel-based ReadFrom with ErrShortBuffer; the Rust decoder is pull-based (TcpFrameDecoder)
+tcp_packet_conn_test.go	TestTCPPacketConn_WriteTo_ErrorBranch_WithProvidedMock	na		WriteTo through a mock net.Conn; connections live in the async layer
+tcp_packet_conn_test.go	TestTCPPacketConn_SetDeadlines	na		Go net.Conn deadline propagation; sans-I/O code has no deadlines
+tcp_packet_conn_test.go	TestTCPPacketConn_String	na		Display of the Go tcpPacketConn struct; no Rust counterpart type
 tcptype_test.go	TestTCPType	named	test_tcp_type	
 transport_filtering_matrix_test.go	TestTransportFilteringRelayMatrix	todo		
 transport_filtering_matrix_test.go	TestTransportFilteringSrflxMatrix	todo		

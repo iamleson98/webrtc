@@ -526,10 +526,10 @@ track_remote_test.go	TestTrackRemotePullAudioPlayoutStats	todo
 track_remote_test.go	TestTrackRemotePullAudioPlayoutStatsMissingProvider	todo		
 track_remote_test.go	TestTrackRemotePullAudioPlayoutStatsProviderFalse	todo		
 track_remote_test.go	TestTrackRemotePullAudioPlayoutStatsNormalizesDefaults	todo		
-internal/fmtp/fmtp_test.go	TestParseParameters	todo		
-internal/fmtp/fmtp_test.go	TestParse	todo		
-internal/fmtp/fmtp_test.go	TestMatch	todo		
-internal/fmtp/fmtp_test.go	TestDefaults	todo		
+internal/fmtp/fmtp_test.go	TestParseParameters	gap		fmtp parameter parsing/matching (pion internal/fmtp: parseParameters, Parse by mime type, Match with codec-specific semantics) has no Rust counterpart - rtc-sdp stores the a=fmtp string verbatim
+internal/fmtp/fmtp_test.go	TestParse	gap		fmtp parameter parsing/matching has no Rust counterpart - rtc-sdp stores the a=fmtp string verbatim
+internal/fmtp/fmtp_test.go	TestMatch	gap		fmtp parameter matching (codec negotiation for h264/h265/vp9/av1) has no Rust counterpart
+internal/fmtp/fmtp_test.go	TestDefaults	gap		fmtp default clock-rate/channels per mime type has no Rust counterpart
 internal/mux/mux_test.go	TestNoEndpoints	todo		
 internal/mux/mux_test.go	TestEndpointDeadline	todo		
 internal/mux/mux_test.go	TestEndpointSetWriteDeadline	todo		
@@ -537,46 +537,46 @@ internal/mux/mux_test.go	TestEndpointSetDeadlineWriteDeadlineError	todo
 internal/mux/mux_test.go	TestNonFatalRead	todo		
 internal/mux/mux_test.go	TestNonFatalDispatch	todo		
 internal/mux/mux_test.go	TestPendingQueue	todo		
-internal/util/util_test.go	TestMathRandAlpha	todo		
-internal/util/util_test.go	TestMultiError	todo		
-pkg/media/h264reader/h264reader_test.go	TestDataDoesNotStartWithH264Header	todo		
-pkg/media/h264reader/h264reader_test.go	TestParseHeader	todo		
-pkg/media/h264reader/h264reader_test.go	TestEOF	todo		
-pkg/media/h264reader/h264reader_test.go	TestSkipSEI	todo		
-pkg/media/h264reader/h264reader_test.go	TestIncludeSEI	todo		
-pkg/media/h264reader/h264reader_test.go	TestIssue1734_NextNal	todo		
-pkg/media/h264reader/h264reader_test.go	TestTrailing01AfterStartCode	todo		
-pkg/media/h264writer/h264writer_test.go	TestNewWith	todo		
-pkg/media/h264writer/h264writer_test.go	TestIsKeyFrame	todo		
-pkg/media/h264writer/h264writer_test.go	TestWriteRTP	todo		
-pkg/media/h264writer/h264writer_test.go	TestNoZeroWrite	todo		
-pkg/media/h265reader/h265reader_test.go	TestH265Reader_NextNAL	todo		
-pkg/media/h265reader/h265reader_test.go	TestH265Reader_processByte	todo		
-pkg/media/h265reader/h265reader_test.go	TestH265Reader_SEIPrefixSuffixSkippedByDefault	todo		
-pkg/media/h265reader/h265reader_test.go	TestH265Reader_IncludeSEI	todo		
-pkg/media/h265reader/h265reader_test.go	TestNAL_parseHeader	todo		
-pkg/media/h265writer/h265writer_test.go	TestH265Writer_WriteRTP	todo		
-pkg/media/h265writer/h265writer_test.go	TestIsKeyFrame	todo		
-pkg/media/h265writer/h265writer_test.go	TestCheckAggregationPacketForKeyFrame	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseValidFileHeader	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ErrorOnZeroTimebaseNumerator	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseValidFrames	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFrameHeader	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFramePayload	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_EOFWhenNoFramesLeft	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Basic	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_EmptyPayload	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8DescriptorOnlyPayload	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Errors	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_AV1	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP9	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithWidthAndHeight	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithFrameRate	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithDirectPTS	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_DirectPTS_VP8	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_DirectPTS_Precision	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_BackwardCompatibility	todo		
+internal/util/util_test.go	TestMathRandAlpha	rust	test_math_rand_alpha	rtc-shared's math_rand_alpha
+internal/util/util_test.go	TestMultiError	rust	test_multi_error	rtc-shared's flatten_errs
+pkg/media/h264reader/h264reader_test.go	TestDataDoesNotStartWithH264Header	rust	test_h264_reader_data_does_not_start_with_h264_header	found+fixed: truncated starts reported ErrDataIsNotH264Stream instead of EOF
+pkg/media/h264reader/h264reader_test.go	TestParseHeader	rust	test_h264_reader_parse_header	
+pkg/media/h264reader/h264reader_test.go	TestEOF	rust	test_h264_reader_eof	
+pkg/media/h264reader/h264reader_test.go	TestSkipSEI	rust	test_h264_reader_skip_sei	
+pkg/media/h264reader/h264reader_test.go	TestIncludeSEI	rust	test_h264_reader_include_sei	with_include_sei added to H26xReader (pion's WithIncludeSEI)
+pkg/media/h264reader/h264reader_test.go	TestIssue1734_NextNal	rust	test_h264_reader_issue1734_next_nal	
+pkg/media/h264reader/h264reader_test.go	TestTrailing01AfterStartCode	rust	test_h264_reader_trailing_01_after_start_code	
+pkg/media/h264writer/h264writer_test.go	TestNewWith	rust	test_h264_writer_new_with	
+pkg/media/h264writer/h264writer_test.go	TestIsKeyFrame	rust	test_h264_writer_is_key_frame	
+pkg/media/h264writer/h264writer_test.go	TestWriteRTP	rust	test_h264_writer_write_rtp	
+pkg/media/h264writer/h264writer_test.go	TestNoZeroWrite	rust	test_h264_writer_no_zero_write	
+pkg/media/h265reader/h265reader_test.go	TestH265Reader_NextNAL	rust	test_h265_reader_next_nal	
+pkg/media/h265reader/h265reader_test.go	TestH265Reader_processByte	rust	test_h265_reader_process_byte	
+pkg/media/h265reader/h265reader_test.go	TestH265Reader_SEIPrefixSuffixSkippedByDefault	rust	test_h265_reader_sei_prefix_suffix_skipped_by_default	
+pkg/media/h265reader/h265reader_test.go	TestH265Reader_IncludeSEI	rust	test_h265_reader_include_sei	with_include_sei added to H26xReader (pion's WithIncludeSEI)
+pkg/media/h265reader/h265reader_test.go	TestNAL_parseHeader	rust	test_h265_nal_parse_header	
+pkg/media/h265writer/h265writer_test.go	TestH265Writer_WriteRTP	rust	test_h265_writer_write_rtp	key-frame gating added to the H265 writer (pion parity)
+pkg/media/h265writer/h265writer_test.go	TestIsKeyFrame	rust	test_h265_writer_is_key_frame	FU-header type uses the RFC 7798 mask (0x3F); pion's NAL-header mask mis-reads real FU headers
+pkg/media/h265writer/h265writer_test.go	TestCheckAggregationPacketForKeyFrame	rust	test_h265_writer_check_aggregation_packet_for_key_frame	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseValidFileHeader	rust	test_ivf_reader_parse_valid_file_header	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ErrorOnZeroTimebaseNumerator	rust	test_ivf_reader_error_on_zero_timebase_numerator	found+fixed: rtc accepted a zero timebase numerator
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseValidFrames	rust	test_ivf_reader_parse_valid_frames	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFrameHeader	rust	test_ivf_reader_parse_incomplete_frame_header	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFramePayload	rust	test_ivf_reader_parse_incomplete_frame_payload	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_EOFWhenNoFramesLeft	rust	test_ivf_reader_eof_when_no_frames_left	
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Basic	na		Go nil-writer/nil-packet state errors (errFileNotOpened/errInvalidNilPacket); the Rust writer is constructed with its writer, no nil state to hit
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8	rust	test_ivf_writer_add_packet_and_close	pion's VP8 packet scenario incl. keyframe gating
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_EmptyPayload	rust	test_ivf_writer_empty_payload	
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8DescriptorOnlyPayload	rust	test_ivf_writer_vp8_descriptor_only_payload	found+fixed: rtc panicked on descriptor-only payloads (index out of bounds)
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Errors	na		WithCodec option validation (errCodecAlreadySet/errNoSuchCodec); rtc's IVFWriter derives the codec from the header FourCC, no builder options
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_AV1	rust	test_ivf_writer_av1	byte-exact unfragmented and fragmented cases
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP9	rust	test_ivf_writer_vp9	byte-exact, incl. the count rewrite on close
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithWidthAndHeight	na		pion's With* builder options construct the default header; rtc's IVFWriter takes an explicit IVFFileHeader with the dimensions
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithFrameRate	na		pion's With* builder options construct the default header; rtc's IVFWriter takes an explicit IVFFileHeader with the timebase
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithDirectPTS	gap		direct-PTS mode (write RTP timestamps as frame PTS instead of a derived counter) is not configurable in rtc's IVFWriter
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_DirectPTS_VP8	gap		direct-PTS mode is not configurable in rtc's IVFWriter
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_DirectPTS_Precision	gap		direct-PTS mode is not configurable in rtc's IVFWriter
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_BackwardCompatibility	na		exercises pion's NewWith option plumbing (defaults vs options); rtc's IVFWriter takes an explicit IVFFileHeader
 pkg/media/oggreader/oggreader_test.go	TestOggReader_ParseValidHeader	rust	test_ogg_reader_parse_valid_header	
 pkg/media/oggreader/oggreader_test.go	TestOggReader_ParseNextPage	rust	test_ogg_reader_parse_next_page	
 pkg/media/oggreader/oggreader_test.go	TestOggReader_ParseErrors	rust	test_ogg_reader_parse_errors	
@@ -629,32 +629,32 @@ pkg/media/rtpdump/rtpdump_test.go	TestMarshalHeader	rust	test_rtpdump_marshal_he
 pkg/media/rtpdump/rtpdump_test.go	TestPacketRoundTrip	rust	test_rtpdump_packet_round_trip	
 pkg/media/rtpdump/writer_test.go	TestWriter	rust	test_rtpdump_writer	
 pkg/media/rtpdump/writer_test.go	TestRoundTrip	rust	test_rtpdump_round_trip	
-pkg/media/samplebuilder/sampleSequenceLocation_test.go	TestSampleSequenceLocationCompare	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilder	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderMaxLate	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSeqnumDistance	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderCleanReference	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderPushMaxZero	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderWithPacketReleaseHandler	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderWithPacketHeadHandler	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderData	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderPacketUnreference	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilder_Flush	todo		
-pkg/null/null_test.go	TestNewBool	todo		
-pkg/null/null_test.go	TestNewByte	todo		
-pkg/null/null_test.go	TestNewComplex128	todo		
-pkg/null/null_test.go	TestNewComplex64	todo		
-pkg/null/null_test.go	TestNewFloat32	todo		
-pkg/null/null_test.go	TestNewFloat64	todo		
-pkg/null/null_test.go	TestNewInt	todo		
-pkg/null/null_test.go	TestNewInt16	todo		
-pkg/null/null_test.go	TestNewInt32	todo		
-pkg/null/null_test.go	TestNewInt64	todo		
-pkg/null/null_test.go	TestNewInt8	todo		
-pkg/null/null_test.go	TestNewRune	todo		
-pkg/null/null_test.go	TestNewString	todo		
-pkg/null/null_test.go	TestNewUint	todo		
-pkg/null/null_test.go	TestNewUint16	todo		
-pkg/null/null_test.go	TestNewUint32	todo		
-pkg/null/null_test.go	TestNewUint64	todo		
-pkg/null/null_test.go	TestNewUint8	todo		
+pkg/media/samplebuilder/sampleSequenceLocation_test.go	TestSampleSequenceLocationCompare	rust	test_sample_sequence_location_compare	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilder	rust	test_sample_builder	existing suite from the webrtc-rs lineage, tables verified
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderMaxLate	rust	test_sample_builder_max_late	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSeqnumDistance	rust	test_seqnum_distance	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderCleanReference	rust	test_sample_builder_clean_reference	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderPushMaxZero	rust	test_sample_builder_push_max_zero	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderWithPacketReleaseHandler	gap		packet release handler (caller-side buffer reuse on eviction) is not exposed by rtc-media's SampleBuilder
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderWithPacketHeadHandler	gap		packet head handler (transform a packet when it becomes the head) is not exposed by rtc-media's SampleBuilder
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderData	rust	test_sample_builder_data	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderPacketUnreference	na		Go GC finalizer/reference-counting semantics for released packets; Rust drops released packets deterministically
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilder_Flush	gap		flush() (process buffered packets ignoring gaps, e.g. on keyframe change) is not implemented in rtc-media's SampleBuilder
+pkg/null/null_test.go	TestNewBool	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewByte	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewComplex128	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewComplex64	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewFloat32	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewFloat64	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewInt	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewInt16	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewInt32	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewInt64	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewInt8	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewRune	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewString	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewUint	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewUint16	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewUint32	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewUint64	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
+pkg/null/null_test.go	TestNewUint8	na		Go's pkg/null nullable scalar types for ORTC-style getters; Rust models the same APIs with Option, where the compiler enforces null handling
