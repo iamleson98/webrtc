@@ -69,13 +69,13 @@ agent_options_test.go	TestAddressRewriteMapper	todo
 agent_options_test.go	TestAddressRewritePortValidation	todo		
 agent_test.go	TestAgentCloseAbortsBlockedCandidateWrite	todo		
 agent_test.go	TestAgentCloseAbortsBlockedSharedCandidateWrite	todo		
-agent_test.go	TestHandlePeerReflexive	todo		
-agent_test.go	TestAddRemoteCandidateStoresCandidatesIndependentlyOfNetworkTypes	todo		
+agent_test.go	TestHandlePeerReflexive	rust	test_udp_prflx_candidate_from_handle_inbound	other subtests: test_resolved_mdns_candidate_is_matched_instead_of_creating_prflx, test_prflx_candidate_priority_comes_from_inbound_priority, test_signaled_candidate_replaces_peer_reflexive_one, test_signaled_srflx_candidate_replaces_prflx_and_keeps_the_pair, test_signaled_relay_candidate_replaces_prflx, test_prflx_acceptance_wait_ends_when_the_signaled_candidate_replaces_it, test_prflx_candidate_is_stored_even_when_its_network_type_is_disabled, test_success_from_unknown_remote_creates_no_prflx_candidate; the nil-message bad-network subtest has no typed equivalent
+agent_test.go	TestAddRemoteCandidateStoresCandidatesIndependentlyOfNetworkTypes	rust	test_remote_candidates_are_stored_independently_of_network_types	
 agent_test.go	TestConnectivityOnStartup	todo		
 agent_test.go	TestConnectivityLite	todo		
 agent_test.go	TestLiteAgentDoesNotSendConnectivityChecks	todo		
-agent_test.go	TestInboundValidity	todo		
-agent_test.go	TestHandleInboundAdditionalCases	todo		
+agent_test.go	TestInboundValidity	rust	test_inbound_validity	
+agent_test.go	TestHandleInboundAdditionalCases	rust	test_binding_indication_updates_last_received	test_role_conflict_prevents_binding_handling, test_success_response_for_known_transaction_marks_pair_succeeded, test_requests_from_blocked_addresses_are_discarded, test_prflx_filter_is_called_once; invalid-address and nil-local subtests cannot occur with typed arguments
 agent_test.go	TestInvalidAgentStarts	todo		was matched to a test that is commented out
 agent_test.go	TestConnectionStateCallback	todo		was matched to a test that is commented out
 agent_test.go	TestInvalidGather	todo		was matched to a test that is commented out
@@ -90,35 +90,35 @@ agent_test.go	TestConnectionStateConnectingToFailed	todo		was matched to a test 
 agent_test.go	TestAgentRestart	todo		
 agent_test.go	TestGetRemoteCredentials	todo		was matched to a test that is commented out
 agent_test.go	TestGetRemoteCandidates	todo		
-agent_test.go	TestRemoteIPFilterInAddRemoteCandidate	todo		
-agent_test.go	TestAddRemoteCandidateHonorsRemoteIPFilter	todo		
+agent_test.go	TestRemoteIPFilterInAddRemoteCandidate	rust	test_ip_filters_apply_to_added_candidates	
+agent_test.go	TestAddRemoteCandidateHonorsRemoteIPFilter	rust	test_ip_filters_apply_to_added_candidates	
 agent_test.go	TestAddVirtualCandidateRegistersExternalRelay	todo		
 agent_test.go	TestAddVirtualCandidateRejectsNilPacketConn	todo		
 agent_test.go	TestAddVirtualCandidateRejectsDuplicateWithoutClosing	todo		
 agent_test.go	TestAddCandidateClosesDuplicate	todo		
 agent_test.go	TestGetLocalCandidates	todo		
-agent_test.go	TestLiteLocalCandidatePrioritiesAreUnique	todo		
+agent_test.go	TestLiteLocalCandidatePrioritiesAreUnique	rust	test_lite_local_candidate_priorities_are_unique	
 agent_test.go	TestCloseInConnectionStateCallback	todo		was matched to a test that is commented out
 agent_test.go	TestRunTaskInConnectionStateCallback	todo		was matched to a test that is commented out
 agent_test.go	TestRunTaskInSelectedCandidatePairChangeCallback	todo		was matched to a test that is commented out
 agent_test.go	TestLiteLifecycle	todo		was matched to a test that is commented out
-agent_test.go	TestValidateSelectedPairTransitions	todo		
+agent_test.go	TestValidateSelectedPairTransitions	rust	test_validate_selected_pair_transitions	
 agent_test.go	TestNilCandidate	todo		
 agent_test.go	TestNilCandidatePair	todo		
 agent_test.go	TestGetSelectedCandidatePair	todo		
-agent_test.go	TestAcceptAggressiveNomination	todo		
+agent_test.go	TestAcceptAggressiveNomination	rust	test_accept_aggressive_nomination	
 agent_test.go	TestAgentGracefulCloseDeadlock	todo		
 agent_test.go	TestSetCandidatesUfrag	todo		
 agent_test.go	TestAddingCandidatesFromOtherGenerations	todo		
-agent_test.go	TestAlwaysSentKeepAlive	todo		
-agent_test.go	TestRoleConflict	todo		
-agent_test.go	TestRoleConflictErrorResponse	todo		
+agent_test.go	TestAlwaysSentKeepAlive	rust	test_keepalive_is_always_sent	
+agent_test.go	TestRoleConflict	rust	test_role_conflict_resolves_to_one_controlling_agent	
+agent_test.go	TestRoleConflictErrorResponse	rust	test_role_conflict_error_response_alone_resolves_the_conflict	
 agent_test.go	TestDefaultCandidateTypes	todo		
 agent_test.go	TestDefaultRelayAcceptanceMinWaitFor	todo		
 agent_test.go	TestAgentConfig_initWithDefaults_UsesProvidedValues	todo		
 agent_test.go	TestAutomaticRenominationWithVNet	todo		
 agent_test.go	TestAutomaticRenominationRTTImprovement	todo		
-agent_test.go	TestAutomaticRenominationRelayToDirect	todo		
+agent_test.go	TestAutomaticRenominationRelayToDirect	rust	test_automatic_renomination_prefers_direct_over_relay	
 agent_test.go	TestAgentUpdateOptions	todo		
 agent_test.go	TestRemoteDialIPForLocalInterface	todo		
 agent_test.go	TestMDNSQueryTimeout	todo		
