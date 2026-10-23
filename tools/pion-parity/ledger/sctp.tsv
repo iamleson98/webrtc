@@ -74,7 +74,7 @@ association_test.go	TestAssociationWriteFailureClosesTransport	todo
 association_test.go	TestAssociationReceiveWindow	todo		
 association_test.go	TestAssociationFastRtxWnd	todo		
 association_test.go	TestAssociationMaxTSNOffset	rust	test_association_max_tsn_offset	
-association_test.go	TestAssociation_Shutdown	named	test_association_shutdown	
+association_test.go	TestAssociation_Shutdown	todo		was matched to a test that is commented out
 association_test.go	TestAssociation_ShutdownDuringWrite	todo		
 association_test.go	TestAssociation_HandlePacketInCookieWaitState	todo		
 association_test.go	TestAssociation_Abort	todo		

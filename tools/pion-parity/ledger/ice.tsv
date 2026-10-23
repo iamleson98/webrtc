@@ -76,19 +76,19 @@ agent_test.go	TestConnectivityLite	todo
 agent_test.go	TestLiteAgentDoesNotSendConnectivityChecks	todo		
 agent_test.go	TestInboundValidity	todo		
 agent_test.go	TestHandleInboundAdditionalCases	todo		
-agent_test.go	TestInvalidAgentStarts	named	test_invalid_agent_starts	
-agent_test.go	TestConnectionStateCallback	named	test_connection_state_callback	
-agent_test.go	TestInvalidGather	named	test_invalid_gather	
+agent_test.go	TestInvalidAgentStarts	todo		was matched to a test that is commented out
+agent_test.go	TestConnectionStateCallback	todo		was matched to a test that is commented out
+agent_test.go	TestInvalidGather	todo		was matched to a test that is commented out
 agent_test.go	TestCandidatePairsStats	todo		
 agent_test.go	TestSelectedCandidatePairStats	todo		
-agent_test.go	TestLocalCandidateStats	named	test_local_candidate_stats	
-agent_test.go	TestRemoteCandidateStats	named	test_remote_candidate_stats	
-agent_test.go	TestBindingRequestTimeout	named	test_binding_request_timeout	
-agent_test.go	TestAgentCredentials	named	test_agent_credentials	
-agent_test.go	TestConnectionStateFailedDeleteAllCandidates	named	test_connection_state_failed_delete_all_candidates	
-agent_test.go	TestConnectionStateConnectingToFailed	named	test_connection_state_connecting_to_failed	
+agent_test.go	TestLocalCandidateStats	todo		was matched to a test that is commented out
+agent_test.go	TestRemoteCandidateStats	todo		was matched to a test that is commented out
+agent_test.go	TestBindingRequestTimeout	todo		was matched to a test that is commented out
+agent_test.go	TestAgentCredentials	todo		was matched to a test that is commented out
+agent_test.go	TestConnectionStateFailedDeleteAllCandidates	todo		was matched to a test that is commented out
+agent_test.go	TestConnectionStateConnectingToFailed	todo		was matched to a test that is commented out
 agent_test.go	TestAgentRestart	todo		
-agent_test.go	TestGetRemoteCredentials	named	test_get_remote_credentials	
+agent_test.go	TestGetRemoteCredentials	todo		was matched to a test that is commented out
 agent_test.go	TestGetRemoteCandidates	todo		
 agent_test.go	TestRemoteIPFilterInAddRemoteCandidate	todo		
 agent_test.go	TestAddRemoteCandidateHonorsRemoteIPFilter	todo		
@@ -98,10 +98,10 @@ agent_test.go	TestAddVirtualCandidateRejectsDuplicateWithoutClosing	todo
 agent_test.go	TestAddCandidateClosesDuplicate	todo		
 agent_test.go	TestGetLocalCandidates	todo		
 agent_test.go	TestLiteLocalCandidatePrioritiesAreUnique	todo		
-agent_test.go	TestCloseInConnectionStateCallback	named	test_close_in_connection_state_callback	
-agent_test.go	TestRunTaskInConnectionStateCallback	named	test_run_task_in_connection_state_callback	
-agent_test.go	TestRunTaskInSelectedCandidatePairChangeCallback	named	test_run_task_in_selected_candidate_pair_change_callback	
-agent_test.go	TestLiteLifecycle	named	test_lite_lifecycle	
+agent_test.go	TestCloseInConnectionStateCallback	todo		was matched to a test that is commented out
+agent_test.go	TestRunTaskInConnectionStateCallback	todo		was matched to a test that is commented out
+agent_test.go	TestRunTaskInSelectedCandidatePairChangeCallback	todo		was matched to a test that is commented out
+agent_test.go	TestLiteLifecycle	todo		was matched to a test that is commented out
 agent_test.go	TestValidateSelectedPairTransitions	todo		
 agent_test.go	TestNilCandidate	todo		
 agent_test.go	TestNilCandidatePair	todo		

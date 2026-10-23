@@ -14,26 +14,26 @@ conn_test.go	TestRoutineLeakOnClose	todo
 conn_test.go	TestReadUnblocksOnClose	todo		
 conn_test.go	TestReadWriteDeadline	todo		
 conn_test.go	TestSequenceNumberOverflow	todo		
-conn_test.go	TestHandshakeWithAlert	named	test_handshake_with_alert	
+conn_test.go	TestHandshakeWithAlert	todo		was matched to a test that is commented out
 conn_test.go	TestHandshakeWithInvalidRecord	todo		
-conn_test.go	TestExportKeyingMaterial	named	test_export_keying_material	
-conn_test.go	TestPSK	named	test_psk	
-conn_test.go	TestPSKHintFail	named	test_psk_hint_fail	
+conn_test.go	TestExportKeyingMaterial	todo		was matched to a test that is commented out
+conn_test.go	TestPSK	todo		was matched to a test that is commented out
+conn_test.go	TestPSKHintFail	todo		was matched to a test that is commented out
 conn_test.go	TestPSKMismatchNoRetransmitLoop	todo		
 conn_test.go	TestPSKServerKeyExchange	todo		
-conn_test.go	TestClientTimeout	named	test_client_timeout	
-conn_test.go	TestSRTPConfiguration	named	test_srtp_configuration	
-conn_test.go	TestClientCertificate	named	test_client_certificate	
+conn_test.go	TestClientTimeout	todo		was matched to a test that is commented out
+conn_test.go	TestSRTPConfiguration	todo		was matched to a test that is commented out
+conn_test.go	TestClientCertificate	todo		was matched to a test that is commented out
 conn_test.go	TestConnectionID	todo		
-conn_test.go	TestExtendedMasterSecret	named	test_extended_master_secret	
-conn_test.go	TestServerCertificate	named	test_server_certificate	
-conn_test.go	TestCipherSuiteConfiguration	named	test_cipher_suite_configuration	
+conn_test.go	TestExtendedMasterSecret	todo		was matched to a test that is commented out
+conn_test.go	TestServerCertificate	todo		was matched to a test that is commented out
+conn_test.go	TestCipherSuiteConfiguration	todo		was matched to a test that is commented out
 conn_test.go	TestCertificateAndPSKServer	todo		
-conn_test.go	TestPSKConfiguration	named	test_psk_configuration	
-conn_test.go	TestServerTimeout	named	test_server_timeout	
-conn_test.go	TestProtocolVersionValidation	named	test_protocol_version_validation	
-conn_test.go	TestMultipleHelloVerifyRequest	named	test_multiple_hello_verify_request	
-conn_test.go	TestRenegotationInfo	named	test_renegotation_info	
+conn_test.go	TestPSKConfiguration	todo		was matched to a test that is commented out
+conn_test.go	TestServerTimeout	todo		was matched to a test that is commented out
+conn_test.go	TestProtocolVersionValidation	todo		was matched to a test that is commented out
+conn_test.go	TestMultipleHelloVerifyRequest	todo		was matched to a test that is commented out
+conn_test.go	TestRenegotationInfo	todo		was matched to a test that is commented out
 conn_test.go	TestServerNameIndicationExtension	todo		
 conn_test.go	TestALPNExtension	rust	test_alpn_empty_intersection_is_refused_with_an_alert	
 conn_test.go	TestSupportedGroupsExtension	todo		

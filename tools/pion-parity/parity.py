@@ -95,6 +95,25 @@ TEST_FN = re.compile(
 )
 
 
+def strip_block_comments(text):
+    """Removes `/* ... */` comments, which nest in Rust (a non-greedy regex would stop at the first
+    inner `*/` and leave the rest of a commented-out block looking like live code)."""
+    out, depth, i = [], 0, 0
+    while i < len(text):
+        two = text[i : i + 2]
+        if two == "/*":
+            depth += 1
+            i += 2
+        elif two == "*/" and depth:
+            depth -= 1
+            i += 2
+        else:
+            if not depth:
+                out.append(text[i])
+            i += 1
+    return "".join(out)
+
+
 def rust_fns(dirs=None):
     """Names of the test functions outside comments in `dirs` (relative to the repository root)."""
     key = tuple(dirs or ["."])
@@ -109,7 +128,7 @@ def rust_fns(dirs=None):
                     if f.endswith(".rs"):
                         text = open(os.path.join(dp, f), errors="ignore").read()
                         # Commented-out tests (ported once, disabled since) do not count.
-                        text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+                        text = strip_block_comments(text)
                         text = re.sub(r"^\s*//.*$", "", text, flags=re.M)
                         found.update(TEST_FN.findall(text))
         _rust[key] = found
