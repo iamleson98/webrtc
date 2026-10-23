@@ -17,7 +17,7 @@ conn_test.go	TestSequenceNumberOverflow	todo
 conn_test.go	TestHandshakeWithAlert	todo		CipherSuiteNoIntersection is test_handshake_with_alert_cipher_suite_no_intersection; SignatureSchemesNoIntersection needs a P-521/SHA-512 scheme the providers cannot sign
 conn_test.go	TestHandshakeWithInvalidRecord	todo		
 conn_test.go	TestExportKeyingMaterial	rust	test_export_keying_material	
-conn_test.go	TestPSK	todo		ported in test_psk_identities_are_exchanged for the suites that exist; the VerifyConnection cases and the CBC/ECDHE-PSK suites wait for issues #23/#24
+conn_test.go	TestPSK	todo		test_psk_identities_are_exchanged covers the identity cases over all the plain PSK suites (rtc#23); still missing: the two VerifyConnection cases (issue #24) and the two ECDHE-PSK suites
 conn_test.go	TestPSKHintFail	rust	test_psk_hint_fail	
 conn_test.go	TestPSKMismatchNoRetransmitLoop	rust	test_psk_mismatch_does_not_loop	
 conn_test.go	TestPSKServerKeyExchange	rust	test_psk_server_key_exchange_only_with_an_identity_hint	
