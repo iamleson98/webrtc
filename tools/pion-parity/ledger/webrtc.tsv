@@ -187,7 +187,7 @@ peerconnection_go_test.go	TestICERestart	todo
 peerconnection_go_test.go	TestICERestart_Error_Handling	todo		
 peerconnection_go_test.go	TestPeerConnection_ICERestart_SetConfiguration_NewServers	todo		
 peerconnection_go_test.go	TestPeerConnection_MassiveTracks	todo		
-peerconnection_go_test.go	TestEmptyCandidate	todo		
+peerconnection_go_test.go	TestEmptyCandidate	rust	test_empty_candidate	
 peerconnection_go_test.go	TestICELite	rust	an_ice_lite_offer_makes_us_controlling	
 peerconnection_go_test.go	TestPeerConnection_TransceiverDirection	rust	test_transceiver_direction_matrix	
 peerconnection_go_test.go	TestPeerConnection_MediaDirectionInSDP	rust	test_media_direction_in_sdp	
@@ -198,13 +198,13 @@ peerconnection_go_test.go	TestOfferWithInactiveDirection	rust	test_offer_with_in
 peerconnection_go_test.go	TestPeerConnectionState	todo		
 peerconnection_go_test.go	TestPeerConnectionDeadlock	todo		
 peerconnection_go_test.go	TestPeerConnectionNoNULLCipherDefault	todo		
-peerconnection_go_test.go	TestICETricklingSupported	todo		
-peerconnection_go_test.go	TestICERenominationAdvertised	todo		
+peerconnection_go_test.go	TestICETricklingSupported	rust	test_ice_trickling_supported	setting-engine flag instead of an offer/answer option field (keeps the API source compatible)
+peerconnection_go_test.go	TestICERenominationAdvertised	rust	test_ice_renomination_advertised	
 peerconnection_go_test.go	TestPeerConnectionTrickleMediaStreamIdentification	todo		
 peerconnection_go_test.go	TestTranceiverMediaStreamIdentification	todo		
 peerconnection_go_test.go	Test_WriteRTCP_Disconnected	todo		
 peerconnection_go_test.go	Test_IPv6	todo		
-peerconnection_go_test.go	TestAddICECandidate__DroppingOldGenerationCandidates	todo		
+peerconnection_go_test.go	TestAddICECandidate__DroppingOldGenerationCandidates	rust	test_old_generation_candidates_are_dropped	asserts the drop through the remote-candidate count instead of a logger
 peerconnection_go_test.go	TestPeerConnectionCanTrickleICECandidatesGo	todo		
 peerconnection_go_test.go	TestCreateAnswerActiveOfferPassiveAnswer	todo		
 peerconnection_go_test.go	TestCreateAnswerPassiveOfferActiveAnswer	todo		
