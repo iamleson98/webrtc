@@ -387,6 +387,8 @@ impl RTCTurnRelayer {
             rel_addr: local_addr.ip().to_string(),
             rel_port: local_addr.port(),
             url: Some(url.to_owned()),
+            relay_protocol: rtc::ice::candidate::candidate_relay::relay_protocol_from_url(url)
+                .to_owned(),
         }
         .new_candidate_relay()?;
 
