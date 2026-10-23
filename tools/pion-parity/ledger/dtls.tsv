@@ -14,32 +14,32 @@ conn_test.go	TestRoutineLeakOnClose	todo
 conn_test.go	TestReadUnblocksOnClose	todo		
 conn_test.go	TestReadWriteDeadline	todo		
 conn_test.go	TestSequenceNumberOverflow	todo		
-conn_test.go	TestHandshakeWithAlert	todo		was matched to a test that is commented out
+conn_test.go	TestHandshakeWithAlert	todo		CipherSuiteNoIntersection is test_handshake_with_alert_cipher_suite_no_intersection; SignatureSchemesNoIntersection needs a P-521/SHA-512 scheme the providers cannot sign
 conn_test.go	TestHandshakeWithInvalidRecord	todo		
-conn_test.go	TestExportKeyingMaterial	todo		was matched to a test that is commented out
-conn_test.go	TestPSK	todo		was matched to a test that is commented out
-conn_test.go	TestPSKHintFail	todo		was matched to a test that is commented out
-conn_test.go	TestPSKMismatchNoRetransmitLoop	todo		
-conn_test.go	TestPSKServerKeyExchange	todo		
+conn_test.go	TestExportKeyingMaterial	rust	test_export_keying_material	
+conn_test.go	TestPSK	todo		ported in test_psk_identities_are_exchanged for the suites that exist; the VerifyConnection cases and the CBC/ECDHE-PSK suites wait for issues #23/#24
+conn_test.go	TestPSKHintFail	rust	test_psk_hint_fail	
+conn_test.go	TestPSKMismatchNoRetransmitLoop	rust	test_psk_mismatch_does_not_loop	
+conn_test.go	TestPSKServerKeyExchange	rust	test_psk_server_key_exchange_only_with_an_identity_hint	
 conn_test.go	TestClientTimeout	todo		was matched to a test that is commented out
-conn_test.go	TestSRTPConfiguration	todo		was matched to a test that is commented out
-conn_test.go	TestClientCertificate	todo		was matched to a test that is commented out
+conn_test.go	TestSRTPConfiguration	todo		ported in test_srtp_configuration except the master-key-identifier cases (MKI is not implemented)
+conn_test.go	TestClientCertificate	todo		ported in test_client_certificate_policies except the VerifyConnection, GetCertificate and GetClientCertificate cases (issue #24)
 conn_test.go	TestConnectionID	todo		
-conn_test.go	TestExtendedMasterSecret	todo		was matched to a test that is commented out
-conn_test.go	TestServerCertificate	todo		was matched to a test that is commented out
-conn_test.go	TestCipherSuiteConfiguration	todo		was matched to a test that is commented out
-conn_test.go	TestCertificateAndPSKServer	todo		
-conn_test.go	TestPSKConfiguration	todo		was matched to a test that is commented out
+conn_test.go	TestExtendedMasterSecret	rust	test_extended_master_secret_policies	
+conn_test.go	TestServerCertificate	rust	test_server_certificate_verification	
+conn_test.go	TestCipherSuiteConfiguration	rust	test_cipher_suite_configuration	
+conn_test.go	TestCertificateAndPSKServer	rust	test_certificate_and_psk_server	
+conn_test.go	TestPSKConfiguration	rust	test_psk_configuration_errors	
 conn_test.go	TestServerTimeout	todo		was matched to a test that is commented out
-conn_test.go	TestProtocolVersionValidation	todo		was matched to a test that is commented out
-conn_test.go	TestMultipleHelloVerifyRequest	todo		was matched to a test that is commented out
-conn_test.go	TestRenegotationInfo	todo		was matched to a test that is commented out
-conn_test.go	TestServerNameIndicationExtension	todo		
+conn_test.go	TestProtocolVersionValidation	rust	test_server_refuses_a_downgraded_second_client_hello	
+conn_test.go	TestMultipleHelloVerifyRequest	rust	test_client_follows_every_hello_verify_request	
+conn_test.go	TestRenegotationInfo	rust	test_server_answers_renegotiation_info_only_when_asked	
+conn_test.go	TestServerNameIndicationExtension	rust	test_client_sends_sni_for_hostnames_only	
 conn_test.go	TestALPNExtension	rust	test_alpn_empty_intersection_is_refused_with_an_alert	
-conn_test.go	TestSupportedGroupsExtension	todo		
+conn_test.go	TestSupportedGroupsExtension	rust	test_server_hello_has_no_supported_groups	
 conn_test.go	TestSessionResume	todo		
-conn_test.go	TestCipherSuiteMatchesCertificateType	todo		
-conn_test.go	TestMultipleServerCertificates	todo		
+conn_test.go	TestCipherSuiteMatchesCertificateType	todo		the ECDSA-certificate case is test_cipher_suite_matches_the_certificate_type; the RSA-certificate case needs RSA certificate generation
+conn_test.go	TestMultipleServerCertificates	rust	test_multiple_server_certificates	
 conn_test.go	TestEllipticCurveConfiguration	todo		
 conn_test.go	TestSkipHelloVerify	todo		
 conn_test.go	TestApplicationDataQueueLimited	rust	test_next_epoch_packet_queue_is_bounded	
