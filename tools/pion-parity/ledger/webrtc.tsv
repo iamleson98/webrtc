@@ -140,17 +140,17 @@ interceptor_test.go	TestStatsGetterCleanup	todo
 interceptor_test.go	TestInterceptorNack	todo		
 interceptor_test.go	TestNackTriggersSingleRTX	todo		
 interceptor_test.go	TestNackNotSentForRTX	todo		
-mediaengine_test.go	TestOpusCase	todo		
-mediaengine_test.go	TestVideoCase	todo		
-mediaengine_test.go	TestMediaEngineRemoteDescription	todo		
-mediaengine_test.go	TestMediaEngineHeaderExtensionDirection	todo		
-mediaengine_test.go	TestMediaEngineDoubleRegister	todo		
-mediaengine_test.go	TestMediaEngineDoubleRegisterDifferentCodec	todo		
-mediaengine_test.go	TestUpdateHeaderExtenstionToClonedMediaEngine	todo		
-mediaengine_test.go	TestExtensionIdCollision	todo		
-mediaengine_test.go	TestCaseInsensitiveMimeType	todo		
-mediaengine_test.go	TestRTCPFeedbackHandling	todo		
-mediaengine_test.go	TestMultiCodecNegotiation	todo		
+mediaengine_test.go	TestOpusCase	rust	default_offers_carry_the_expected_rtpmaps	
+mediaengine_test.go	TestVideoCase	rust	default_offers_carry_the_expected_rtpmaps	
+mediaengine_test.go	TestMediaEngineRemoteDescription	rust	enable_opus	all subtests ported (mod remote_description); the VP9 "fmtp not set in offer" case needed the new VP9 fmtp matcher
+mediaengine_test.go	TestMediaEngineHeaderExtensionDirection	rust	different_direction	allowed direction is an Option rather than a list; Sendrecv means both and is accepted (pion rejects it), Inactive/Unspecified are rejected
+mediaengine_test.go	TestMediaEngineDoubleRegister	rust	registering_a_codec_twice_keeps_one	fixed: case-insensitive mime and payload-type identity; is_fec_enabled was case sensitive
+mediaengine_test.go	TestMediaEngineDoubleRegisterDifferentCodec	rust	a_taken_payload_type_is_refused	fixed: register_codec returns ErrCodecAlreadyRegistered when another codec holds the payload type (before, both were kept)
+mediaengine_test.go	TestUpdateHeaderExtenstionToClonedMediaEngine	rust	a_cloned_engine_updates_negotiated_extensions	
+mediaengine_test.go	TestExtensionIdCollision	rust	registered_extensions_avoid_the_negotiated_ids	
+mediaengine_test.go	TestCaseInsensitiveMimeType	rust	a_mime_type_registered_in_any_case_still_negotiates	
+mediaengine_test.go	TestRTCPFeedbackHandling	rust	rtcp_feedback_is_the_intersection	
+mediaengine_test.go	TestMultiCodecNegotiation	rust	multi_codec_negotiation_keeps_every_video_codec_only_when_enabled	
 networktype_test.go	TestNetworkType_String	todo		
 networktype_test.go	TestNetworkType	todo		
 operations_test.go	TestOperations_Enqueue	todo		
@@ -159,13 +159,13 @@ operations_test.go	TestOperations_GracefulClose	todo
 ortc_datachannel_test.go	TestDataChannel_ORTC_SCTPTransport	todo		
 ortc_datachannel_test.go	TestDataChannel_ORTCE2E	todo		
 ortc_media_test.go	Test_ORTC_Media	todo		
-peerconnection_close_test.go	TestPeerConnection_Close	todo		
-peerconnection_close_test.go	TestPeerConnection_Close_PreICE	todo		
-peerconnection_close_test.go	TestPeerConnection_Close_DuringICE	todo		
-peerconnection_close_test.go	TestPeerConnection_Close_DuringICEGathering	todo		
-peerconnection_close_test.go	TestPeerConnection_GracefulCloseWithIncomingMessages	todo		
-peerconnection_close_test.go	TestPeerConnection_GracefulCloseWhileOpening	todo		
-peerconnection_close_test.go	TestPeerConnection_GracefulCloseConcurrent	todo		
+peerconnection_close_test.go	TestPeerConnection_Close	rust	test_close_a_live_connection	fixed: close() now moves the ICE connection state to closed and reports it (it stayed connected)
+peerconnection_close_test.go	TestPeerConnection_Close_PreICE	rust	test_close_before_ice_completes	
+peerconnection_close_test.go	TestPeerConnection_Close_DuringICE	rust	test_close_during_ice	
+peerconnection_close_test.go	TestPeerConnection_Close_DuringICEGathering	na		no gathering-complete promise in the sans-I/O API; the application ends gathering
+peerconnection_close_test.go	TestPeerConnection_GracefulCloseWithIncomingMessages	rust	test_close_with_incoming_messages	close() is the graceful close here
+peerconnection_close_test.go	TestPeerConnection_GracefulCloseWhileOpening	rust	test_close_while_opening	
+peerconnection_close_test.go	TestPeerConnection_GracefulCloseConcurrent	na		50 goroutines closing one connection; the sans-I/O connection is single-threaded, repeated close is idempotent (test_close_a_live_connection)
 peerconnection_go_test.go	TestNew_Go	todo		
 peerconnection_go_test.go	TestPeerConnection_SetConfiguration_Go	todo		
 peerconnection_go_test.go	TestPeerConnection_GetConfiguration_Go	todo		
@@ -238,28 +238,28 @@ peerconnection_go_test.go	TestCryptexAnswerWithTagOnlyCryptexIsAccepted	rust	an_
 peerconnection_media_test.go	TestPeerConnection_Media_Sample	todo		
 peerconnection_media_test.go	TestPeerConnection_Media_Shutdown	todo		
 peerconnection_media_test.go	TestPeerConnection_Media_Disconnected	todo		
-peerconnection_media_test.go	TestUndeclaredSSRC	todo		
-peerconnection_media_test.go	TestAddTransceiverFromTrackSendOnly	todo		
-peerconnection_media_test.go	TestAddTransceiverFromTrackSendRecv	todo		
-peerconnection_media_test.go	TestAddTransceiverAddTrack_Reuse	todo		
+peerconnection_media_test.go	TestUndeclaredSSRC	rust	test_undeclared_ssrc_multiple_sections_no_extensions	fixed: a multi-section offer without a=ssrc used to fail set_local_description with ErrRTPReceiverForSSRCTrackStreamNotFound; now the first packet is matched to its section by payload type. Single-section case: test_undeclared_ssrc_no_ssrc. The "Has RID" subtest only checks a logger call (na); findMediaSectionByPayloadType is folded into the receiver lookup
+peerconnection_media_test.go	TestAddTransceiverFromTrackSendOnly	rust	test_add_transceiver_from_track_send_only	
+peerconnection_media_test.go	TestAddTransceiverFromTrackSendRecv	rust	test_add_transceiver_from_track_send_recv	
+peerconnection_media_test.go	TestAddTransceiverAddTrack_Reuse	rust	test_add_track_reuses_a_free_transceiver	plus test_add_track_reuse_follows_the_remote_direction
 peerconnection_media_test.go	TestAddTransceiverFromRemoteDescription	todo		
 peerconnection_media_test.go	TestAddTransceiverAddTrack_NewRTPSender_Error	todo		
 peerconnection_media_test.go	TestRtpSenderReceiver_ReadClose_Error	todo		
-peerconnection_media_test.go	TestAddTransceiverFromKind	todo		
-peerconnection_media_test.go	TestAddTransceiverFromTrackFailsRecvOnly	todo		
+peerconnection_media_test.go	TestAddTransceiverFromKind	rust	test_add_transceiver_from_kind	
+peerconnection_media_test.go	TestAddTransceiverFromTrackFailsRecvOnly	rust	test_add_transceiver_from_track_fails_recv_only	
 peerconnection_media_test.go	TestPlanBMediaExchange	todo		
-peerconnection_media_test.go	TestPeerConnection_Start_Only_Negotiated_Senders	todo		
-peerconnection_media_test.go	TestPeerConnection_Start_Right_Receiver	todo		
+peerconnection_media_test.go	TestPeerConnection_Start_Only_Negotiated_Senders	rust	test_only_negotiated_senders_are_started	
+peerconnection_media_test.go	TestPeerConnection_Start_Right_Receiver	rust	test_start_right_receiver	
 peerconnection_media_test.go	TestPeerConnection_Simulcast_Probe	todo		
-peerconnection_media_test.go	TestPeerConnection_CreateOffer_NoCodecs	todo		
+peerconnection_media_test.go	TestPeerConnection_CreateOffer_NoCodecs	rust	test_create_offer_with_no_codecs	
 peerconnection_media_test.go	TestPeerConnection_RaceReplaceTrack	todo		
 peerconnection_media_test.go	TestPeerConnection_Simulcast	todo		
 peerconnection_media_test.go	TestPeerConnection_RIDRepairReaderStartsForPrimaryWrapper	todo		
-peerconnection_media_test.go	TestPeerConnection_Simulcast_RTX	todo		
+peerconnection_media_test.go	TestPeerConnection_Simulcast_RTX	rust	a_repair_flow_named_by_rrid_is_learned_and_resolves_to_its_layer	fixed: a simulcast layer's RTX flow named by repaired-rtp-stream-id was dropped (rtc#12); now learned, bound and de-encapsulated. Unit-level, against the interceptor handler
 peerconnection_media_test.go	TestPeerConnection_Simulcast_LateRIDRSIDAfterReceiverClosed	todo		
 peerconnection_media_test.go	TestPeerConnection_Simulcast_NoDataChannel	todo		
-peerconnection_media_test.go	TestPeerConnection_Zero_PayloadType	todo		
-peerconnection_media_test.go	Test_PeerConnection_RTX_E2E	todo		
+peerconnection_media_test.go	TestPeerConnection_Zero_PayloadType	rust	test_zero_payload_type_opens_a_track	
+peerconnection_media_test.go	Test_PeerConnection_RTX_E2E	rust	test_nack_and_rtx_recover_lost_packets	NACK/RTX end to end over a path that loses every fifth packet; fails without the default interceptors, so it does bite
 peerconnection_media_test.go	TestPeerConnection_Simulcast_Probe_PacketLoss	todo		
 peerconnection_renegotiation_test.go	TestPeerConnection_Renegotiation_AddRecvonlyTransceiver	rust	test_add_recvonly_transceiver_then_send_either_way	
 peerconnection_renegotiation_test.go	TestPeerConnection_Renegotiation_AddTrack	rust	test_add_track_after_signaling_fires_on_track_only_after_renegotiation	
