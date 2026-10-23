@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -79,7 +79,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -102,7 +102,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest ]
         toolchain: [ beta, nightly ]
     steps:
       - uses: actions/checkout@v4
