@@ -35,7 +35,7 @@ conn_test.go	TestProtocolVersionValidation	named	test_protocol_version_validatio
 conn_test.go	TestMultipleHelloVerifyRequest	named	test_multiple_hello_verify_request	
 conn_test.go	TestRenegotationInfo	named	test_renegotation_info	
 conn_test.go	TestServerNameIndicationExtension	todo		
-conn_test.go	TestALPNExtension	todo		
+conn_test.go	TestALPNExtension	rust	test_alpn_empty_intersection_is_refused_with_an_alert	
 conn_test.go	TestSupportedGroupsExtension	todo		
 conn_test.go	TestSessionResume	todo		
 conn_test.go	TestCipherSuiteMatchesCertificateType	todo		
@@ -186,8 +186,8 @@ pkg/protocol/version_test.go	TestIsSupportedVersion	todo
 pkg/protocol/version_test.go	TestIsValidBytes	todo		
 pkg/protocol/version_test.go	TestIsValidVersion	todo		
 pkg/protocol/alert/alert_test.go	TestAlert	named	test_alert	
-pkg/protocol/extension/alpn_test.go	TestALPN	todo		
-pkg/protocol/extension/alpn_test.go	TestALPNProtocolSelection	todo		
+pkg/protocol/extension/alpn_test.go	TestALPN	rust	test_extension_alpn_round_trip	
+pkg/protocol/extension/alpn_test.go	TestALPNProtocolSelection	rust	test_alpn_protocol_selection	
 pkg/protocol/extension/certificate_auth_test.go	TestCertificateAuth	todo		
 pkg/protocol/extension/certificate_auth_test.go	TestCertificateAuth_Multiple	todo		
 pkg/protocol/extension/certificate_auth_test.go	TestCertificateAuth_Empty	todo		
