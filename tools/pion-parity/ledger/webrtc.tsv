@@ -272,7 +272,7 @@ peerconnection_renegotiation_test.go	TestPeerConnection_RoleSwitch	rust	test_rol
 peerconnection_renegotiation_test.go	TestPeerConnection_Renegotiation_Trickle	todo		
 peerconnection_renegotiation_test.go	TestPeerConnection_Renegotiation_SetLocalDescription	todo		
 peerconnection_renegotiation_test.go	TestPeerConnection_Renegotiation_NoApplication	todo		
-peerconnection_renegotiation_test.go	TestAddDataChannelDuringRenegotiation	todo		
+peerconnection_renegotiation_test.go	TestAddDataChannelDuringRenegotiation	named	test_add_data_channel_during_renegotiation	
 peerconnection_renegotiation_test.go	TestNegotiationCreateDataChannel	todo		
 peerconnection_renegotiation_test.go	TestNegotiationNeededRemoveTrack	todo		
 peerconnection_renegotiation_test.go	TestNegotiationNeededStressOneSided	todo		
@@ -539,38 +539,38 @@ internal/mux/mux_test.go	TestNonFatalDispatch	todo
 internal/mux/mux_test.go	TestPendingQueue	todo		
 internal/util/util_test.go	TestMathRandAlpha	todo		
 internal/util/util_test.go	TestMultiError	todo		
-pkg/media/h264reader/h264reader_test.go	TestDataDoesNotStartWithH264Header	todo		
-pkg/media/h264reader/h264reader_test.go	TestParseHeader	todo		
-pkg/media/h264reader/h264reader_test.go	TestEOF	todo		
-pkg/media/h264reader/h264reader_test.go	TestSkipSEI	todo		
-pkg/media/h264reader/h264reader_test.go	TestIncludeSEI	todo		
-pkg/media/h264reader/h264reader_test.go	TestIssue1734_NextNal	todo		
-pkg/media/h264reader/h264reader_test.go	TestTrailing01AfterStartCode	todo		
-pkg/media/h264writer/h264writer_test.go	TestNewWith	todo		
-pkg/media/h264writer/h264writer_test.go	TestIsKeyFrame	todo		
-pkg/media/h264writer/h264writer_test.go	TestWriteRTP	todo		
-pkg/media/h264writer/h264writer_test.go	TestNoZeroWrite	todo		
-pkg/media/h265reader/h265reader_test.go	TestH265Reader_NextNAL	todo		
-pkg/media/h265reader/h265reader_test.go	TestH265Reader_processByte	todo		
-pkg/media/h265reader/h265reader_test.go	TestH265Reader_SEIPrefixSuffixSkippedByDefault	todo		
-pkg/media/h265reader/h265reader_test.go	TestH265Reader_IncludeSEI	todo		
-pkg/media/h265reader/h265reader_test.go	TestNAL_parseHeader	todo		
-pkg/media/h265writer/h265writer_test.go	TestH265Writer_WriteRTP	todo		
-pkg/media/h265writer/h265writer_test.go	TestIsKeyFrame	todo		
-pkg/media/h265writer/h265writer_test.go	TestCheckAggregationPacketForKeyFrame	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseValidFileHeader	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ErrorOnZeroTimebaseNumerator	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseValidFrames	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFrameHeader	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFramePayload	todo		
-pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_EOFWhenNoFramesLeft	todo		
+pkg/media/h264reader/h264reader_test.go	TestDataDoesNotStartWithH264Header	rust	test_h264_reader_data_does_not_start_with_h264_header	
+pkg/media/h264reader/h264reader_test.go	TestParseHeader	rust	test_h264_reader_parse_header	
+pkg/media/h264reader/h264reader_test.go	TestEOF	rust	test_h264_reader_eof	
+pkg/media/h264reader/h264reader_test.go	TestSkipSEI	rust	test_h264_reader_skip_sei	
+pkg/media/h264reader/h264reader_test.go	TestIncludeSEI	rust	test_h264_reader_include_sei	
+pkg/media/h264reader/h264reader_test.go	TestIssue1734_NextNal	rust	test_h264_reader_issue1734_next_nal	
+pkg/media/h264reader/h264reader_test.go	TestTrailing01AfterStartCode	rust	test_h264_reader_trailing_01_after_start_code	
+pkg/media/h264writer/h264writer_test.go	TestNewWith	rust	test_h264_writer_new_with	
+pkg/media/h264writer/h264writer_test.go	TestIsKeyFrame	rust	test_h264_writer_is_key_frame	
+pkg/media/h264writer/h264writer_test.go	TestWriteRTP	rust	test_h264_writer_write_rtp	also 30,000 random RTP sequences byte-identical to pion
+pkg/media/h264writer/h264writer_test.go	TestNoZeroWrite	rust	test_h264_writer_no_zero_write	
+pkg/media/h265reader/h265reader_test.go	TestH265Reader_NextNAL	rust	test_h265_reader_next_nal	
+pkg/media/h265reader/h265reader_test.go	TestH265Reader_processByte	rust	test_h265_reader_process_byte	
+pkg/media/h265reader/h265reader_test.go	TestH265Reader_SEIPrefixSuffixSkippedByDefault	rust	test_h265_reader_sei_prefix_suffix_skipped_by_default	
+pkg/media/h265reader/h265reader_test.go	TestH265Reader_IncludeSEI	rust	test_h265_reader_include_sei	
+pkg/media/h265reader/h265reader_test.go	TestNAL_parseHeader	rust	test_h265_nal_parse_header	
+pkg/media/h265writer/h265writer_test.go	TestH265Writer_WriteRTP	rust	test_h265_writer_write_rtp	
+pkg/media/h265writer/h265writer_test.go	TestIsKeyFrame	rust	test_h265_writer_is_key_frame	
+pkg/media/h265writer/h265writer_test.go	TestCheckAggregationPacketForKeyFrame	rust	test_h265_writer_check_aggregation_packet_for_key_frame	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseValidFileHeader	rust	test_ivf_reader_parse_valid_file_header	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ErrorOnZeroTimebaseNumerator	rust	test_ivf_reader_error_on_zero_timebase_numerator	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseValidFrames	rust	test_ivf_reader_parse_valid_frames	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFrameHeader	rust	test_ivf_reader_parse_incomplete_frame_header	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFramePayload	rust	test_ivf_reader_parse_incomplete_frame_payload	
+pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_EOFWhenNoFramesLeft	rust	test_ivf_reader_eof_when_no_frames_left	
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Basic	todo		
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_EmptyPayload	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8DescriptorOnlyPayload	todo		
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_EmptyPayload	rust	test_ivf_writer_empty_payload	
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8DescriptorOnlyPayload	rust	test_ivf_writer_vp8_descriptor_only_payload	
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Errors	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_AV1	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP9	todo		
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_AV1	rust	test_ivf_writer_av1	
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP9	rust	test_ivf_writer_vp9	
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithWidthAndHeight	todo		
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithFrameRate	todo		
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithDirectPTS	todo		

@@ -31,36 +31,36 @@ agent_handlers_test.go	TestHandlerNotifier_EnqueueCandidate_AfterClose	todo
 agent_handlers_test.go	TestHandlerNotifier_EnqueueSelectedCandidatePair_AfterClose	todo		
 agent_on_selected_candidate_pair_change_test.go	TestOnSelectedCandidatePairChange	named	test_on_selected_candidate_pair_change	
 agent_options_test.go	TestDefaultNominationValueGenerator	todo		
-agent_options_test.go	TestWithLite	todo		
-agent_options_test.go	TestWithUrls	todo		
+agent_options_test.go	TestWithLite	named	test_with_lite	
+agent_options_test.go	TestWithUrls	named	test_with_urls	
 agent_options_test.go	TestWithPortRange	todo		
-agent_options_test.go	TestWithTimeoutOptions	todo		
-agent_options_test.go	TestICELiteDisconnectedTimeoutDefault	todo		
-agent_options_test.go	TestWithAcceptanceWaitOptions	todo		
+agent_options_test.go	TestWithTimeoutOptions	named	test_with_timeout_options	
+agent_options_test.go	TestICELiteDisconnectedTimeoutDefault	named	test_ice_lite_disconnected_timeout_default	
+agent_options_test.go	TestWithAcceptanceWaitOptions	named	test_with_acceptance_wait_options	
 agent_options_test.go	TestWithSTUNGatherTimeout	todo		
 agent_options_test.go	TestWithIPFilterOption	todo		
 agent_options_test.go	TestWithRemoteIPFilterOption	todo		
 agent_options_test.go	TestWithNetOption	todo		
-agent_options_test.go	TestWithMulticastDNSOptions	todo		
-agent_options_test.go	TestWithLocalCredentials	todo		
-agent_options_test.go	TestLocalCredentialsLength	todo		
+agent_options_test.go	TestWithMulticastDNSOptions	named	test_with_multicast_dns_options	
+agent_options_test.go	TestWithLocalCredentials	named	test_with_local_credentials	
+agent_options_test.go	TestLocalCredentialsLength	named	test_local_credentials_length	
 agent_options_test.go	TestWithMuxOptions	todo		
 agent_options_test.go	TestWithProxyDialer	todo		
-agent_options_test.go	TestWithMaxBindingRequests	todo		
+agent_options_test.go	TestWithMaxBindingRequests	named	test_with_max_binding_requests	
 agent_options_test.go	TestWithRenomination	todo		
 agent_options_test.go	TestWithNominationAttribute	todo		
 agent_options_test.go	TestWithIncludeLoopback	todo		
-agent_options_test.go	TestWithTCPPriorityOffset	todo		
+agent_options_test.go	TestWithTCPPriorityOffset	named	test_with_tcp_priority_offset	
 agent_options_test.go	TestWithDisableActiveTCP	todo		
 agent_options_test.go	TestWithBindingRequestHandler	todo		
 agent_options_test.go	TestWithEnableUseCandidateCheckPriority	todo		
-agent_options_test.go	TestMultipleConfigOptions	todo		
+agent_options_test.go	TestMultipleConfigOptions	named	test_multiple_config_options	
 agent_options_test.go	TestWithInterfaceFilter	todo		
 agent_options_test.go	TestWithLoggerFactory	todo		
 agent_options_test.go	TestWithNetworkTypesAppliedBeforeRestart	todo		
-agent_options_test.go	TestWithNetworkTypes	todo		
+agent_options_test.go	TestWithNetworkTypes	named	test_with_network_types	
 agent_options_test.go	TestWithTURNTransportProtocols	todo		
-agent_options_test.go	TestWithCandidateTypesAffectsURLValidation	todo		
+agent_options_test.go	TestWithCandidateTypesAffectsURLValidation	named	test_with_candidate_types_affects_url_validation	
 agent_options_test.go	TestWithAddressRewriteRulesAccumulatesAndCopies	todo		
 agent_options_test.go	TestWithAddressRewriteRulesOverlapWarnings	todo		
 agent_options_test.go	TestLegacyAddressRewriteTranslationAndOrdering	todo		
@@ -128,23 +128,23 @@ agent_udpmux_test.go	TestMuxAgentPreservesPrecreatedConn	todo
 agent_udpmux_test.go	TestMuxAgent	todo		
 candidate_relay_test.go	TestRelayOnlyConnection	named	test_relay_only_connection	
 candidate_server_reflexive_test.go	TestServerReflexiveOnlyConnection	named	test_server_reflexive_only_connection	
-candidate_test.go	TestCandidateTypePreference	todo		
+candidate_test.go	TestCandidateTypePreference	named	test_candidate_type_preference	
 candidate_test.go	TestCandidatePriority	rust	test_candidate_priority	TCP offset and relay-protocol preference as in pion
 candidate_test.go	TestCandidateLastSent	named	test_candidate_last_sent	
 candidate_test.go	TestCandidateLastReceived	named	test_candidate_last_received	
 candidate_test.go	TestCandidateFoundation	named	test_candidate_foundation	
-candidate_test.go	TestCandidateMarshal	named	test_candidate_marshal	
-candidate_test.go	TestUnmarshalCandidateNumericBounds	todo		
+candidate_test.go	TestCandidateMarshal	rust	test_candidate_marshal	25,014 candidate lines (valid and mutated) parse and marshal identically to pion ice v4.4.8
+candidate_test.go	TestUnmarshalCandidateNumericBounds	rust	test_unmarshal_candidate_numeric_bounds	same differential corpus
 candidate_test.go	TestCandidateWriteTo	todo		
-candidate_test.go	TestMarshalUnmarshalCandidateWithZoneID	todo		
-candidate_test.go	TestCandidateExtensionsMarshal	todo		
-candidate_test.go	TestCandidateExtensionsDeepEqual	todo		
-candidate_test.go	TestUnmarshalCandidateExtensions	todo		
-candidate_test.go	TestCandidateGetExtension	todo		
-candidate_test.go	TestBaseCandidateMarshalExtensions	todo		
-candidate_test.go	TestBaseCandidateExtensionsEqual	todo		
-candidate_test.go	TestCandidateAddExtension	todo		
-candidate_test.go	TestCandidateRemoveExtension	todo		
+candidate_test.go	TestMarshalUnmarshalCandidateWithZoneID	rust	test_marshal_unmarshal_candidate_with_zone_id	same differential corpus
+candidate_test.go	TestCandidateExtensionsMarshal	rust	test_candidate_extensions_marshal	same differential corpus
+candidate_test.go	TestCandidateExtensionsDeepEqual	named	test_candidate_extensions_deep_equal	
+candidate_test.go	TestUnmarshalCandidateExtensions	rust	test_unmarshal_candidate_extensions	same differential corpus
+candidate_test.go	TestCandidateGetExtension	named	test_candidate_get_extension	
+candidate_test.go	TestBaseCandidateMarshalExtensions	rust	test_base_candidate_marshal_extensions	same differential corpus
+candidate_test.go	TestBaseCandidateExtensionsEqual	named	test_base_candidate_extensions_equal	
+candidate_test.go	TestCandidateAddExtension	named	test_candidate_add_extension	
+candidate_test.go	TestCandidateRemoveExtension	named	test_candidate_remove_extension	
 candidatepair_test.go	TestCandidatePairPriority	rust	test_candidate_pair_priority	
 candidatepair_test.go	TestCandidatePairEquality	named	test_candidate_pair_equality	
 candidatepair_test.go	TestNilCandidatePairString	todo		

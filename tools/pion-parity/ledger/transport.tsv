@@ -40,11 +40,11 @@ packetio/buffer_test.go	TestBufferTruncationPreservesAttributes	todo
 packetio/buffer_test.go	TestBufferAttributeLimits	todo		
 packetio/buffer_test.go	TestBufferAttributeStorageCap	todo		
 packetio/buffer_test.go	TestBufferAttributesConcurrent	todo		
-replaydetector/fixedbig_test.go	TestFixedBigIntShiftAcrossWindow	todo		
-replaydetector/replaydetector_test.go	TestReplayDetector	named	test_replay_detector	
-replaydetector/replaydetector_test.go	TestReplayDetectorWrapped	todo		
-replaydetector/replaydetector_test.go	TestCheckSeqDoesNotCommit	todo		
-replaydetector/replaydetector_test.go	TestRejectedTokenIsInert	todo		
+replaydetector/fixedbig_test.go	TestFixedBigIntShiftAcrossWindow	rust	test_fixed_big_int_shift_across_window	
+replaydetector/replaydetector_test.go	TestReplayDetector	rust	test_replay_detector	plus 20,000 random check/accept sequences identical to pion transport v5.1.1
+replaydetector/replaydetector_test.go	TestReplayDetectorWrapped	rust	test_replay_detector_wrapped	same differential run, wrapped detector
+replaydetector/replaydetector_test.go	TestCheckSeqDoesNotCommit	rust	test_check_seq_does_not_commit	
+replaydetector/replaydetector_test.go	TestRejectedTokenIsInert	rust	test_rejected_token_is_inert	
 replaydetector/replaydetector_test.go	TestCheckAccepterNoAllocation	todo		
 reuseport/reuse_test.go	TestDialFromListeningPortTCP4	todo		
 reuseport/reuse_test.go	TestDialFromListeningPortTCP6	todo		
@@ -66,7 +66,7 @@ udp/conn_test.go	TestListenerAcceptFilter	todo
 udp/conn_test.go	TestListenerConcurrent	todo		
 udp/conn_test.go	TestConnClose	todo		
 udp/conn_test.go	TestBatchIO	todo		
-utils/xor/xor_test.go	TestXOR	todo		
+utils/xor/xor_test.go	TestXOR	rust	test_xor_matches_pion_xor	
 vnet/chunk_queue_test.go	TestChunkQueue	todo		
 vnet/chunk_test.go	TestChunkUDPClone	todo		
 vnet/chunk_test.go	TestChunkTCPClone	todo		
