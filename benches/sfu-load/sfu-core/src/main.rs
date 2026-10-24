@@ -127,8 +127,18 @@ fn main() -> Result<()> {
 impl Server {
     fn run(&mut self, offers: mpsc::Receiver<String>) -> Result<()> {
         let mut buf = vec![0u8; 2048];
+        // Viewer offers that arrived before the publisher's track: held, in order, until it has.
+        let mut waiting: std::collections::VecDeque<String> = Default::default();
         loop {
             while let Ok(line) = offers.try_recv() {
+                waiting.push_back(line);
+            }
+            while let Some(line) = waiting.front() {
+                if self.publisher.is_some() && self.codec.is_none() {
+                    break;
+                }
+                let line = line.clone();
+                waiting.pop_front();
                 if let Err(err) = self.accept(&line) {
                     println!("offer rejected: {err}");
                 }
