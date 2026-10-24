@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -36,6 +37,7 @@ var (
 	pps      = flag.Int("pps", 120, "publisher packets per second")
 	size     = flag.Int("size", 1100, "RTP payload bytes")
 	pid      = flag.Int("pid", 0, "server pid to sample")
+	churn    = flag.Duration("churn", 0, "soak mode: keep -subs viewers connected, each leaving after a random time up to this long and being replaced; samples server memory every 15s")
 )
 
 func main() {
@@ -79,6 +81,11 @@ func main() {
 		}
 	}()
 
+	if *churn > 0 {
+		soak(stop, &sent)
+		return
+	}
+
 	var got []*atomic.Int64
 	var mu sync.Mutex
 	var wg sync.WaitGroup
@@ -88,27 +95,7 @@ func main() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			pc := newPeer(false)
-			pc.OnTrack(func(tr *webrtc.TrackRemote, _ *webrtc.RTPReceiver) {
-				buf := make([]byte, 1500)
-				for {
-					if _, _, err := tr.Read(buf); err != nil {
-						return
-					}
-					c.Add(1)
-				}
-			})
-			if _, err := pc.AddTransceiverFromKind(webrtc.RTPCodecTypeVideo, webrtc.RTPTransceiverInit{Direction: webrtc.RTPTransceiverDirectionRecvonly}); err != nil {
-				panic(err)
-			}
-			off, _ := pc.CreateOffer(nil)
-			g := webrtc.GatheringCompletePromise(pc)
-			must(pc.SetLocalDescription(off))
-			<-g
-			mu.Lock() // the example serves one signaling exchange at a time
-			ans := signal(pc.LocalDescription())
-			mu.Unlock()
-			must(pc.SetRemoteDescription(ans))
+			joinViewer(&mu, c)
 		}()
 	}
 	wg.Wait()
@@ -147,6 +134,71 @@ func main() {
 }
 
 var pubTrack *webrtc.TrackLocalStaticRTP
+
+// joinViewer connects one receive-only viewer, counting its packets in c, and returns it. The
+// example serves one signaling exchange at a time, so callers share mu.
+func joinViewer(mu *sync.Mutex, c *atomic.Int64) *webrtc.PeerConnection {
+	pc := newPeer(false)
+	pc.OnTrack(func(tr *webrtc.TrackRemote, _ *webrtc.RTPReceiver) {
+		buf := make([]byte, 1500)
+		for {
+			if _, _, err := tr.Read(buf); err != nil {
+				return
+			}
+			c.Add(1)
+		}
+	})
+	if _, err := pc.AddTransceiverFromKind(webrtc.RTPCodecTypeVideo, webrtc.RTPTransceiverInit{Direction: webrtc.RTPTransceiverDirectionRecvonly}); err != nil {
+		panic(err)
+	}
+	off, _ := pc.CreateOffer(nil)
+	g := webrtc.GatheringCompletePromise(pc)
+	must(pc.SetLocalDescription(off))
+	<-g
+	mu.Lock()
+	ans := signal(pc.LocalDescription())
+	mu.Unlock()
+	must(pc.SetRemoteDescription(ans))
+	return pc
+}
+
+// soak keeps -subs viewers connected for -duration while each one leaves after a random time of up
+// to -churn and is replaced, and prints the server's resident memory and CPU every 15 s. A leak
+// per connection shows as memory that keeps rising although the number of viewers does not.
+func soak(stop chan struct{}, sent *atomic.Int64) {
+	var mu sync.Mutex
+	var joined, left atomic.Int64
+	var received atomic.Int64
+	end := time.Now().Add(*duration)
+	var wg sync.WaitGroup
+	for i := 0; i < *subs; i++ {
+		wg.Add(1)
+		go func(slot int) {
+			defer wg.Done()
+			// Spread the first departures so the viewers do not all leave at once.
+			life := time.Duration(float64(*churn) * float64(slot+1) / float64(*subs))
+			for time.Now().Before(end) {
+				pc := joinViewer(&mu, &received)
+				joined.Add(1)
+				time.Sleep(life)
+				_ = pc.Close()
+				left.Add(1)
+				life = time.Duration(float64(*churn) * (0.3 + 0.7*rand.Float64()))
+			}
+		}(i)
+	}
+	cpuPrev, tPrev := cpuSeconds(), time.Now()
+	for time.Now().Before(end) {
+		time.Sleep(15 * time.Second)
+		cpu, now := cpuSeconds(), time.Now()
+		fmt.Printf("t=%3.0fs joined=%d left=%d live=%d sent=%d received=%d rss=%.0f MiB cpu=%.1f%%\n",
+			time.Until(end).Seconds()*-1+duration.Seconds(), joined.Load(), left.Load(), joined.Load()-left.Load(),
+			sent.Load(), received.Load(), rssMiB(), 100*(cpu-cpuPrev)/now.Sub(tPrev).Seconds())
+		cpuPrev, tPrev = cpu, now
+	}
+	wg.Wait()
+	close(stop)
+}
 
 func newPeer(publisher bool) *webrtc.PeerConnection {
 	me := &webrtc.MediaEngine{}

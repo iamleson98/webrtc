@@ -15,6 +15,7 @@ use rtc::rtp_transceiver::rtp_sender::{
     RTCRtpCodec, RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind,
 };
 use rtc::rtp_transceiver::{RTCRtpTransceiverDirection, RTCRtpTransceiverInit};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::{fs::OpenOptions, io::Write, str::FromStr};
@@ -118,6 +119,9 @@ impl PeerConnectionEventHandler for BroadcastHandler {
 #[derive(Clone)]
 struct ViewerHandler {
     gather_complete_tx: Sender<()>,
+    /// Tells the main loop this viewer is gone, so it can drop the peer connection.
+    gone_tx: Sender<u32>,
+    id: u32,
 }
 
 #[async_trait::async_trait]
@@ -130,6 +134,9 @@ impl PeerConnectionEventHandler for ViewerHandler {
 
     async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
         println!("Viewer Peer Connection State: {state}");
+        if state == RTCPeerConnectionState::Failed || state == RTCPeerConnectionState::Closed {
+            let _ = self.gone_tx.try_send(self.id);
+        }
     }
 }
 
@@ -289,7 +296,8 @@ async fn async_main() -> Result<()> {
 
     // ── Viewer loop ──────────────────────────────────────────────────────────
 
-    let mut viewer_pcs: Vec<Arc<dyn PeerConnection>> = Vec::new();
+    let mut viewer_pcs: HashMap<u32, Arc<dyn PeerConnection>> = HashMap::new();
+    let (gone_tx, mut gone_rx) = channel::<u32>(1024);
 
     loop {
         println!("\nCurl a base64 SDP to start a viewer peer connection");
@@ -305,8 +313,12 @@ async fn async_main() -> Result<()> {
                 let viewer_offer = serde_json::from_str::<RTCSessionDescription>(&desc_data)?;
 
                 let (viewer_gather_tx, mut viewer_gather_rx) = channel::<()>(1);
+                // Each viewer gets its own track with a unique SSRC, which also names it here.
+                let viewer_ssrc = rand::random::<u32>();
                 let viewer_handler = Arc::new(ViewerHandler {
                     gather_complete_tx: viewer_gather_tx,
+                    gone_tx: gone_tx.clone(),
+                    id: viewer_ssrc,
                 });
 
                 let mut viewer_media_engine = MediaEngine::default();
@@ -333,8 +345,6 @@ async fn async_main() -> Result<()> {
                         .await?,
                 );
 
-                // Each viewer gets its own track with a unique SSRC
-                let viewer_ssrc = rand::random::<u32>();
                 let viewer_track = Arc::new(TrackLocalStaticRTP::new(MediaStreamTrack::new(
                     format!("webrtc-rs-broadcast-{}", viewer_ssrc),
                     format!("webrtc-rs-broadcast-track-{}", viewer_ssrc),
@@ -396,8 +406,17 @@ async fn async_main() -> Result<()> {
                     }
                 }));
 
-                viewer_pcs.push(viewer_pc);
+                viewer_pcs.insert(viewer_ssrc, viewer_pc);
                 println!("Total active viewer connections: {}", viewer_pcs.len());
+            }
+            gone = gone_rx.recv().fuse() => {
+                // Dropping the last handle releases the connection's sockets, tasks and buffers.
+                if let Some(id) = gone
+                    && let Some(pc) = viewer_pcs.remove(&id)
+                {
+                    let _ = pc.close().await;
+                    println!("Total active viewer connections: {}", viewer_pcs.len());
+                }
             }
             _ = done_rx.recv().fuse() => {
                 println!("Broadcaster disconnected, shutting down.");
@@ -410,7 +429,7 @@ async fn async_main() -> Result<()> {
         }
     }
 
-    for pc in &viewer_pcs {
+    for pc in viewer_pcs.values() {
         let _ = pc.close().await;
     }
     let _ = broadcaster_pc.close().await;

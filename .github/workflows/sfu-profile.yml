@@ -61,18 +61,26 @@ jobs:
           for kind in rust pion; do
             PERF_OUT="$RUNNER_TEMP/perf-$kind" EXTRA_ARGS="${{ inputs.extra_args }}" ./run.sh $kind "${{ inputs.subs || '200' }}" 40s || true
           done
+          set +e +o pipefail
+          for kind in rust pion; do
+            ls -la "$RUNNER_TEMP/perf-$kind.data"
+            perf report -i "$RUNNER_TEMP/perf-$kind.data" --no-children --sort symbol --stdio > "$RUNNER_TEMP/perf-$kind-symbols.txt" 2>"$RUNNER_TEMP/perf-$kind-err.txt"
+            perf report -i "$RUNNER_TEMP/perf-$kind.data" --no-children --sort dso --stdio > "$RUNNER_TEMP/perf-$kind-dso.txt" 2>>"$RUNNER_TEMP/perf-$kind-err.txt"
+            perf report -i "$RUNNER_TEMP/perf-$kind.data" --children --sort symbol --stdio -g none > "$RUNNER_TEMP/perf-$kind-children.txt" 2>>"$RUNNER_TEMP/perf-$kind-err.txt"
+          done
           {
             for kind in rust pion; do
               echo "## perf, $kind, self time by symbol"
               echo '```'
-              perf report -i "$RUNNER_TEMP/perf-$kind.data" --no-children --sort symbol --stdio 2>/dev/null | grep -v '^#' | grep -v '^$' | head -45
+              grep -v '^#' "$RUNNER_TEMP/perf-$kind-symbols.txt" | grep -v '^$' | head -45
               echo '```'
               echo "## perf, $kind, by dso"
               echo '```'
-              perf report -i "$RUNNER_TEMP/perf-$kind.data" --no-children --sort dso --stdio 2>/dev/null | grep -v '^#' | grep -v '^$' | head -10
+              grep -v '^#' "$RUNNER_TEMP/perf-$kind-dso.txt" | grep -v '^$' | head -10
               echo '```'
             done
           } >> "$GITHUB_STEP_SUMMARY"
+          exit 0
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -80,4 +88,5 @@ jobs:
           name: sfu-profile
           path: |
             ${{ runner.temp }}/perf-*.data
+            ${{ runner.temp }}/perf-*.txt
             ${{ runner.temp }}/bin/sfu-*.log

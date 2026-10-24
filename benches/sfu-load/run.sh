@@ -15,6 +15,6 @@ if [ -n "$PERF_OUT" ]; then
   ( sleep 20; perf record -F 499 -g -p $SPID -o "$PERF_OUT.data" -- sleep 15 >/dev/null 2>&1 ) &
   PERFPID=$!
 fi
-${BIN:-/private/tmp}/sfu-loadgen -log "$LOG" -subs "$N" -duration "$DUR" -pid $SPID 2>&1 | grep -v "^$"
+${BIN:-/private/tmp}/sfu-loadgen -log "$LOG" -subs "$N" -duration "$DUR" -pid $SPID $EXTRA_LOADGEN_ARGS 2>&1 | grep -v "^$"
 [ -n "$PERFPID" ] && wait $PERFPID
 kill $SPID 2>/dev/null
