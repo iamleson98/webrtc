@@ -186,6 +186,11 @@ impl Sfu {
         })
     }
 
+    /// A session by id alone, whichever group and call it is in.
+    pub fn session_by_id(&self, session_id: &str) -> Option<SessionConfig> {
+        self.registry.lookup(session_id)
+    }
+
     /// The addresses in use, with the ports that were actually bound.
     pub fn addresses(&self) -> &[LocalAddress] {
         &self.addresses

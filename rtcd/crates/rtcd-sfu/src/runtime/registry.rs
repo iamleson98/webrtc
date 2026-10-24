@@ -111,6 +111,10 @@ impl Registry {
         self.lock().sessions.get(session_id).map(|e| e.shard)
     }
 
+    pub fn lookup(&self, session_id: &str) -> Option<SessionConfig> {
+        self.lock().sessions.get(session_id).map(|e| e.cfg.clone())
+    }
+
     pub fn get(&self, group: &str, call: &str, session_id: &str) -> Option<SessionConfig> {
         let st = self.lock();
         let e = st.sessions.get(session_id)?;

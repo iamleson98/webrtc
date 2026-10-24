@@ -25,4 +25,5 @@ mio = { version = "1.2.4", features = ["net", "os-poll"] }
 
 [dev-dependencies]
 rtcd-proto = { path = "../rtcd-proto" }
+rtcd-testkit = { path = "../rtcd-testkit" }
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }

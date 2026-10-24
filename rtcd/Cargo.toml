@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/rtcd-proto", "crates/rtcd-net", "crates/rtcd-sfu", "crates/rtcd"]
+members = ["crates/rtcd-proto", "crates/rtcd-net", "crates/rtcd-sfu", "crates/rtcd", "crates/rtcd-testkit"]
 
 [workspace.package]
 version = "0.1.0"

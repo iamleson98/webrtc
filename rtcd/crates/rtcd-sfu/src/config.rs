@@ -19,6 +19,9 @@ pub struct LocalAddress {
     pub tcp_port: Option<u16>,
     /// The port advertised for TCP, when it differs from `tcp_port`.
     pub advertised_tcp_port: Option<u16>,
+    /// Whether browsers are offered this address as a candidate. Several local addresses can map to
+    /// one public address; all are listened on, but it is offered once.
+    pub advertise: bool,
 }
 
 impl LocalAddress {
@@ -148,6 +151,7 @@ mod tests {
             advertised_udp_port: Some(30443),
             tcp_port: Some(8443),
             advertised_tcp_port: None,
+            advertise: true,
         };
         let addr = |s: &str| s.parse::<SocketAddr>().unwrap();
         assert_eq!(a.advertised_udp(), addr("203.0.113.9:30443"));

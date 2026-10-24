@@ -113,7 +113,7 @@ impl Engine {
             return;
         }
         s.candidates_added = true;
-        for a in &self.cfg.addresses {
+        for a in self.cfg.addresses.iter().filter(|a| a.advertise) {
             let udp = a.advertised_udp();
             let mut candidates = vec![("udp", udp, rtc::ice::tcp_type::TcpType::Unspecified)];
             if let Some(tcp) = a.advertised_tcp() {

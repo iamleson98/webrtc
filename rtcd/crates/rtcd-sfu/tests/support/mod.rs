@@ -147,6 +147,7 @@ pub fn engine_config() -> EngineConfig {
             advertised_udp_port: None,
             tcp_port: None,
             advertised_tcp_port: None,
+            advertise: true,
         }],
         ..Default::default()
     }
@@ -180,10 +181,11 @@ impl World {
             .with_test_writer()
             .try_init();
         cfg.validate().unwrap();
+        let cfg_server = cfg.addresses[0].advertised_udp();
         World {
             now: Instant::now(),
             engine: Engine::new(Arc::new(cfg), Arc::new(NoMetrics), Rng::seeded(7)),
-            server: SERVER.parse().unwrap(),
+            server: cfg_server,
             browsers: Vec::new(),
             closed: Vec::new(),
             voice_events: Vec::new(),
