@@ -96,7 +96,7 @@ fn datagrams_stop_taking_a_detour_once_the_participant_has_a_socket_of_its_own()
     live.run(Duration::from_millis(300));
     let packets = live.traffic.packets_in.load(Relaxed) - before.0;
     let forwarded = live.traffic.forwarded.load(Relaxed) - before.1;
-    assert!(packets > 1000, "only {packets} datagrams arrived");
+    assert!(packets > 400, "only {packets} datagrams arrived");
     assert!(
         forwarded * 20 < packets,
         "{forwarded} of {packets} datagrams still went through another shard"

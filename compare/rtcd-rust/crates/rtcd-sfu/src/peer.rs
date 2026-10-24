@@ -146,16 +146,17 @@ pub(crate) fn new_peer(
     if cfg.pacing {
         registry = registry.with(Slot::Pacer, PacerBuilder::new().build());
     }
-    for kind in [RtpCodecKind::Video, RtpCodecKind::Audio] {
-        media.register_feedback(feedback("transport-cc", ""), kind);
-        media.register_header_extension(
-            RTCRtpHeaderExtensionCapability {
-                uri: rtc::sdp::extmap::TRANSPORT_CC_URI.to_owned(),
-            },
-            kind,
-            None,
-        )?;
-    }
+    // Only video takes part in the bandwidth estimate (it picks the screen share layer). Numbering
+    // audio too would add 8 bytes to every voice packet, which is about 65 bytes, in both
+    // directions, and make every participant report on it.
+    media.register_feedback(feedback("transport-cc", ""), RtpCodecKind::Video);
+    media.register_header_extension(
+        RTCRtpHeaderExtensionCapability {
+            uri: rtc::sdp::extmap::TRANSPORT_CC_URI.to_owned(),
+        },
+        RtpCodecKind::Video,
+        None,
+    )?;
 
     let settings = SettingEngineBuilder::new()
         // The browser offers; answering as the DTLS server saves the SFU a round trip of handshake.
