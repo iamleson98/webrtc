@@ -119,7 +119,8 @@ impl Engine {
         self.drive(now);
     }
 
-    /// Delivers a datagram received on `local` from `peer`.
+    /// Delivers a datagram received on `local` from `peer`. Returns whether a session took it: a
+    /// datagram from an address and with an ICE username no session knows is not anyone's.
     pub fn handle_datagram(
         &mut self,
         now: Instant,
@@ -127,9 +128,11 @@ impl Engine {
         local: std::net::SocketAddr,
         peer: std::net::SocketAddr,
         data: BytesMut,
-    ) {
-        if let Some(key) = self.route(proto, peer, &data) {
+    ) -> bool {
+        let routed = self.route(proto, peer, &data);
+        if let Some(key) = routed {
             if let Some(s) = self.sessions.get_mut(key) {
+                s.last_rx = now;
                 use rtc::shared::{TaggedBytesMut, TransportContext};
                 let result = s.pc.handle_read(TaggedBytesMut {
                     now,
@@ -149,6 +152,7 @@ impl Engine {
             self.mark_dirty(key);
         }
         self.drive(now);
+        routed.is_some()
     }
 
     /// Advances time: wakes every session whose deadline has passed.
@@ -285,8 +289,11 @@ impl Engine {
             | signaling::Phase::Offering { deadline, .. } => Some(deadline),
             signaling::Phase::Idle => None,
         });
-        if s.lifecycle == session::Lifecycle::Connecting {
-            consider(Some(s.created_at + self.cfg.connect_timeout));
+        match s.lifecycle {
+            session::Lifecycle::Connecting => {
+                consider(Some(s.created_at + self.cfg.connect_timeout))
+            }
+            session::Lifecycle::Connected => consider(Some(s.last_rx + self.cfg.idle_timeout)),
         }
         // An offer that had to wait (the participant held the lock) is retried when the hold ends.
         // Never ask to be woken at or before now: that would spin.
@@ -320,10 +327,9 @@ impl Engine {
             s.tick = Some(now + Self::tick_interval());
             self.housekeeping(key, now);
         }
-        let Some(s) = self.sessions.get(key) else {
+        let Some(silent_since) = self.sessions.get(key).map(|s| s.last_rx) else {
             return;
         };
-        let _ = s;
         match phase {
             signaling::Phase::AwaitingFirstOffer { deadline } if now >= deadline => {
                 warn!(session = %self.session_id(key), "timed out waiting for the first offer");
@@ -342,6 +348,12 @@ impl Engine {
         {
             warn!(session = %self.session_id(key), "never connected");
             self.close_session(key, CloseReason::ConnectTimeout, now);
+        } else if lifecycle == session::Lifecycle::Connected
+            && now.saturating_duration_since(silent_since) >= self.cfg.idle_timeout
+        {
+            warn!(session = %self.session_id(key), "no packet from the participant, dropping the session");
+            self.metrics.connection_state("failed");
+            self.close_session(key, CloseReason::ConnectionLost, now);
         }
     }
 

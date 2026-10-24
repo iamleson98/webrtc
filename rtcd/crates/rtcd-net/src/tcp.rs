@@ -1,7 +1,24 @@
 //! RFC 4571 framing: RTP, RTCP, STUN and DTLS over a TCP byte stream, each packet preceded by its
 //! length as a 16-bit big-endian number.
 
+use std::io;
+use std::net::{SocketAddr, TcpListener};
+
 use bytes::{Buf, BytesMut};
+use socket2::{Domain, Protocol, Socket, Type};
+
+/// Binds a non-blocking TCP listener that can be rebound at once after a restart.
+pub fn bind_tcp(addr: SocketAddr) -> io::Result<TcpListener> {
+    let socket = Socket::new(Domain::for_address(addr), Type::STREAM, Some(Protocol::TCP))?;
+    socket.set_reuse_address(true)?;
+    if addr.is_ipv6() {
+        socket.set_only_v6(true)?;
+    }
+    socket.set_nonblocking(true)?;
+    socket.bind(&addr.into())?;
+    socket.listen(1024)?;
+    Ok(socket.into())
+}
 
 /// The largest packet a frame can carry.
 pub const MAX_FRAME: usize = u16::MAX as usize;
@@ -103,6 +120,25 @@ mod tests {
         r.feed(&[3, 4, 5, 0]);
         assert_eq!(&r.next_frame().unwrap()[..], &[1, 2, 3, 4, 5]);
         assert_eq!(r.buffered(), 1, "the first byte of the next length");
+    }
+
+    #[test]
+    fn a_listener_binds_and_accepts() {
+        let l = bind_tcp("127.0.0.1:0".parse().unwrap()).unwrap();
+        let addr = l.local_addr().unwrap();
+        let _c = std::net::TcpStream::connect(addr).unwrap();
+        let end = std::time::Instant::now() + std::time::Duration::from_secs(2);
+        loop {
+            match l.accept() {
+                Ok(_) => break,
+                Err(e)
+                    if e.kind() == io::ErrorKind::WouldBlock && std::time::Instant::now() < end =>
+                {
+                    std::thread::sleep(std::time::Duration::from_millis(5))
+                }
+                Err(e) => panic!("{e}"),
+            }
+        }
     }
 
     #[test]

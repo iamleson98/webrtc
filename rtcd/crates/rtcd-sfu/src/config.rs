@@ -54,6 +54,10 @@ pub struct EngineConfig {
     pub lock_max_hold: Duration,
     /// How long a new session may take to connect before it is dropped.
     pub connect_timeout: Duration,
+    /// How long a connected session may go without any packet from its participant before it is
+    /// dropped. A browser sends something every few seconds, even a muted one with its camera off
+    /// (the ICE consent check), so silence means the participant is gone.
+    pub idle_timeout: Duration,
     /// The lowest and highest send rate the estimator reports per participant, in bits per second.
     pub min_bitrate: u64,
     pub max_bitrate: u64,
@@ -74,6 +78,7 @@ impl Default for EngineConfig {
             answer_timeout: Duration::from_secs(10),
             lock_max_hold: Duration::from_secs(10),
             connect_timeout: Duration::from_secs(30),
+            idle_timeout: Duration::from_secs(30),
             // Half the small screen layer to one and a half times the large one: the range in which
             // choosing between the layers means something.
             min_bitrate: 250_000,

@@ -67,6 +67,7 @@ impl Engine {
             pc,
             estimate,
             created_at: now,
+            last_rx: now,
             lifecycle: Lifecycle::Connecting,
             dirty: false,
             timer: None,

@@ -8,5 +8,6 @@ pub mod metrics;
 mod peer;
 pub mod rate;
 pub mod rewrite;
+pub mod runtime;
 pub mod vad;
 pub mod vp8;

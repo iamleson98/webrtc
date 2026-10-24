@@ -205,6 +205,8 @@ pub(crate) struct Session {
     pub pc: RTCPeerConnection,
     pub estimate: Arc<Estimate>,
     pub created_at: Instant,
+    /// When a packet from the participant last arrived.
+    pub last_rx: Instant,
     pub lifecycle: Lifecycle,
     /// On the engine's dirty list.
     pub dirty: bool,

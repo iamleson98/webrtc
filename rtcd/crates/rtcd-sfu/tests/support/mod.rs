@@ -98,6 +98,8 @@ pub struct Browser {
     /// Errors the connection returned for datagrams from the SFU.
     pub read_errors: Vec<String>,
     pub datagrams_in: usize,
+    /// Datagrams to and from this browser are lost.
+    pub unreachable: bool,
     pub connected: bool,
     pub signaling_conflicts: usize,
     /// Descriptions the SFU sent that the browser has not applied yet (it was mid-offer).
@@ -326,6 +328,7 @@ impl World {
             rtcp_seen: vec![],
             read_errors: vec![],
             datagrams_in: 0,
+            unreachable: false,
             connected: false,
             signaling_conflicts: 0,
             remote_candidates_seen: 0,
@@ -460,7 +463,11 @@ impl World {
                 if self.blackhole {
                     continue;
                 }
-                if let Some(b) = self.browsers.iter_mut().find(|b| b.addr == t.peer) {
+                if let Some(b) = self
+                    .browsers
+                    .iter_mut()
+                    .find(|b| b.addr == t.peer && !b.unreachable)
+                {
                     b.datagrams_in += 1;
                     if let Err(e) = b.pc.handle_read(TaggedBytesMut {
                         now: self.now,
@@ -575,7 +582,7 @@ impl World {
             let b = &mut self.browsers[i];
             let Some(w) = b.pc.poll_write() else { break };
             moved = true;
-            if w.transport.peer_addr == self.server && !self.blackhole {
+            if w.transport.peer_addr == self.server && !self.blackhole && !b.unreachable {
                 self.engine
                     .handle_datagram(now, Proto::Udp, self.server, b.addr, w.message);
             }
@@ -862,6 +869,11 @@ impl World {
             )
             .unwrap();
         self.run_for(Duration::from_millis(50));
+    }
+
+    /// Cuts the network path to browser `i`, in both directions.
+    pub fn blackhole_browser(&mut self, i: usize) {
+        self.browsers[i].unreachable = true;
     }
 
     pub fn browser(&self, name: &str) -> usize {

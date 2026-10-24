@@ -12,5 +12,5 @@ mod udp;
 
 pub use ifaddrs::local_addresses;
 pub use stun::{StunError, discover_public_ip, parse_stun_url};
-pub use tcp::{FrameReader, MAX_FRAME, encode_frame};
+pub use tcp::{FrameReader, MAX_FRAME, bind_tcp, encode_frame};
 pub use udp::{MAX_DATAGRAM, Outgoing, RecvBatch, SendBatch, SendReport, bind_udp};

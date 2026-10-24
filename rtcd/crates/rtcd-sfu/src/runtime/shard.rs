@@ -1,0 +1,450 @@
+//! One thread serving a share of the calls: it reads the sockets, hands datagrams to its engine,
+//! and writes what the engine wants sent, in batches.
+
+use std::collections::HashMap;
+use std::io;
+use std::net::SocketAddr;
+use std::sync::Arc;
+use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, TrySendError};
+use std::time::{Duration, Instant};
+
+use bytes::BytesMut;
+use mio::net::{TcpStream, UdpSocket};
+use mio::{Events, Interest, Poll, Token, Waker};
+use rtcd_net::{RecvBatch, SendBatch};
+use tracing::{debug, error, warn};
+
+use super::EventSink;
+use super::config::SfuConfig;
+use super::registry::Registry;
+use super::tcp::TcpConn;
+use crate::engine::{Command, Engine, Event, Proto};
+
+const WAKER: Token = Token(0);
+const TCP_BASE: usize = 1 << 16;
+/// Read rounds per socket per turn; more would starve the other sockets and the timers.
+const MAX_ROUNDS: usize = 16;
+/// How often idle TCP connections are looked for.
+const SWEEP_EVERY: Duration = Duration::from_secs(1);
+
+/// What a shard is told to do.
+#[derive(Debug)]
+pub(crate) enum ShardCommand {
+    Engine(Command),
+    /// A TCP connection accepted on `local` (the address as advertised).
+    Tcp {
+        stream: std::net::TcpStream,
+        local: SocketAddr,
+        peer: SocketAddr,
+    },
+    Shutdown,
+}
+
+/// Why a command did not reach a shard.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Undelivered {
+    /// The shard has too much queued already.
+    Full,
+    /// The shard has stopped.
+    Stopped,
+}
+
+/// The way to reach a running shard.
+#[derive(Debug, Clone)]
+pub(crate) struct ShardHandle {
+    tx: SyncSender<ShardCommand>,
+    waker: Arc<Waker>,
+}
+
+impl ShardHandle {
+    pub fn new(tx: SyncSender<ShardCommand>, waker: Arc<Waker>) -> Self {
+        Self { tx, waker }
+    }
+
+    /// Queues a command and wakes the shard; fails if its queue is full or it has stopped.
+    pub fn send(&self, cmd: ShardCommand) -> Result<(), Undelivered> {
+        self.tx.try_send(cmd).map_err(|e| match e {
+            TrySendError::Full(_) => Undelivered::Full,
+            TrySendError::Disconnected(_) => Undelivered::Stopped,
+        })?;
+        // A wake that cannot be delivered still leaves the command queued for the next turn.
+        let _ = self.waker.wake();
+        Ok(())
+    }
+}
+
+/// A bound UDP socket and the address the engine knows it by.
+#[derive(Debug)]
+pub(crate) struct UdpSock {
+    pub socket: UdpSocket,
+    pub advertised: SocketAddr,
+}
+
+/// Everything a shard needs to run.
+pub(crate) struct ShardParts {
+    pub id: usize,
+    pub engine: Engine,
+    pub poll: Poll,
+    pub commands: Receiver<ShardCommand>,
+    pub udp: Vec<UdpSock>,
+    pub sink: Arc<dyn EventSink>,
+    pub registry: Arc<Registry>,
+    pub cfg: Arc<SfuConfig>,
+}
+
+pub(crate) struct Shard {
+    id: usize,
+    engine: Engine,
+    poll: Poll,
+    commands: Receiver<ShardCommand>,
+    udp: Vec<UdpSock>,
+    udp_by_advertised: HashMap<SocketAddr, usize>,
+    /// Sockets whose read stopped at the round limit with datagrams left.
+    udp_backlog: Vec<bool>,
+    recv: RecvBatch,
+    send: Vec<SendBatch>,
+    tcp: Vec<Option<TcpConn>>,
+    tcp_free: Vec<usize>,
+    tcp_by_peer: HashMap<SocketAddr, usize>,
+    sink: Arc<dyn EventSink>,
+    registry: Arc<Registry>,
+    cfg: Arc<SfuConfig>,
+    stopping: bool,
+    next_sweep: Instant,
+}
+
+impl Shard {
+    pub fn new(parts: ShardParts) -> io::Result<Self> {
+        let ShardParts {
+            id,
+            engine,
+            poll,
+            commands,
+            mut udp,
+            sink,
+            registry,
+            cfg,
+        } = parts;
+        for (i, u) in udp.iter_mut().enumerate() {
+            poll.registry()
+                .register(&mut u.socket, Token(1 + i), Interest::READABLE)?;
+        }
+        let udp_by_advertised = udp
+            .iter()
+            .enumerate()
+            .map(|(i, u)| (u.advertised, i))
+            .collect();
+        let n = udp.len();
+        Ok(Self {
+            id,
+            engine,
+            poll,
+            commands,
+            udp_by_advertised,
+            udp_backlog: vec![false; n],
+            recv: RecvBatch::new(cfg.recv_batch),
+            send: (0..n).map(|_| SendBatch::new()).collect(),
+            udp,
+            tcp: Vec::new(),
+            tcp_free: Vec::new(),
+            tcp_by_peer: HashMap::new(),
+            sink,
+            registry,
+            cfg,
+            stopping: false,
+            next_sweep: Instant::now() + SWEEP_EVERY,
+        })
+    }
+
+    /// Serves until told to shut down.
+    pub fn run(mut self) {
+        let mut events = Events::with_capacity(1024);
+        loop {
+            let now = Instant::now();
+            let timeout = self.wait_time(now);
+            if let Err(err) = self.poll.poll(&mut events, Some(timeout)) {
+                if err.kind() != io::ErrorKind::Interrupted {
+                    error!(shard = self.id, %err, "poll failed");
+                    return;
+                }
+                continue;
+            }
+            let now = Instant::now();
+
+            let mut commands_ready = false;
+            for ev in events.iter() {
+                match ev.token() {
+                    WAKER => commands_ready = true,
+                    Token(t) if t >= TCP_BASE => {
+                        self.tcp_ready(t - TCP_BASE, ev.is_readable(), ev.is_writable(), now)
+                    }
+                    Token(t) => self.udp_backlog[t - 1] = true,
+                }
+            }
+            for i in 0..self.udp.len() {
+                if std::mem::take(&mut self.udp_backlog[i]) {
+                    self.drain_udp(i, now);
+                }
+            }
+            if commands_ready {
+                self.drain_commands(now);
+            }
+            if self.engine.poll_timeout().is_some_and(|t| t <= now) {
+                self.engine.handle_timeout(now);
+            }
+            if now >= self.next_sweep {
+                self.next_sweep = now + SWEEP_EVERY;
+                self.sweep_tcp(now);
+            }
+            self.flush();
+            if self.stopping && self.engine.session_count() == 0 {
+                debug!(shard = self.id, "stopped");
+                return;
+            }
+        }
+    }
+
+    /// How long the next poll may sleep.
+    fn wait_time(&self, now: Instant) -> Duration {
+        if self.udp_backlog.iter().any(|&b| b) {
+            return Duration::ZERO;
+        }
+        let engine = self
+            .engine
+            .poll_timeout()
+            .map_or(SWEEP_EVERY, |t| t.saturating_duration_since(now));
+        engine.min(SWEEP_EVERY)
+    }
+
+    // ----------------------------------------------------------------------------------- UDP
+
+    fn drain_udp(&mut self, i: usize, now: Instant) {
+        let advertised = self.udp[i].advertised;
+        for round in 0..MAX_ROUNDS {
+            let n = match self.recv.recv(&self.udp[i].socket) {
+                Ok(n) => n,
+                Err(err) => {
+                    warn!(shard = self.id, %err, "udp receive failed");
+                    return;
+                }
+            };
+            for k in 0..n {
+                let Some((peer, data)) = self.recv.get(k) else {
+                    continue;
+                };
+                self.engine.handle_datagram(
+                    now,
+                    Proto::Udp,
+                    advertised,
+                    peer,
+                    BytesMut::from(data),
+                );
+            }
+            if n < self.cfg.recv_batch {
+                return;
+            }
+            if round + 1 == MAX_ROUNDS {
+                // Edge-triggered: what is left will not announce itself again.
+                self.udp_backlog[i] = true;
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------------------------- TCP
+
+    fn tcp_add(
+        &mut self,
+        stream: std::net::TcpStream,
+        local: SocketAddr,
+        peer: SocketAddr,
+        now: Instant,
+    ) {
+        if stream.set_nonblocking(true).is_err() {
+            return;
+        }
+        let _ = stream.set_nodelay(true);
+        let mut stream = TcpStream::from_std(stream);
+        let idx = self.tcp_free.pop().unwrap_or_else(|| {
+            self.tcp.push(None);
+            self.tcp.len() - 1
+        });
+        if let Err(err) =
+            self.poll
+                .registry()
+                .register(&mut stream, Token(TCP_BASE + idx), Interest::READABLE)
+        {
+            warn!(shard = self.id, %err, %peer, "tcp registration failed");
+            self.tcp_free.push(idx);
+            return;
+        }
+        // A reconnecting participant may reuse its port before the old connection is cleaned up.
+        if let Some(old) = self.tcp_by_peer.insert(peer, idx) {
+            self.tcp_close(old);
+        }
+        self.tcp[idx] = Some(TcpConn::new(stream, local, peer, now));
+    }
+
+    fn tcp_ready(&mut self, idx: usize, readable: bool, writable: bool, now: Instant) {
+        if readable {
+            let Some(conn) = self.tcp.get_mut(idx).and_then(Option::as_mut) else {
+                return;
+            };
+            let (frames, open) = conn.read(now);
+            let (local, peer) = (conn.local, conn.peer);
+            let mut identified = conn.identified;
+            for frame in frames {
+                let routed = self
+                    .engine
+                    .handle_datagram(now, Proto::Tcp, local, peer, frame);
+                if routed {
+                    identified = true;
+                } else if !identified {
+                    // The first packet names a session or the connection is nobody's.
+                    self.tcp_close(idx);
+                    return;
+                }
+            }
+            if let Some(conn) = self.tcp.get_mut(idx).and_then(Option::as_mut) {
+                conn.identified = identified;
+            }
+            if !open {
+                self.tcp_close(idx);
+                return;
+            }
+        }
+        if writable {
+            self.tcp_flush(idx);
+        }
+    }
+
+    /// Writes what a connection owes; keeps the socket registered for writability only while it owes.
+    fn tcp_flush(&mut self, idx: usize) {
+        let Some(conn) = self.tcp.get_mut(idx).and_then(Option::as_mut) else {
+            return;
+        };
+        if !conn.flush() {
+            self.tcp_close(idx);
+            return;
+        }
+        let owes = conn.has_output();
+        if owes != conn.wants_write {
+            conn.wants_write = owes;
+            let interest = if owes {
+                Interest::READABLE | Interest::WRITABLE
+            } else {
+                Interest::READABLE
+            };
+            if self
+                .poll
+                .registry()
+                .reregister(&mut conn.stream, Token(TCP_BASE + idx), interest)
+                .is_err()
+            {
+                self.tcp_close(idx);
+            }
+        }
+    }
+
+    fn tcp_send(&mut self, peer: SocketAddr, data: &[u8]) {
+        let Some(&idx) = self.tcp_by_peer.get(&peer) else {
+            return;
+        };
+        let Some(conn) = self.tcp.get_mut(idx).and_then(Option::as_mut) else {
+            return;
+        };
+        if !conn.queue(data, self.cfg.tcp_write_limit) {
+            debug!(shard = self.id, %peer, "tcp connection is not keeping up, closing it");
+            self.tcp_close(idx);
+            return;
+        }
+        self.tcp_flush(idx);
+    }
+
+    fn tcp_close(&mut self, idx: usize) {
+        if let Some(mut conn) = self.tcp.get_mut(idx).and_then(Option::take) {
+            let _ = self.poll.registry().deregister(&mut conn.stream);
+            if self.tcp_by_peer.get(&conn.peer) == Some(&idx) {
+                self.tcp_by_peer.remove(&conn.peer);
+            }
+            self.tcp_free.push(idx);
+        }
+    }
+
+    /// Closes connections that never said whose they are, or went quiet.
+    fn sweep_tcp(&mut self, now: Instant) {
+        let stale: Vec<usize> = self
+            .tcp
+            .iter()
+            .enumerate()
+            .filter_map(|(i, c)| {
+                let c = c.as_ref()?;
+                let unidentified = !c.identified
+                    && now.saturating_duration_since(c.opened_at) >= self.cfg.tcp_handshake_timeout;
+                let silent = now.saturating_duration_since(c.last_rx) >= self.cfg.tcp_idle_timeout;
+                (unidentified || silent).then_some(i)
+            })
+            .collect();
+        for i in stale {
+            self.tcp_close(i);
+        }
+    }
+
+    // -------------------------------------------------------------------------------- commands
+
+    fn drain_commands(&mut self, now: Instant) {
+        loop {
+            match self.commands.try_recv() {
+                Ok(ShardCommand::Engine(cmd)) => self.engine.handle_command(now, cmd),
+                Ok(ShardCommand::Tcp {
+                    stream,
+                    local,
+                    peer,
+                }) => self.tcp_add(stream, local, peer, now),
+                Ok(ShardCommand::Shutdown) => {
+                    self.stopping = true;
+                    self.engine.shutdown(now);
+                }
+                Err(TryRecvError::Empty) => return,
+                Err(TryRecvError::Disconnected) => {
+                    // The handle is gone: nobody can give orders any more.
+                    self.stopping = true;
+                    self.engine.shutdown(now);
+                    return;
+                }
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------------------------- output
+
+    /// Sends what the engine wants sent and reports what it wants reported.
+    fn flush(&mut self) {
+        while let Some(t) = self.engine.poll_transmit() {
+            match t.proto {
+                Proto::Udp => {
+                    let idx = self.udp_by_advertised.get(&t.local).copied().unwrap_or(0);
+                    self.send[idx].push(t.peer, t.data);
+                }
+                Proto::Tcp => self.tcp_send(t.peer, &t.data),
+            }
+        }
+        for (i, batch) in self.send.iter_mut().enumerate() {
+            if !batch.is_empty() {
+                let report = batch.flush(&self.udp[i].socket);
+                if report.dropped > 0 {
+                    debug!(
+                        shard = self.id,
+                        dropped = report.dropped,
+                        "the kernel refused datagrams"
+                    );
+                }
+            }
+        }
+        while let Some(event) = self.engine.poll_event() {
+            if let Event::SessionClosed { session_id, .. } = &event {
+                self.registry.release(session_id);
+            }
+            self.sink.event(event);
+        }
+    }
+}

@@ -361,3 +361,35 @@ fn shutdown_ends_every_session() {
     assert_eq!(w.closed.len(), 2);
     assert!(w.closed.iter().all(|(_, r)| *r == CloseReason::Shutdown));
 }
+
+#[test]
+fn a_participant_that_goes_silent_is_dropped() {
+    let mut w = World::new();
+    let a = w.join("alice", "call1");
+    w.join("bob", "call1");
+    w.run_for(Duration::from_secs(2));
+    // The network path to Alice dies without a word.
+    w.blackhole_browser(a);
+    w.run_for(Duration::from_secs(29));
+    assert_eq!(w.engine.session_count(), 2, "not yet");
+    w.run_for(Duration::from_secs(4));
+    assert!(
+        w.closed
+            .contains(&("session-alice".to_owned(), CloseReason::ConnectionLost)),
+        "{:?}",
+        w.closed
+    );
+    assert_eq!(w.engine.session_count(), 1);
+}
+
+#[test]
+fn a_session_that_never_connects_is_dropped() {
+    let mut w = World::new();
+    w.blackhole = true;
+    w.start("alice", "call1");
+    w.run_for(Duration::from_secs(31));
+    assert_eq!(
+        w.closed,
+        vec![("session-alice".to_owned(), CloseReason::ConnectTimeout)]
+    );
+}

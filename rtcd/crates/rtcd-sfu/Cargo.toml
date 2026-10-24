@@ -12,6 +12,7 @@ workspace = true
 
 [dependencies]
 rtcd-proto = { path = "../rtcd-proto" }
+rtcd-net = { path = "../rtcd-net" }
 rtc = { path = "../../../rtc" }
 bytes = "1.12.1"
 tracing = "0.1.44"
@@ -20,6 +21,7 @@ slab = "0.4.12"
 serde_json = "1.0.154"
 rand = "0.10.3"
 serde = { version = "1.0.229", features = ["derive"] }
+mio = { version = "1.2.4", features = ["net", "os-poll"] }
 
 [dev-dependencies]
 rtcd-proto = { path = "../rtcd-proto" }
