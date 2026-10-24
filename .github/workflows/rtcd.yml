@@ -1,0 +1,53 @@
+name: rtcd
+
+# The SFU service under rtcd/. Linux only: it is also where the recvmmsg/sendmmsg/GSO socket paths
+# in rtcd-net actually run.
+
+on:
+  push:
+    branches: [ master ]
+    paths: [ 'rtcd/**', 'rtc', 'src/**', '.github/workflows/rtcd.yml' ]
+  pull_request:
+    branches: [ master ]
+    paths: [ 'rtcd/**', 'rtc', 'src/**', '.github/workflows/rtcd.yml' ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_PROFILE_DEV_DEBUG: 0
+
+jobs:
+  check:
+    name: Format and lints
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rtcd
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo fmt --all --check
+      - name: Clippy
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo clippy --workspace --all-targets -- -D warnings
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rtcd
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Test
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --workspace
