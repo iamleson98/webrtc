@@ -60,10 +60,16 @@ if [ "$(uname)" = Linux ] && [ "${PROFILE:-}" = 1 ] && command -v perf >/dev/nul
 fi
 "$H/bench.sh" "$OUT/rtcd" -calls 10 -seconds 30 > "$OUT/load10.txt" 2>&1
 if [ -f "$OUT/perf.data" ]; then
-  sudo perf report -i "$OUT/perf.data" --stdio --no-children --sort dso,symbol 2>/dev/null | grep -v '^#' | grep -v '^$' | head -60 > "$OUT/profile.txt"
-  rm -f "$OUT/perf.data"
-  echo "::notice title=$SERVER CPU profile::$(head -40 "$OUT/profile.txt" | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
-  { echo "### $SERVER CPU profile (top symbols)"; echo '```'; cat "$OUT/profile.txt"; echo '```'; } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+  {
+    echo "== by library"
+    sudo perf report -i "$OUT/perf.data" --stdio --no-children --sort dso 2>/dev/null | grep -v '^#' | grep -v '^$' | head -8
+    echo "== top symbols"
+    sudo perf report -i "$OUT/perf.data" --stdio --no-children --sort dso,symbol 2>/dev/null | grep -v '^#' | grep -v '^$' | head -45
+  } | tr -s ' ' | sed -e 's/<rtc[a-z_:]*::\([A-Za-z]*\) as sansio[^>]*>/<\1 as Protocol>/' | cut -c1-150 > "$OUT/profile.txt"
+  # perf ran as root: its files must not stop the results from being uploaded.
+  sudo rm -f "$OUT"/perf.data*
+  echo "::notice title=$SERVER CPU profile::$(sed -e 's/%/%25/g' "$OUT/profile.txt" | awk '{printf "%s%%0A", $0}')"
+  { echo "### $SERVER CPU profile"; echo '```'; cat "$OUT/profile.txt"; echo '```'; } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 fi
 grep -E "joined|join time|voice|camera|server" "$OUT/load10.txt"
 done_
