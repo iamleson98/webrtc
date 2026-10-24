@@ -200,6 +200,27 @@ func lines() []string {
 	return out
 }
 
+// procStat returns the process's user+system CPU seconds and resident MiB from /proc (Linux),
+// with ok false elsewhere. `ps` only has whole-second cputime on Linux, too coarse for a 30 s window.
+func procStat() (cpu float64, rss float64, ok bool) {
+	raw, err := os.ReadFile("/proc/" + strconv.Itoa(*pid) + "/stat")
+	if err != nil {
+		return 0, 0, false
+	}
+	// Fields after the parenthesised command name: state is field 3; utime and stime are 14 and 15.
+	s := string(raw)
+	i := strings.LastIndex(s, ")")
+	f := strings.Fields(s[i+1:])
+	if len(f) < 22 {
+		return 0, 0, false
+	}
+	ut, _ := strconv.ParseFloat(f[11], 64)
+	st, _ := strconv.ParseFloat(f[12], 64)
+	pages, _ := strconv.ParseFloat(f[21], 64)
+	const ticks = 100 // CLK_TCK is 100 on Linux
+	return (ut + st) / ticks, pages * float64(os.Getpagesize()) / (1 << 20), true
+}
+
 func ps(field string) string {
 	out, _ := exec.Command("ps", "-o", field+"=", "-p", strconv.Itoa(*pid)).Output()
 	return strings.TrimSpace(string(bytes.TrimSpace(out)))
@@ -209,6 +230,9 @@ func ps(field string) string {
 func cpuSeconds() float64 {
 	if *pid == 0 {
 		return 0
+	}
+	if c, _, ok := procStat(); ok {
+		return c
 	}
 	s := ps("cputime")
 	var secs float64
@@ -220,6 +244,9 @@ func cpuSeconds() float64 {
 }
 
 func rssMiB() float64 {
+	if _, r, ok := procStat(); ok {
+		return r
+	}
 	v, _ := strconv.ParseFloat(ps("rss"), 64)
 	return v / 1024
 }

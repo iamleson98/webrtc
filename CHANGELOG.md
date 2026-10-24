@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `UdpMux` bound to `[::]` is now genuinely dual-stack: `IPV6_V6ONLY` is cleared explicitly, IPv4
+  peers are attributed to their plain IPv4 address, replies to them are sent as IPv4-mapped, and
+  host candidates of both families are advertised (pion does the same). Before, a `[::]` mux
+  advertised only IPv6 and a `0.0.0.0` mux only IPv4.
+- `rtc`: `add_transceiver_from_kind` accepts a sending direction without `send_encodings` (one
+  encoding with a fresh SSRC and the engine's codec is used), as W3C `addTransceiver` and pion do;
+  it used to return `ErrInvalidDirection`.
+- `benches/sfu-load`: a one-publisher, N-subscriber load generator for comparing the `broadcast`
+  example of webrtc-rs and pion (CPU, memory, delivery). At 50 and 200 subscribers webrtc-rs uses
+  4.5 to 6 times less memory and, with few tokio worker threads, equal or less CPU; see its README.
+
 ### Changed (breaking, hence 0.22.0)
 - `rtc-rtp`: `Header` gains `padding_size`; `HevcPayloader` is a struct with parameter-set state.
 - `rtc-sctp`: `PayloadProtocolIdentifier` is a struct (it carries unknown values), not an enum.

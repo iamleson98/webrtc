@@ -1,0 +1,79 @@
+name: sfu-load
+
+# One publisher, N subscribers against the `broadcast` example of webrtc-rs and of pion, on a
+# Linux runner. Prints CPU, memory and delivery per cell as a table in the job summary.
+# Manual (or weekly): it is a measurement, not a gate. Run it from the Actions tab or with
+#   gh workflow run sfu-load.yml -f subs=50,200 -f repeats=3 -f duration=30s
+
+on:
+  workflow_dispatch:
+    inputs:
+      subs:
+        description: subscriber counts, comma separated
+        default: "50,200"
+      repeats:
+        description: runs per cell (the table shows medians)
+        default: "3"
+      duration:
+        description: measurement window per run
+        default: "30s"
+  schedule:
+    - cron: "0 3 * * 0"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  sfu-load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build the servers and the load generator
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          cargo build --release --example broadcast
+          cp target/release/examples/broadcast "$RUNNER_TEMP/bin/rust-broadcast"
+          cd benches/sfu-load
+          go build -o "$RUNNER_TEMP/bin/sfu-loadgen" .
+          GOFLAGS=-mod=mod go build -o "$RUNNER_TEMP/bin/pion-broadcast" github.com/pion/webrtc/v4/examples/broadcast
+
+      - name: Machine
+        run: |
+          nproc
+          uname -a
+          cat /proc/cpuinfo | grep -m1 "model name"
+          ulimit -n
+
+      - name: Run the matrix
+        shell: bash
+        env:
+          BIN: ${{ runner.temp }}/bin
+        run: |
+          ulimit -n 65535 || true
+          cd benches/sfu-load
+          python3 matrix.py --subs "${{ inputs.subs || '50,200' }}" --repeats "${{ inputs.repeats || '3' }}" --duration "${{ inputs.duration || '30s' }}" | tee "$RUNNER_TEMP/matrix.md"
+          {
+            echo "## SFU fan-out, Linux runner"
+            echo
+            cat "$RUNNER_TEMP/matrix.md"
+            echo
+            echo "120 packets/s of 1100 bytes from one publisher to every subscriber, loopback, one machine (the load generator shares the CPU)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sfu-load
+          path: |
+            ${{ runner.temp }}/matrix.md
+            ${{ runner.temp }}/bin/sfu-*.log

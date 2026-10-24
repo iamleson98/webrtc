@@ -244,7 +244,7 @@ async fn async_main(cli: Cli) -> Result<()> {
 
     // The one socket every answering connection serves from. Every browser session gets
     // its own PeerConnection; every one of them answers on this port.
-    let mux = UdpMux::bind(format!("0.0.0.0:{}", cli.udp_port))?;
+    let mux = UdpMux::bind(format!("[::]:{}", cli.udp_port))?;
     println!("Listening for WebRTC traffic at {}", cli.udp_port);
 
     let runtime = runtime();

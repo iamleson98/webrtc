@@ -230,7 +230,7 @@ impl UdpMux {
         let mut last_err = None;
         let mut bound = None;
         for addr in addrs.to_socket_addrs()? {
-            match std::net::UdpSocket::bind(addr) {
+            match bind_udp(addr) {
                 Ok(socket) => {
                     socket.set_nonblocking(true)?;
                     bound = Some(socket);
@@ -254,10 +254,22 @@ impl UdpMux {
         // The addresses to advertise as host candidates. A wildcard is expanded to one entry
         // per usable interface — the same rule the driver applies to its own sockets — so a
         // peer always gets an address it can dial. Both paths advertise identically.
-        let candidate_addrs = resolve_bind_addrs(&[bound_addr])?
+        let mut candidate_addrs: Vec<SocketAddr> = resolve_bind_addrs(&[bound_addr])?
             .into_iter()
             .map(|bind| bind.addr)
             .collect();
+        if is_dual_stack_wildcard(bound_addr) {
+            // One socket serves both families, so advertise both (pion does the same).
+            let v4 = SocketAddr::new(
+                IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED),
+                bound_addr.port(),
+            );
+            for bind in resolve_bind_addrs(&[v4])? {
+                if !candidate_addrs.contains(&bind.addr) {
+                    candidate_addrs.push(bind.addr);
+                }
+            }
+        }
 
         let mux = Arc::new(Self {
             runtime,
@@ -481,12 +493,15 @@ impl UdpMux {
                             // report the datagram's destination — the bind address is then
                             // the best available answer, and exactly right for a concrete
                             // bind.
-                            let dst_ip = meta.dst_ip.unwrap_or_else(|| self.bound_addr.ip());
+                            let dst_ip = canonical_ip(
+                                meta.dst_ip.unwrap_or_else(|| self.bound_addr.ip()),
+                            );
+                            let from = canonical_addr(meta.addr);
                             let step = meta.stride.max(1);
                             let mut off = 0;
                             while off < meta.len {
                                 let end = (off + step).min(meta.len);
-                                self.route_datagram(meta.addr, &buf[off..end], dst_ip, meta.ecn);
+                                self.route_datagram(from, &buf[off..end], dst_ip, meta.ecn);
                                 off = end;
                             }
                         }
@@ -604,6 +619,20 @@ impl AsyncUdpSocket for MuxSocketHandle {
             }
         }
 
+        if self.mux.bound_addr.is_ipv6() && transmit.destination.is_ipv4() {
+            // The socket is IPv6 (dual-stack); an IPv4 peer is addressed as `::ffff:a.b.c.d`.
+            let mapped = Transmit {
+                destination: map_to_v6(transmit.destination),
+                ecn: transmit.ecn,
+                contents: transmit.contents,
+                segment_size: transmit.segment_size,
+                src_ip: transmit.src_ip.map(|ip| match ip {
+                    IpAddr::V4(v4) => IpAddr::V6(v4.to_ipv6_mapped()),
+                    other => other,
+                }),
+            };
+            return self.mux.socket.poll_send(cx, &mapped);
+        }
         self.mux.socket.poll_send(cx, transmit)
     }
 
@@ -877,5 +906,129 @@ mod tests {
         );
         drop(successor);
         mux.close();
+    }
+
+    /// One `[::]` socket serves IPv4 and IPv6 peers alike: IPv4 datagrams arrive attributed to the
+    /// plain IPv4 address (not `::ffff:a.b.c.d`) and replies to that address reach the peer.
+    #[test]
+    fn a_dual_stack_mux_serves_ipv4_and_ipv6_peers() {
+        use futures::FutureExt;
+        let runtime = crate::runtime::default_runtime().expect("runtime feature required");
+        let rt = runtime.clone();
+        runtime.block_on(Box::pin(async move {
+            let mux = match UdpMux::bind_on(rt.clone(), "[::]:0") {
+                Ok(mux) => mux,
+                Err(err) => {
+                    eprintln!("skipping: no IPv6 on this host ({err})");
+                    return;
+                }
+            };
+            let port = mux.local_addr().port();
+            let handle = mux.clone().register("dualfrag").expect("register");
+
+            for (name, target) in [
+                ("ipv4", localhost(port)),
+                (
+                    "ipv6",
+                    SocketAddr::new(IpAddr::V6(std::net::Ipv6Addr::LOCALHOST), port),
+                ),
+            ] {
+                let client = match std::net::UdpSocket::bind(if target.is_ipv4() {
+                    "127.0.0.1:0"
+                } else {
+                    "[::1]:0"
+                }) {
+                    Ok(client) => client,
+                    Err(_) => continue, // that family is not available here
+                };
+                client
+                    .set_read_timeout(Some(std::time::Duration::from_secs(5)))
+                    .unwrap();
+                let client_addr = client.local_addr().unwrap();
+                client
+                    .send_to(&stun_binding_request("dualfrag:peer", 7), target)
+                    .unwrap();
+
+                let mut received = None;
+                for _ in 0..200 {
+                    let mut buf = [0u8; 2048];
+                    let mut meta = [RecvMeta::default(); 1];
+                    let polled = poll_fn(|cx| {
+                        let mut bufs = [IoSliceMut::new(&mut buf)];
+                        match handle.poll_recv(cx, &mut bufs, &mut meta) {
+                            Poll::Pending => Poll::Ready(None),
+                            Poll::Ready(r) => Poll::Ready(Some(r)),
+                        }
+                    })
+                    .await;
+                    if let Some(Ok(_)) = polled {
+                        received = Some(meta[0]);
+                        break;
+                    }
+                    rt.sleep(std::time::Duration::from_millis(25)).fuse().await;
+                }
+                let meta = received.unwrap_or_else(|| panic!("{name}: nothing routed"));
+                assert_eq!(
+                    meta.addr, client_addr,
+                    "{name}: the peer address is the canonical one"
+                );
+
+                let reply = b"reply";
+                let transmit = Transmit {
+                    destination: client_addr,
+                    ecn: None,
+                    contents: reply,
+                    segment_size: None,
+                    src_ip: None,
+                };
+                let sent = poll_fn(|cx| handle.poll_send(cx, &transmit)).await;
+                assert!(sent.is_ok(), "{name}: {sent:?}");
+                let mut buf = [0u8; 16];
+                let (n, _) = client.recv_from(&mut buf).expect("the reply arrives");
+                assert_eq!(&buf[..n], reply, "{name}");
+            }
+        }));
+    }
+}
+
+/// Binds a UDP socket, making an IPv6 wildcard genuinely dual-stack: the platform default for
+/// `IPV6_V6ONLY` differs (Windows and some Linux configurations default it on), and a mux that
+/// advertises IPv4 candidates must receive IPv4.
+fn bind_udp(addr: SocketAddr) -> io::Result<std::net::UdpSocket> {
+    if is_dual_stack_wildcard(addr) {
+        let socket = socket2::Socket::new(
+            socket2::Domain::IPV6,
+            socket2::Type::DGRAM,
+            Some(socket2::Protocol::UDP),
+        )?;
+        socket.set_only_v6(false)?;
+        socket.bind(&addr.into())?;
+        return Ok(socket.into());
+    }
+    std::net::UdpSocket::bind(addr)
+}
+
+/// `[::]:port`: the address a dual-stack listener binds.
+fn is_dual_stack_wildcard(addr: SocketAddr) -> bool {
+    addr.is_ipv6() && addr.ip().is_unspecified()
+}
+
+/// An IPv4-mapped IPv6 address as the plain IPv4 address the rest of the stack (candidates,
+/// connections' peer addresses) uses; anything else unchanged.
+fn canonical_ip(ip: IpAddr) -> IpAddr {
+    match ip {
+        IpAddr::V6(v6) => v6.to_ipv4_mapped().map_or(ip, IpAddr::V4),
+        other => other,
+    }
+}
+
+fn canonical_addr(addr: SocketAddr) -> SocketAddr {
+    SocketAddr::new(canonical_ip(addr.ip()), addr.port())
+}
+
+fn map_to_v6(addr: SocketAddr) -> SocketAddr {
+    match addr {
+        SocketAddr::V4(v4) => SocketAddr::new(IpAddr::V6(v4.ip().to_ipv6_mapped()), v4.port()),
+        other => other,
     }
 }
