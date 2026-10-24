@@ -44,7 +44,7 @@ use rtc::shared::{TaggedBytesMut, TransportContext, TransportProtocol};
 struct Cli {
     #[arg(long, default_value_t = 8080)]
     port: u16,
-    /// Send with sendmmsg (Linux) instead of one sendto per datagram.
+    /// Send with sendmmsg and UDP GSO (Linux) instead of one sendto per datagram.
     #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
     batch: bool,
 }
@@ -79,6 +79,8 @@ struct Server {
     codec: Option<RTCRtpCodec>,
     out: Vec<Out>,
     batch: bool,
+    /// UDP GSO works on this host (cleared the first time the kernel refuses it).
+    gso: bool,
     forwarded: u64,
     last_pli: Instant,
 }
@@ -115,6 +117,7 @@ fn main() -> Result<()> {
         codec: None,
         out: Vec::with_capacity(256),
         batch: cli.batch,
+        gso: true,
         forwarded: 0,
         last_pli: Instant::now(),
     };
@@ -413,7 +416,7 @@ impl Server {
         }
         #[cfg(target_os = "linux")]
         if self.batch {
-            send_batch(&self.socket, &self.out);
+            send_batch(&self.socket, &mut self.out, &mut self.gso);
             self.out.clear();
             return;
         }
@@ -461,18 +464,65 @@ fn stun_local_ufrag(data: &[u8]) -> Option<String> {
     None
 }
 
+/// Sends `out` in as few syscalls as the kernel allows: datagrams are grouped by destination (the
+/// order within a destination is kept), each run of equal-size datagrams becomes one UDP GSO
+/// message (the kernel splits it again, but walks the stack once), and up to 64 messages go in a
+/// single `sendmmsg`. Falls back to plain sends if the kernel or the NIC refuses GSO.
 #[cfg(target_os = "linux")]
-fn send_batch(socket: &UdpSocket, out: &[Out]) {
+fn send_batch(socket: &UdpSocket, out: &mut [Out], gso: &mut bool) {
     use std::mem::{size_of, zeroed};
-    // Up to 64 datagrams per syscall.
-    for chunk in out.chunks(64) {
+
+    const MAX_SEGMENTS: usize = 64;
+    const MAX_GSO_BYTES: usize = 65_000;
+    const UDP_SEGMENT: libc::c_int = 103;
+
+    #[repr(C, align(8))]
+    struct Control([u8; 32]);
+
+    // Group by destination, keeping each destination's order.
+    let mut ids: HashMap<SocketAddr, usize> = HashMap::new();
+    for o in out.iter() {
+        let next = ids.len();
+        ids.entry(o.to).or_insert(next);
+    }
+    out.sort_by_key(|o| ids[&o.to]);
+
+    // Runs: (start, end, segment size); a run of one is a plain datagram.
+    let mut runs: Vec<(usize, usize, usize)> = Vec::new();
+    let mut i = 0;
+    while i < out.len() {
+        let size = out[i].data.len();
+        let mut j = i + 1;
+        let mut total = size;
+        if *gso {
+            while j < out.len()
+                && j - i < MAX_SEGMENTS
+                && out[j].to == out[i].to
+                && out[j].data.len() <= size
+                && total + out[j].data.len() <= MAX_GSO_BYTES
+            {
+                let len = out[j].data.len();
+                total += len;
+                j += 1;
+                if len < size {
+                    break; // a shorter datagram can only be the last segment
+                }
+            }
+        }
+        runs.push((i, j, size));
+        i = j;
+    }
+
+    for chunk in runs.chunks(64) {
         let mut addrs: Vec<libc::sockaddr_storage> = Vec::with_capacity(chunk.len());
         let mut lens: Vec<libc::socklen_t> = Vec::with_capacity(chunk.len());
-        let mut iovs: Vec<libc::iovec> = Vec::with_capacity(chunk.len());
-        for o in chunk {
+        let mut iovs: Vec<libc::iovec> = Vec::new();
+        let mut spans: Vec<(usize, usize)> = Vec::with_capacity(chunk.len());
+        let mut controls: Vec<Control> = Vec::with_capacity(chunk.len());
+        for &(start, end, size) in chunk {
             // SAFETY: zeroed sockaddr_storage is valid; the fields set below fit its layout.
             let mut ss: libc::sockaddr_storage = unsafe { zeroed() };
-            let len = match o.to {
+            let len = match out[start].to {
                 SocketAddr::V4(a) => {
                     let sin = &mut ss as *mut _ as *mut libc::sockaddr_in;
                     unsafe {
@@ -494,16 +544,36 @@ fn send_batch(socket: &UdpSocket, out: &[Out]) {
             };
             addrs.push(ss);
             lens.push(len as libc::socklen_t);
-            iovs.push(libc::iovec { iov_base: o.data.as_ptr() as *mut _, iov_len: o.data.len() });
+            let first_iov = iovs.len();
+            for o in &out[start..end] {
+                iovs.push(libc::iovec { iov_base: o.data.as_ptr() as *mut _, iov_len: o.data.len() });
+            }
+            spans.push((first_iov, end - start));
+            let mut control = Control([0; 32]);
+            if end - start > 1 {
+                // SAFETY: the buffer is 8-aligned and CMSG_SPACE(2) <= 32 bytes.
+                unsafe {
+                    let cm = control.0.as_mut_ptr() as *mut libc::cmsghdr;
+                    (*cm).cmsg_level = libc::SOL_UDP;
+                    (*cm).cmsg_type = UDP_SEGMENT;
+                    (*cm).cmsg_len = libc::CMSG_LEN(2) as _;
+                    std::ptr::write_unaligned(libc::CMSG_DATA(cm) as *mut u16, size as u16);
+                }
+            }
+            controls.push(control);
         }
         let mut msgs: Vec<libc::mmsghdr> = (0..chunk.len())
-            .map(|i| {
-                // SAFETY: zeroed mmsghdr is valid; pointers stay valid until the call returns.
+            .map(|k| {
+                // SAFETY: zeroed mmsghdr is valid; the pointers stay valid until the call returns.
                 let mut m: libc::mmsghdr = unsafe { zeroed() };
-                m.msg_hdr.msg_name = &mut addrs[i] as *mut _ as *mut _;
-                m.msg_hdr.msg_namelen = lens[i];
-                m.msg_hdr.msg_iov = &mut iovs[i];
-                m.msg_hdr.msg_iovlen = 1;
+                m.msg_hdr.msg_name = &mut addrs[k] as *mut _ as *mut _;
+                m.msg_hdr.msg_namelen = lens[k];
+                m.msg_hdr.msg_iov = &mut iovs[spans[k].0];
+                m.msg_hdr.msg_iovlen = spans[k].1 as _;
+                if spans[k].1 > 1 {
+                    m.msg_hdr.msg_control = controls[k].0.as_mut_ptr() as *mut _;
+                    m.msg_hdr.msg_controllen = unsafe { libc::CMSG_SPACE(2) } as _;
+                }
                 m
             })
             .collect();
@@ -513,10 +583,23 @@ fn send_batch(socket: &UdpSocket, out: &[Out]) {
             let n = unsafe {
                 libc::sendmmsg(socket.as_raw_fd(), msgs[sent..].as_mut_ptr(), (msgs.len() - sent) as u32, 0)
             };
-            if n <= 0 {
-                break;
+            if n > 0 {
+                sent += n as usize;
+                continue;
             }
-            sent += n as usize;
+            let errno = std::io::Error::last_os_error().raw_os_error().unwrap_or(0);
+            let (start, end, _) = chunk[sent];
+            if end - start > 1 && (errno == libc::EIO || errno == libc::EINVAL || errno == libc::EOPNOTSUPP || errno == libc::ENOPROTOOPT) {
+                // The kernel or NIC does not do GSO: stop using it and send this run one by one.
+                *gso = false;
+                for o in &out[start..end] {
+                    let _ = socket.send_to(&o.data, o.to);
+                }
+                sent += 1;
+                continue;
+            }
+            // Anything else (a full socket buffer, an unreachable peer): drop this message.
+            sent += 1;
         }
     }
 }

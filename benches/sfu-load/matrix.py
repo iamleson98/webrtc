@@ -8,9 +8,10 @@ import argparse, os, re, statistics, subprocess, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-def run(kind, subs, duration, workers, extra=""):
+def run(kind, subs, duration, workers, extra="", burst=1):
     env = dict(os.environ)
     env["EXTRA_ARGS"] = extra
+    env["EXTRA_LOADGEN_ARGS"] = f"-burst {burst}"
     if workers:
         env["TOKIO_WORKER_THREADS"] = str(workers)
     out = subprocess.run([os.path.join(HERE, "run.sh"), kind, str(subs), duration],
@@ -26,6 +27,7 @@ def main():
     ap.add_argument("--subs", default="50,200")
     ap.add_argument("--repeats", type=int, default=3)
     ap.add_argument("--duration", default="30s")
+    ap.add_argument("--bursts", default="1,8", help="packets per video frame, comma separated")
     args = ap.parse_args()
     configs = [("pion", None, "", "pion v4.2.24")]
     for reactors in (1, 2):
@@ -34,19 +36,20 @@ def main():
     configs.append(("core", None, "--batch false", "sfu-core (sans-IO, one thread), sendto per datagram"))
     configs.append(("core", None, "--batch true", "sfu-core (sans-IO, one thread), sendmmsg"))
     print(f"cores: {os.cpu_count()}\n")
-    print("| subscribers | server | CPU % of one core (median) | RSS MiB | delivery | runs |")
-    print("|---|---|---|---|---|---|")
+    print("| subscribers | packets per frame | server | CPU % of one core (median) | RSS MiB | delivery | runs |")
+    print("|---|---|---|---|---|---|---|")
     for subs in [int(x) for x in args.subs.split(",")]:
-        for kind, workers, extra, label in configs:
-            runs = [r for r in (run(kind, subs, args.duration, workers, extra) for _ in range(args.repeats)) if r]
-            if not runs:
-                print(f"| {subs} | {label} | failed | | | 0 |")
-                continue
-            cpu = statistics.median(r["cpu"] for r in runs)
-            rss = statistics.median(r["rss"] for r in runs)
-            loss = statistics.median(r["loss"] for r in runs)
-            active = min(r["active"] for r in runs)
-            print(f"| {subs} | {label} | {cpu:.1f} | {rss} | {100-loss:.2f}% ({active}/{subs} subscribers active) | {len(runs)} |")
-            sys.stdout.flush()
+        for burst in [int(x) for x in args.bursts.split(",")]:
+            for kind, workers, extra, label in configs:
+                runs = [r for r in (run(kind, subs, args.duration, workers, extra, burst) for _ in range(args.repeats)) if r]
+                if not runs:
+                    print(f"| {subs} | {burst} | {label} | failed | | | 0 |")
+                    continue
+                cpu = statistics.median(r["cpu"] for r in runs)
+                rss = statistics.median(r["rss"] for r in runs)
+                loss = statistics.median(r["loss"] for r in runs)
+                active = min(r["active"] for r in runs)
+                print(f"| {subs} | {burst} | {label} | {cpu:.1f} | {rss} | {100-loss:.2f}% ({active}/{subs} subscribers active) | {len(runs)} |")
+                sys.stdout.flush()
 
 main()

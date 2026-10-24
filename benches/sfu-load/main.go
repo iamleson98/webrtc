@@ -36,6 +36,7 @@ var (
 	duration = flag.Duration("duration", 20*time.Second, "measurement window")
 	pps      = flag.Int("pps", 120, "publisher packets per second")
 	size     = flag.Int("size", 1100, "RTP payload bytes")
+	burst    = flag.Int("burst", 1, "packets per video frame: -pps is split into frames of this many back-to-back packets (a real encoder sends a frame as a burst)")
 	pid      = flag.Int("pid", 0, "server pid to sample")
 	churn    = flag.Duration("churn", 0, "soak mode: keep -subs viewers connected, each leaving after a random time up to this long and being replaced; samples server memory every 15s")
 )
@@ -63,7 +64,11 @@ func main() {
 	var sent atomic.Int64
 	stop := make(chan struct{})
 	go func() {
-		t := time.NewTicker(time.Second / time.Duration(*pps))
+		frames := *pps / *burst
+		if frames < 1 {
+			frames = 1
+		}
+		t := time.NewTicker(time.Second / time.Duration(frames))
 		defer t.Stop()
 		var seq uint16
 		var ts uint32
@@ -73,10 +78,12 @@ func main() {
 			case <-stop:
 				return
 			case <-t.C:
-				seq++
-				ts += 90000 / uint32(*pps)
-				_ = track.WriteRTP(&rtp.Packet{Header: rtp.Header{Version: 2, PayloadType: 96, SequenceNumber: seq, Timestamp: ts, SSRC: 1234}, Payload: payload})
-				sent.Add(1)
+				ts += 90000 / uint32(frames)
+				for i := 0; i < *burst; i++ {
+					seq++
+					_ = track.WriteRTP(&rtp.Packet{Header: rtp.Header{Version: 2, PayloadType: 96, SequenceNumber: seq, Timestamp: ts, SSRC: 1234, Marker: i == *burst-1}, Payload: payload})
+					sent.Add(1)
+				}
 			}
 		}
 	}()
