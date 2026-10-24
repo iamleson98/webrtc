@@ -2,7 +2,7 @@
 
 ```
 rtcd-go/     the Go rtcd as the LMS runs it (its logging dependency vendored in third_party/)
-rtcd-rust/   the Rust rtcd that replaces it
+rtcd-rust/   the Rust rtcd that replaces it (a submodule: github.com/iamleson98/rtcd-rs, with rtc inside it)
 harness/     what runs against either one
   interop/   Go service client + pion: lookup, voice, camera, screen, reconnect; the browser bridge;
              the classroom load generator
