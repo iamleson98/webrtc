@@ -399,3 +399,25 @@ fn a_receiver_with_bandwidth_to_spare_gets_the_large_screen_layer() {
         "and it stays"
     );
 }
+
+#[test]
+fn a_subscription_with_null_lists_means_none_as_go_clients_encode_it() {
+    let mut w = World::new();
+    let a = w.join_with_camera("alice", "call1");
+    let b = w.join("bob", "call1");
+    w.stream_video(a, false, 1.0, 30, &BOTH);
+    assert!(!video_of(&w, b, "video_").is_empty());
+    w.signal(
+        b,
+        MessageType::VideoSubscribe,
+        br#"{"session_ids":null,"low":null}"#.to_vec(),
+    );
+    w.run_for(Duration::from_millis(500));
+    let seen = video_of(&w, b, "video_").len();
+    w.stream_video(a, false, 1.0, 30, &BOTH);
+    assert_eq!(
+        video_of(&w, b, "video_").len(),
+        seen,
+        "null is an empty list, and an empty list wants no camera"
+    );
+}

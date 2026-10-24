@@ -27,7 +27,7 @@ use std::time::Instant;
 use bytes::BytesMut;
 use rtc::sansio::Protocol;
 use rtcd_proto::{Message, MessageType};
-use tracing::{debug, error, warn};
+use tracing::{debug, error, info, warn};
 
 pub use signaling::Channel;
 pub use types::{CloseReason, Command, Event, Proto, Transmit};
@@ -241,6 +241,11 @@ impl Engine {
         let Some(rtp) = self.process_reads(key, now) else {
             return;
         };
+        if self.participant_closed(key) {
+            info!(session = %self.session_id(key), "the participant closed the connection");
+            self.close_session(key, CloseReason::ConnectionLost, now);
+            return;
+        }
         self.advance_negotiation(key, now);
         self.forward(key, rtp, now);
         self.flush(key);
@@ -355,6 +360,15 @@ impl Engine {
             self.metrics.connection_state("failed");
             self.close_session(key, CloseReason::ConnectionLost, now);
         }
+    }
+
+    /// Whether the participant told us it is leaving: closing a connection sends a DTLS close alert,
+    /// which leaves the connection state as it was but closes the DTLS transport.
+    fn participant_closed(&self, key: SessionKey) -> bool {
+        self.sessions.get(key).is_some_and(|s| {
+            s.pc.sctp().map(|sctp| sctp.transport().state())
+                == Some(rtc::peer_connection::transport::RTCDtlsTransportState::Closed)
+        })
     }
 
     fn session_id(&self, key: SessionKey) -> String {

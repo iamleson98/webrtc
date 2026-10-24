@@ -393,3 +393,19 @@ fn a_session_that_never_connects_is_dropped() {
         vec![("session-alice".to_owned(), CloseReason::ConnectTimeout)]
     );
 }
+
+#[test]
+fn a_participant_that_closes_its_connection_is_dropped_at_once() {
+    let mut w = World::new();
+    let a = w.join("alice", "call1");
+    w.join("bob", "call1");
+    let _ = rtc::sansio::Protocol::close(&mut w.browsers[a].pc);
+    w.run_for(Duration::from_millis(500));
+    assert!(
+        w.closed
+            .contains(&("session-alice".to_owned(), CloseReason::ConnectionLost)),
+        "{:?}",
+        w.closed
+    );
+    assert_eq!(w.engine.session_count(), 1);
+}

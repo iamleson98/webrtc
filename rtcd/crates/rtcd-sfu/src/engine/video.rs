@@ -27,10 +27,15 @@ const KEYFRAME_INTERVAL: Duration = Duration::from_secs(1);
 
 #[derive(Deserialize)]
 struct Subscription {
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_as_empty")]
     session_ids: Vec<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_as_empty")]
     low: Vec<String>,
+}
+
+/// A JSON `null` where a list belongs reads as the empty list, which is how Go encodes a nil slice.
+fn null_as_empty<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
+    Ok(Option::<Vec<String>>::deserialize(d)?.unwrap_or_default())
 }
 
 impl Engine {
