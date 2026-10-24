@@ -50,4 +50,4 @@ jobs:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
       - name: Test
-        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --workspace
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --workspace --no-fail-fast

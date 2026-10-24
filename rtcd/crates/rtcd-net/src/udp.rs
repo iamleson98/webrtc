@@ -30,7 +30,8 @@ pub fn bind_udp(
     send_buffer: usize,
 ) -> io::Result<std::net::UdpSocket> {
     let socket = Socket::new(Domain::for_address(addr), Type::DGRAM, Some(Protocol::UDP))?;
-    socket.set_reuse_address(true)?;
+    // No SO_REUSEADDR: for UDP, Linux takes it to mean that any number of sockets may bind the same
+    // address, so a second server started by mistake would share the port and split its traffic.
     #[cfg(all(unix, not(any(target_os = "solaris", target_os = "illumos"))))]
     if reuse_port {
         socket.set_reuse_port(true)?;
