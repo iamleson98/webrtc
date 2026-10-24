@@ -1,0 +1,16 @@
+{
+  "vectors": [
+    {
+      "credential": "RS6q5mi6mntBb4R+gQxk2bSGOp4=",
+      "name": "static-secret",
+      "secret": "static-secret",
+      "username": "1792819804:session1"
+    },
+    {
+      "credential": "L+SxsMiW3XvofOoUzH5zY8E/R8A=",
+      "name": "another secret with spaces",
+      "secret": "another secret with spaces",
+      "username": "1792819804:session1"
+    }
+  ]
+}
