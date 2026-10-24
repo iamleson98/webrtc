@@ -24,4 +24,8 @@ PORT=${BENCH_PORT:-$((20000 + RANDOM % 20000))}
 PID=$!
 sleep 2
 kill -0 "$PID" 2>/dev/null || { echo "server exited at startup"; exit 1; }
+# BENCH_PERF=<file>: sample the server with perf for part of the run (Linux), for a CPU profile.
+if [ -n "${BENCH_PERF:-}" ]; then
+  (sleep 10; sudo perf record -F 999 -p "$PID" -o "$BENCH_PERF" -- sleep 15 >/dev/null 2>&1) &
+fi
 "$HERE/run.sh" -url http://127.0.0.1:$PORT -pid "$PID" "$@"
