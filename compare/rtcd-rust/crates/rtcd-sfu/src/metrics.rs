@@ -100,6 +100,9 @@ pub struct NetTraffic {
     pub tcp_out_packets: u64,
     /// Datagrams the kernel refused to send (a full send buffer, an unreachable peer).
     pub udp_dropped_packets: u64,
+    /// Datagrams a shard read that belonged to another shard's session and passed on: the traffic
+    /// that steering to per-participant sockets did not (yet) keep off that detour.
+    pub udp_forwarded_packets: u64,
 }
 
 impl NetTraffic {

@@ -9,11 +9,27 @@ use std::time::{Duration, Instant};
 use rtcd_proto::{Message, MessageType, SessionConfig};
 use rtcd_sfu::config::{EngineConfig, LocalAddress};
 use rtcd_sfu::engine::{CloseReason, Event};
-use rtcd_sfu::metrics::NoMetrics;
+use rtcd_sfu::metrics::{Metrics, NetTraffic};
 use rtcd_sfu::runtime::{Sfu, SfuConfig};
 use rtcd_testkit::{Browser, Signal};
 
+/// Counts the socket traffic the shards report.
+#[derive(Debug, Default)]
+pub struct Traffic {
+    pub packets_in: std::sync::atomic::AtomicU64,
+    pub forwarded: std::sync::atomic::AtomicU64,
+}
+
+impl Metrics for Traffic {
+    fn net_traffic(&self, t: NetTraffic) {
+        use std::sync::atomic::Ordering::Relaxed;
+        self.packets_in.fetch_add(t.udp_in_packets, Relaxed);
+        self.forwarded.fetch_add(t.udp_forwarded_packets, Relaxed);
+    }
+}
+
 pub struct Live {
+    pub traffic: Arc<Traffic>,
     pub sfu: Arc<Sfu>,
     events: Receiver<Event>,
     pub browsers: Vec<Browser>,
@@ -42,17 +58,19 @@ impl Live {
             udp_send_buffer: 1 << 20,
             ..Default::default()
         };
+        let traffic = Arc::new(Traffic::default());
         let (tx, rx) = channel();
         let tx = std::sync::Mutex::new(tx);
         let sfu = Sfu::start(
             cfg,
-            Arc::new(NoMetrics),
+            traffic.clone(),
             Arc::new(move |e: Event| {
                 let _ = tx.lock().unwrap().send(e);
             }),
         )
         .expect("the SFU starts");
         Live {
+            traffic,
             sfu: Arc::new(sfu),
             events: rx,
             browsers: vec![],

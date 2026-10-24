@@ -19,11 +19,16 @@ use super::config::SfuConfig;
 use super::directory::Directory;
 use super::registry::Registry;
 use super::tcp::TcpConn;
-use crate::engine::{Command, Engine, Event, Proto};
+use crate::engine::{Command, Engine, Event, Proto, RouteUpdate};
 use crate::metrics::{Metrics, NetTraffic};
 
 const WAKER: Token = Token(0);
 const TCP_BASE: usize = 1 << 16;
+const PEER_BASE: usize = 1 << 20;
+/// Sockets connected to one participant each, at most per shard.
+const MAX_PEER_SOCKETS: usize = 16_384;
+/// Receive buffer asked for each of them: one participant's media is a few hundred kilobits.
+const PEER_RECV_BUFFER: usize = 256 * 1024;
 /// Read rounds per socket per turn; more would starve the other sockets and the timers.
 const MAX_ROUNDS: usize = 16;
 /// How often idle TCP connections are looked for.
@@ -99,6 +104,20 @@ pub(crate) struct UdpSock {
     pub advertised: SocketAddr,
 }
 
+/// A UDP socket connected to one participant, bound to the same port as the shard's shared ones.
+///
+/// The kernel hands a datagram from that exact address to a connected socket rather than to the
+/// shard the port's hash would pick, so once a shard has learned a participant's address its
+/// packets arrive here directly instead of through another shard. Sending still goes through the
+/// shared socket, which batches across all participants.
+#[derive(Debug)]
+struct PeerSock {
+    socket: UdpSocket,
+    /// The shared socket it sits next to (an index into `udp`).
+    local: usize,
+    peer: SocketAddr,
+}
+
 /// Everything a shard needs to run.
 pub(crate) struct ShardParts {
     pub id: usize,
@@ -127,6 +146,11 @@ pub(crate) struct Shard {
     udp_backlog: Vec<bool>,
     recv: RecvBatch,
     send: Vec<SendBatch>,
+    peer_socks: Vec<Option<PeerSock>>,
+    peer_free: Vec<usize>,
+    peer_by_addr: HashMap<SocketAddr, usize>,
+    /// Connected sockets that have something to read.
+    peer_ready: Vec<usize>,
     tcp: Vec<Option<TcpConn>>,
     tcp_free: Vec<usize>,
     tcp_by_peer: HashMap<SocketAddr, usize>,
@@ -182,6 +206,10 @@ impl Shard {
             recv: RecvBatch::new(cfg.recv_batch),
             send: (0..n).map(|_| SendBatch::new()).collect(),
             udp,
+            peer_socks: Vec::new(),
+            peer_free: Vec::new(),
+            peer_by_addr: HashMap::new(),
+            peer_ready: Vec::new(),
             tcp: Vec::new(),
             tcp_free: Vec::new(),
             tcp_by_peer: HashMap::new(),
@@ -217,6 +245,7 @@ impl Shard {
             for ev in events.iter() {
                 match ev.token() {
                     WAKER => commands_ready = true,
+                    Token(t) if t >= PEER_BASE => self.peer_ready.push(t - PEER_BASE),
                     Token(t) if t >= TCP_BASE => {
                         self.tcp_ready(t - TCP_BASE, ev.is_readable(), ev.is_writable(), now)
                     }
@@ -227,6 +256,9 @@ impl Shard {
                 if std::mem::take(&mut self.udp_backlog[i]) {
                     self.drain_udp(i, now);
                 }
+            }
+            for slot in std::mem::take(&mut self.peer_ready) {
+                self.drain_peer(slot, now);
             }
             if commands_ready {
                 self.drain_commands(now);
@@ -248,7 +280,7 @@ impl Shard {
 
     /// How long the next poll may sleep.
     fn wait_time(&self, now: Instant) -> Duration {
-        if self.udp_backlog.iter().any(|&b| b) {
+        if self.udp_backlog.iter().any(|&b| b) || !self.peer_ready.is_empty() {
             return Duration::ZERO;
         }
         let engine = self
@@ -308,6 +340,105 @@ impl Shard {
         }
     }
 
+    /// Opens a socket connected to `peer` next to the shared socket it was heard on, so its
+    /// datagrams stop taking a detour through whichever shard the kernel would have picked.
+    fn open_peer_socket(&mut self, local: SocketAddr, peer: SocketAddr) {
+        if self.directory.is_none()
+            || self.peer_by_addr.contains_key(&peer)
+            || self.peer_by_addr.len() >= MAX_PEER_SOCKETS
+        {
+            return;
+        }
+        let Some(&idx) = self.udp_by_advertised.get(&local) else {
+            return;
+        };
+        let Ok(bind) = self.udp[idx].socket.local_addr() else {
+            return;
+        };
+        let socket = match rtcd_net::bind_udp(bind, true, PEER_RECV_BUFFER, 0)
+            .and_then(|s| s.connect(peer).map(|()| s))
+        {
+            Ok(s) => s,
+            Err(err) => {
+                debug!(shard = self.id, %err, %peer, "no socket of its own for a participant");
+                return;
+            }
+        };
+        let mut socket = UdpSocket::from_std(socket);
+        let slot = self.peer_free.pop().unwrap_or_else(|| {
+            self.peer_socks.push(None);
+            self.peer_socks.len() - 1
+        });
+        if self
+            .poll
+            .registry()
+            .register(&mut socket, Token(PEER_BASE + slot), Interest::READABLE)
+            .is_err()
+        {
+            self.peer_free.push(slot);
+            return;
+        }
+        self.peer_socks[slot] = Some(PeerSock {
+            socket,
+            local: idx,
+            peer,
+        });
+        self.peer_by_addr.insert(peer, slot);
+        // What arrived before the socket existed went through the shared one; what is queued there
+        // now is read there. Nothing to catch up on here.
+    }
+
+    fn close_peer_socket(&mut self, peer: SocketAddr) {
+        let Some(slot) = self.peer_by_addr.remove(&peer) else {
+            return;
+        };
+        if let Some(mut ps) = self.peer_socks.get_mut(slot).and_then(Option::take) {
+            let _ = self.poll.registry().deregister(&mut ps.socket);
+            self.peer_free.push(slot);
+        }
+    }
+
+    /// Reads what a connected socket has queued.
+    fn drain_peer(&mut self, slot: usize, now: Instant) {
+        for round in 0..MAX_ROUNDS {
+            let Some(ps) = self.peer_socks.get(slot).and_then(Option::as_ref) else {
+                return;
+            };
+            let advertised = self.udp[ps.local].advertised;
+            let peer_addr = ps.peer;
+            let n = match self.recv.recv(&ps.socket) {
+                Ok(n) => n,
+                // An ICMP error about the peer is reported on the next call; the next read is fine.
+                Err(err) if err.kind() == io::ErrorKind::ConnectionRefused => continue,
+                Err(err) => {
+                    warn!(shard = self.id, %err, "udp receive failed on a participant's socket");
+                    self.close_peer_socket(peer_addr);
+                    return;
+                }
+            };
+            for k in 0..n {
+                let Some((peer, data)) = self.recv.get(k) else {
+                    continue;
+                };
+                self.traffic.udp_in_bytes += data.len() as u64;
+                self.traffic.udp_in_packets += 1;
+                self.engine.handle_datagram(
+                    now,
+                    Proto::Udp,
+                    advertised,
+                    peer,
+                    BytesMut::from(data),
+                );
+            }
+            if n < self.cfg.recv_batch {
+                return;
+            }
+            if round + 1 == MAX_ROUNDS {
+                self.peer_ready.push(slot);
+            }
+        }
+    }
+
     /// Passes the datagrams read for other shards on, one wake-up per shard.
     fn send_forwards(&mut self) {
         let Some(peers) = self.peers.get() else {
@@ -317,6 +448,7 @@ impl Shard {
             if batch.is_empty() {
                 continue;
             }
+            self.traffic.udp_forwarded_packets += batch.len() as u64;
             // A shard that is full or gone loses them, as a congested network would.
             let _ = peers[owner].send(ShardCommand::Datagrams(std::mem::take(batch)));
         }
@@ -570,8 +702,20 @@ impl Shard {
 
     /// Sends what the engine wants sent and reports what it wants reported.
     fn flush(&mut self) {
-        if let Some(dir) = &self.directory {
-            dir.apply(self.id, self.engine.take_route_updates());
+        if self.directory.is_some() {
+            let updates = self.engine.take_route_updates();
+            for update in &updates {
+                match update {
+                    RouteUpdate::AddAddr(Proto::Udp, local, peer) => {
+                        self.open_peer_socket(*local, *peer)
+                    }
+                    RouteUpdate::RemoveAddr(Proto::Udp, peer) => self.close_peer_socket(*peer),
+                    _ => {}
+                }
+            }
+            if let Some(dir) = &self.directory {
+                dir.apply(self.id, updates);
+            }
         }
         while let Some(t) = self.engine.poll_transmit() {
             match t.proto {

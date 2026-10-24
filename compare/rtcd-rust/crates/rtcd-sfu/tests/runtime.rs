@@ -71,6 +71,38 @@ fn calls_on_several_shards_connect_and_hear_only_their_own_call() {
     }
 }
 
+/// Once a shard knows a participant's address it opens a socket connected to it, and the kernel
+/// delivers that participant's datagrams there: the detour through another shard is for the first
+/// few packets only.
+#[test]
+fn datagrams_stop_taking_a_detour_once_the_participant_has_a_socket_of_its_own() {
+    use std::sync::atomic::Ordering::Relaxed;
+    let mut live = Live::start(4);
+    let mut pairs = Vec::new();
+    for c in 0..8 {
+        let a = live.join(&format!("a{c}"), &format!("call{c}"));
+        let b = live.join(&format!("b{c}"), &format!("call{c}"));
+        pairs.push((a, b));
+    }
+    live.run(Duration::from_millis(300));
+    let before = (
+        live.traffic.packets_in.load(Relaxed),
+        live.traffic.forwarded.load(Relaxed),
+    );
+    for &(a, b) in &pairs {
+        live.speak(a, 40);
+        live.speak(b, 40);
+    }
+    live.run(Duration::from_millis(300));
+    let packets = live.traffic.packets_in.load(Relaxed) - before.0;
+    let forwarded = live.traffic.forwarded.load(Relaxed) - before.1;
+    assert!(packets > 1000, "only {packets} datagrams arrived");
+    assert!(
+        forwarded * 20 < packets,
+        "{forwarded} of {packets} datagrams still went through another shard"
+    );
+}
+
 #[test]
 fn a_session_can_leave_and_a_new_one_take_its_place_on_several_shards() {
     let mut live = Live::start(3);

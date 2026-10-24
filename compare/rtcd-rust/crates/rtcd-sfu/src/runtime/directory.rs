@@ -36,7 +36,7 @@ impl Directory {
                         ufrags.remove(&u);
                     }
                 }
-                RouteUpdate::AddAddr(p, a) => {
+                RouteUpdate::AddAddr(p, _, a) => {
                     addrs.insert((p, a), shard);
                 }
                 RouteUpdate::RemoveAddr(p, a) => {
@@ -121,7 +121,7 @@ mod tests {
             1,
             vec![
                 RouteUpdate::AddUfrag("u".into()),
-                RouteUpdate::AddAddr(Proto::Udp, addr(5)),
+                RouteUpdate::AddAddr(Proto::Udp, addr(1), addr(5)),
             ],
         );
         d.apply(

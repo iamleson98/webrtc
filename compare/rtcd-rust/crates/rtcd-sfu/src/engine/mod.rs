@@ -134,7 +134,7 @@ impl Engine {
         peer: std::net::SocketAddr,
         data: BytesMut,
     ) -> bool {
-        let routed = self.route(proto, peer, &data);
+        let routed = self.route(proto, local, peer, &data);
         if let Some(key) = routed {
             if let Some(s) = self.sessions.get_mut(key) {
                 s.last_rx = now;

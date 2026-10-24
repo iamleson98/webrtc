@@ -98,6 +98,12 @@ def main() -> int:
                     problems.append(f"{osdir}: Rust uses more CPU than Go ({r['cpu']}% vs {g['cpu']}%)")
                 if None not in (r["rss"], g["rss"]) and r["rss"] > g["rss"]:
                     problems.append(f"{osdir}: Rust uses more memory than Go ({r['rss']} vs {g['rss']} MiB)")
+        sweep = [(n, load(read(d["rust"], f"load10-s{n}.txt"))) for n in (1, 2, 4)]
+        if any(l["cpu"] is not None for _, l in sweep):
+            out.append("\n**Rust, 300 participants, by shard count**\n")
+            out.append("| shards | CPU (% of a core) | memory | voice delivered | camera delivered |\n|---|---|---|---|---|")
+            for n, l in sweep:
+                out.append(f"| {n} | {fmt(l['cpu'], ' %')} | {fmt(l['rss'], ' MiB', 0)} | {fmt(l['voice'], ' %', 2)} | {fmt(l['camera'], ' %', 2)} |")
         if u["go"][2]:
             out.append(f"\nGo tests failing here: {', '.join(u['go'][2])}\n")
         out.append("")

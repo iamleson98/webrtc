@@ -67,4 +67,12 @@ if [ -f "$OUT/perf.data" ]; then
 fi
 grep -E "joined|join time|voice|camera|server" "$OUT/load10.txt"
 done_
+if [ "$SERVER" = rust ]; then
+  for n in 1 2 4; do
+    step "load, 10 classes, $n shard(s)"
+    RTCD_RTC_SHARDS=$n "$H/bench.sh" "$OUT/rtcd" -calls 10 -seconds 30 > "$OUT/load10-s$n.txt" 2>&1
+    grep -E "voice|camera|server" "$OUT/load10-s$n.txt"
+    done_
+  done
+fi
 rm -f "$OUT/rtcd"

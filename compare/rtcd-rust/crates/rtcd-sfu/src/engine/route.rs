@@ -22,7 +22,8 @@ const MAX_ADDRS_PER_SESSION: usize = 8;
 pub enum RouteUpdate {
     AddUfrag(String),
     RemoveUfrag(String),
-    AddAddr(Proto, SocketAddr),
+    /// An address learned for a session: where it was heard (`local`, as advertised) and from whom.
+    AddAddr(Proto, SocketAddr, SocketAddr),
     RemoveAddr(Proto, SocketAddr),
 }
 
@@ -75,6 +76,7 @@ impl Engine {
     pub(super) fn route(
         &mut self,
         proto: Proto,
+        local: SocketAddr,
         peer: SocketAddr,
         data: &BytesMut,
     ) -> Option<SessionKey> {
@@ -97,7 +99,9 @@ impl Engine {
         s.addrs.push((proto, peer));
         self.routes.by_addr.insert((proto, peer), key);
         if self.routes.publish {
-            self.routes.updates.push(RouteUpdate::AddAddr(proto, peer));
+            self.routes
+                .updates
+                .push(RouteUpdate::AddAddr(proto, local, peer));
         }
         Some(key)
     }

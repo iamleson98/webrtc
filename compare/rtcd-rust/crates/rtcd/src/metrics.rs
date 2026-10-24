@@ -34,6 +34,7 @@ pub struct Metrics {
     net_bytes: [Counter; 4],
     net_packets: [Counter; 4],
     net_dropped: Counter,
+    net_forwarded: Counter,
     rtc_sessions: GaugeVec,
     conn_states: CounterVec,
     rtc_errors: CounterVec,
@@ -167,6 +168,19 @@ impl Metrics {
                     Opts::new(
                         "dropped_packets_total",
                         "Datagrams the kernel refused to send",
+                    )
+                    .namespace(NAMESPACE)
+                    .subsystem("net"),
+                )
+                .expect("valid metric");
+                r.register(Box::new(c.clone())).expect("unique metric");
+                c
+            },
+            net_forwarded: {
+                let c = Counter::with_opts(
+                    Opts::new(
+                        "forwarded_packets_total",
+                        "Datagrams one shard read and passed to the shard that owns the session",
                     )
                     .namespace(NAMESPACE)
                     .subsystem("net"),
@@ -409,6 +423,9 @@ impl SfuMetrics for Metrics {
         }
         if t.udp_dropped_packets > 0 {
             self.net_dropped.inc_by(t.udp_dropped_packets as f64);
+        }
+        if t.udp_forwarded_packets > 0 {
+            self.net_forwarded.inc_by(t.udp_forwarded_packets as f64);
         }
     }
 
