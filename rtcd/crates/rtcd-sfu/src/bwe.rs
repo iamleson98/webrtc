@@ -27,9 +27,18 @@ pub struct EstimateSnapshot {
 impl Estimate {
     fn store(&self, target: f64, stats: EstimatorStats) {
         self.target.store(target.to_bits(), Ordering::Relaxed);
-        self.delay_based.store(stats.delay_based_bitrate.unwrap_or(target).to_bits(), Ordering::Relaxed);
-        self.loss_based.store(stats.loss_based_bitrate.unwrap_or(target).to_bits(), Ordering::Relaxed);
-        self.loss.store(stats.packet_loss.unwrap_or(0.0).to_bits(), Ordering::Relaxed);
+        self.delay_based.store(
+            stats.delay_based_bitrate.unwrap_or(target).to_bits(),
+            Ordering::Relaxed,
+        );
+        self.loss_based.store(
+            stats.loss_based_bitrate.unwrap_or(target).to_bits(),
+            Ordering::Relaxed,
+        );
+        self.loss.store(
+            stats.packet_loss.unwrap_or(0.0).to_bits(),
+            Ordering::Relaxed,
+        );
     }
 
     pub fn snapshot(&self) -> EstimateSnapshot {
@@ -51,7 +60,9 @@ pub struct SharedGcc {
 
 impl std::fmt::Debug for SharedGcc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("SharedGcc").field("target", &self.inner.target_bitrate()).finish()
+        f.debug_struct("SharedGcc")
+            .field("target", &self.inner.target_bitrate())
+            .finish()
     }
 }
 
@@ -62,11 +73,18 @@ impl SharedGcc {
         let out = Arc::new(Estimate::default());
         let inner = Gcc::new(initial, min, max);
         out.store(inner.target_bitrate(), inner.stats());
-        (Self { inner, out: out.clone() }, out)
+        (
+            Self {
+                inner,
+                out: out.clone(),
+            },
+            out,
+        )
     }
 
     fn publish(&self) {
-        self.out.store(self.inner.target_bitrate(), self.inner.stats());
+        self.out
+            .store(self.inner.target_bitrate(), self.inner.stats());
     }
 }
 

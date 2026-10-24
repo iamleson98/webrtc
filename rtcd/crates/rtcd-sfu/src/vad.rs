@@ -46,7 +46,10 @@ pub struct Monitor {
 
 impl Monitor {
     pub fn new(cfg: VadConfig) -> Self {
-        assert!(cfg.sample_size > 1, "a deviation needs at least two samples");
+        assert!(
+            cfg.sample_size > 1,
+            "a deviation needs at least two samples"
+        );
         Self {
             cfg,
             levels: Vec::with_capacity(cfg.sample_size),
@@ -72,7 +75,8 @@ impl Monitor {
             let diff = timestamp.wrapping_sub(last) as i32;
             // A repeated or reordered packet leaves no frames missing.
             if diff > 0 {
-                let missing = ((diff / OPUS_FRAME_SAMPLES) - 1).clamp(0, self.cfg.sample_size as i32);
+                let missing =
+                    ((diff / OPUS_FRAME_SAMPLES) - 1).clamp(0, self.cfg.sample_size as i32);
                 for _ in 0..missing {
                     change = self.push_level(SILENCE_LEVEL, now).or(change);
                 }
@@ -97,7 +101,10 @@ impl Monitor {
             true
         } else if self.voice && deviation < self.cfg.deactivation_threshold {
             // Held on for at least the activation duration.
-            if self.activated_at.is_some_and(|at| now.saturating_duration_since(at) < self.cfg.activation_duration) {
+            if self
+                .activated_at
+                .is_some_and(|at| now.saturating_duration_since(at) < self.cfg.activation_duration)
+            {
                 return None;
             }
             false
@@ -172,7 +179,10 @@ mod tests {
             assert_eq!(m.push_level(60, t + Duration::from_millis(100)), None);
         }
         assert!(m.voice());
-        assert_eq!(m.push_level(60, t + Duration::from_millis(300)), Some(false));
+        assert_eq!(
+            m.push_level(60, t + Duration::from_millis(300)),
+            Some(false)
+        );
         assert!(!m.voice());
     }
 
@@ -200,9 +210,15 @@ mod tests {
         let mut changed = None;
         for _ in 0..10 {
             ts += 960 * 20;
-            changed = m.push_packet(127, ts, t + Duration::from_secs(5)).or(changed);
+            changed = m
+                .push_packet(127, ts, t + Duration::from_secs(5))
+                .or(changed);
         }
-        assert_eq!(changed, Some(false), "ten seconds of DTX silence turn voice off");
+        assert_eq!(
+            changed,
+            Some(false),
+            "ten seconds of DTX silence turn voice off"
+        );
     }
 
     #[test]

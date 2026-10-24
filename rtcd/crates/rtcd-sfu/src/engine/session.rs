@@ -17,7 +17,9 @@ use super::signaling::{Phase, SignalingLock};
 use super::types::Proto;
 use crate::bwe::Estimate;
 use crate::ids::TrackType;
+use crate::layers::{Layer, ScreenLevel, StallWatch};
 use crate::rate::RateMonitor;
+use crate::rewrite::Rewriter;
 use crate::vad::Monitor;
 
 /// Names a session in the engine: an index that is reused after the session ends, and a
@@ -48,13 +50,17 @@ pub(crate) struct Source {
     pub id: u32,
     pub ssrc: u32,
     pub ty: TrackType,
-    pub rid: Option<String>,
+    pub layer: Layer,
     pub codec: RTCRtpCodec,
     pub track_id: MediaStreamTrackId,
     pub receiver: RTCRtpReceiverId,
     /// The id receivers see this stream under; layers of one camera share it.
     pub out_track_id: String,
     pub rate: RateMonitor,
+    /// When a packet of this stream last arrived.
+    pub last_packet: Option<Instant>,
+    /// When a keyframe was last asked of the sender for this stream.
+    pub last_pli: Option<Instant>,
 }
 
 /// What a participant sends.
@@ -73,6 +79,8 @@ pub(crate) struct Uplink {
     pub muted: bool,
     pub vad: Option<Monitor>,
     pub audio_level_ext: Option<u8>,
+    /// Whether the large layer of the camera has stopped while the small one flows.
+    pub camera_stall: StallWatch,
 }
 
 /// Where a stream stands in the receiver's connection.
@@ -101,10 +109,13 @@ pub(crate) struct DownStream {
     pub codec: RTCRtpCodec,
     pub phase: DownPhase,
     pub sender: Option<RTCRtpSenderId>,
-    /// The payload type negotiated for the codec, learned from the sender once it exists.
-    pub payload_type: Option<u8>,
+    /// The payload type was read from the sender (it exists once the offer is answered).
+    pub payload_type_known: bool,
     /// The source currently feeding the stream.
     pub source: Option<u32>,
+    /// The source the stream is waiting to be moved onto, at its next keyframe.
+    pub target: Option<u32>,
+    pub rewrite: Rewriter,
 }
 
 /// What the SFU sends a participant.
@@ -119,6 +130,8 @@ pub(crate) struct Downlink {
     pub low_video: HashSet<String>,
     /// Streams were added or removed since the last offer.
     pub changed: bool,
+    /// Which layer of a screen share this receiver is sent.
+    pub screen_level: ScreenLevel,
 }
 
 impl Downlink {
@@ -142,12 +155,34 @@ impl Downlink {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (u32, &DownStream)> {
-        self.streams.iter().enumerate().filter_map(|(i, s)| Some((i as u32, s.as_ref()?)))
+        self.streams
+            .iter()
+            .enumerate()
+            .filter_map(|(i, s)| Some((i as u32, s.as_ref()?)))
+    }
+
+    /// Ends a stream: one that never reached the connection just disappears, one in the
+    /// connection is removed at the next offer.
+    pub fn drop_stream(&mut self, id: u32) {
+        let Some(ds) = self.get_mut(id) else { return };
+        ds.source = None;
+        ds.target = None;
+        match ds.phase {
+            DownPhase::PendingAdd => self.streams[id as usize] = None,
+            DownPhase::Adding | DownPhase::Active => {
+                ds.phase = DownPhase::PendingRemove;
+                self.changed = true;
+            }
+            DownPhase::PendingRemove | DownPhase::Removing => {}
+        }
     }
 
     /// Whether anything waits for an offer.
     pub fn has_pending(&self) -> bool {
-        self.streams.iter().flatten().any(|s| matches!(s.phase, DownPhase::PendingAdd | DownPhase::PendingRemove))
+        self.streams
+            .iter()
+            .flatten()
+            .any(|s| matches!(s.phase, DownPhase::PendingAdd | DownPhase::PendingRemove))
     }
 }
 
@@ -155,7 +190,6 @@ impl Downlink {
 #[derive(Debug)]
 pub(crate) struct DcState {
     pub id: usize,
-    pub opened_at: Instant,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -186,6 +220,9 @@ pub(crate) struct Session {
     /// Remote candidates that arrived before the offer they belong to.
     pub early_candidates: Vec<RTCIceCandidateInit>,
 
+    /// When the once-a-second upkeep of video streams next runs.
+    pub tick: Option<Instant>,
+
     pub phase: Phase,
     pub lock: SignalingLock,
     /// Why the SFU has not offered yet, if it wants to: when the first change was noted.
@@ -202,7 +239,10 @@ pub(crate) struct Session {
 
 impl std::fmt::Debug for Session {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Session").field("cfg", &self.cfg).field("lifecycle", &self.lifecycle).finish_non_exhaustive()
+        f.debug_struct("Session")
+            .field("cfg", &self.cfg)
+            .field("lifecycle", &self.lifecycle)
+            .finish_non_exhaustive()
     }
 }
 
@@ -230,21 +270,38 @@ impl Sessions {
         if let Some(idx) = self.free.pop() {
             let slot = &mut self.slots[idx as usize];
             slot.value = Some(session);
-            SessionKey { idx, generation: slot.generation }
+            SessionKey {
+                idx,
+                generation: slot.generation,
+            }
         } else {
-            self.slots.push(Slot { generation: 0, value: Some(session) });
-            SessionKey { idx: (self.slots.len() - 1) as u32, generation: 0 }
+            self.slots.push(Slot {
+                generation: 0,
+                value: Some(session),
+            });
+            SessionKey {
+                idx: (self.slots.len() - 1) as u32,
+                generation: 0,
+            }
         }
     }
 
     pub fn get(&self, key: SessionKey) -> Option<&Session> {
         let slot = self.slots.get(key.idx as usize)?;
-        if slot.generation == key.generation { slot.value.as_ref() } else { None }
+        if slot.generation == key.generation {
+            slot.value.as_ref()
+        } else {
+            None
+        }
     }
 
     pub fn get_mut(&mut self, key: SessionKey) -> Option<&mut Session> {
         let slot = self.slots.get_mut(key.idx as usize)?;
-        if slot.generation == key.generation { slot.value.as_mut() } else { None }
+        if slot.generation == key.generation {
+            slot.value.as_mut()
+        } else {
+            None
+        }
     }
 
     pub fn remove(&mut self, key: SessionKey) -> Option<Session> {
@@ -264,6 +321,9 @@ impl Sessions {
             .iter()
             .enumerate()
             .filter(|(_, s)| s.value.is_some())
-            .map(|(i, s)| SessionKey { idx: i as u32, generation: s.generation })
+            .map(|(i, s)| SessionKey {
+                idx: i as u32,
+                generation: s.generation,
+            })
     }
 }

@@ -39,7 +39,12 @@ impl Routes {
 
 impl Engine {
     /// The session `data` from `peer` is for, learning the address from a STUN check.
-    pub(super) fn route(&mut self, proto: Proto, peer: SocketAddr, data: &BytesMut) -> Option<SessionKey> {
+    pub(super) fn route(
+        &mut self,
+        proto: Proto,
+        peer: SocketAddr,
+        data: &BytesMut,
+    ) -> Option<SessionKey> {
         if let Some(&key) = self.routes.by_addr.get(&(proto, peer)) {
             return Some(key);
         }
@@ -99,8 +104,14 @@ mod tests {
 
     #[test]
     fn the_local_part_of_the_username_names_the_session() {
-        assert_eq!(stun_local_ufrag(&binding_request("abcd:wxyz")), Some("abcd"));
-        assert_eq!(stun_local_ufrag(&binding_request("abcdefg")), Some("abcdefg"));
+        assert_eq!(
+            stun_local_ufrag(&binding_request("abcd:wxyz")),
+            Some("abcd")
+        );
+        assert_eq!(
+            stun_local_ufrag(&binding_request("abcdefg")),
+            Some("abcdefg")
+        );
     }
 
     #[test]

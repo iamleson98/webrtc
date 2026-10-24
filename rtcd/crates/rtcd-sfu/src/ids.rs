@@ -53,7 +53,10 @@ pub fn track_id(kind: TrackType, session_id: &str, entropy: u64) -> String {
     for (i, c) in suffix.iter_mut().enumerate() {
         *c = ALPHABET[((entropy >> (5 * i)) & 31) as usize];
     }
-    format!("{kind}_{session_id}_{}", std::str::from_utf8(&suffix).expect("ascii"))
+    format!(
+        "{kind}_{session_id}_{}",
+        std::str::from_utf8(&suffix).expect("ascii")
+    )
 }
 
 /// Who sends a track and what it is, from its id; `None` when the id is not one of ours.
@@ -113,15 +116,29 @@ mod tests {
 
     #[test]
     fn foreign_ids_are_not_ours() {
-        for id in ["", "voice", "voice_s", "voice_s_x_y", "audio_s_x", "voice_s_", "{3f6c}"] {
+        for id in [
+            "",
+            "voice",
+            "voice_s",
+            "voice_s_x_y",
+            "audio_s_x",
+            "voice_s_",
+            "{3f6c}",
+        ] {
             assert_eq!(parse_track_id(id), None, "{id:?}");
         }
     }
 
     #[test]
     fn the_suffix_varies_with_the_entropy() {
-        assert_ne!(track_id(TrackType::Voice, "s", 1), track_id(TrackType::Voice, "s", 2));
-        assert_eq!(track_id(TrackType::Voice, "s", 7), track_id(TrackType::Voice, "s", 7));
+        assert_ne!(
+            track_id(TrackType::Voice, "s", 1),
+            track_id(TrackType::Voice, "s", 2)
+        );
+        assert_eq!(
+            track_id(TrackType::Voice, "s", 7),
+            track_id(TrackType::Voice, "s", 7)
+        );
     }
 
     #[test]

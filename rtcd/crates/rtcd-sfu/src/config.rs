@@ -27,7 +27,10 @@ impl LocalAddress {
     }
 
     pub fn advertised_udp(&self) -> SocketAddr {
-        SocketAddr::new(self.advertised_ip(), self.advertised_udp_port.unwrap_or(self.udp_port))
+        SocketAddr::new(
+            self.advertised_ip(),
+            self.advertised_udp_port.unwrap_or(self.udp_port),
+        )
     }
 
     pub fn advertised_tcp(&self) -> Option<SocketAddr> {
@@ -115,8 +118,18 @@ mod tests {
 
     #[test]
     fn nack_buffers_must_be_powers_of_two_in_range() {
-        for (n, ok) in [(16, false), (32, true), (100, false), (256, true), (8192, true), (16384, false)] {
-            let cfg = EngineConfig { nack_buffer_size: n, ..Default::default() };
+        for (n, ok) in [
+            (16, false),
+            (32, true),
+            (100, false),
+            (256, true),
+            (8192, true),
+            (16384, false),
+        ] {
+            let cfg = EngineConfig {
+                nack_buffer_size: n,
+                ..Default::default()
+            };
             assert_eq!(cfg.validate().is_ok(), ok, "{n}");
         }
     }
@@ -134,7 +147,12 @@ mod tests {
         let addr = |s: &str| s.parse::<SocketAddr>().unwrap();
         assert_eq!(a.advertised_udp(), addr("203.0.113.9:30443"));
         assert_eq!(a.advertised_tcp(), Some(addr("203.0.113.9:8443")));
-        let plain = LocalAddress { public: None, advertised_udp_port: None, tcp_port: None, ..a };
+        let plain = LocalAddress {
+            public: None,
+            advertised_udp_port: None,
+            tcp_port: None,
+            ..a
+        };
         assert_eq!(plain.advertised_udp(), addr("10.0.0.5:8443"));
         assert_eq!(plain.advertised_tcp(), None);
     }

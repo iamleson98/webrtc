@@ -11,8 +11,8 @@ use std::time::Instant;
 use rtc::peer_connection::sdp::{RTCSdpType, RTCSessionDescription};
 use rtc::peer_connection::state::RTCSignalingState;
 use rtc::peer_connection::transport::RTCIceCandidateInit;
-use rtcd_proto::dc::{DcMessage, TrackInfo};
 use rtcd_proto::MessageType;
+use rtcd_proto::dc::{DcMessage, TrackInfo};
 use serde_json::Value;
 use tracing::{debug, error, info, warn};
 
@@ -30,7 +30,9 @@ impl Engine {
     /// A trickled candidate from the participant. It is either the candidate init itself or the
     /// `{"type":"candidate","candidate":{...}}` wrapper the SFU sends its own in.
     pub(super) fn remote_candidate(&mut self, key: SessionKey, data: &[u8]) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         let parsed = serde_json::from_slice::<Value>(data).and_then(|v| {
             let inner = match v.get("candidate") {
                 Some(inner) if inner.is_object() => inner.clone(),
@@ -63,7 +65,13 @@ impl Engine {
     }
 
     /// A session description from the participant, arriving by `via`.
-    pub(super) fn remote_description(&mut self, key: SessionKey, data: &[u8], via: Channel, now: Instant) {
+    pub(super) fn remote_description(
+        &mut self,
+        key: SessionKey,
+        data: &[u8],
+        via: Channel,
+        now: Instant,
+    ) {
         let desc: RTCSessionDescription = match serde_json::from_slice(data) {
             Ok(d) => d,
             Err(err) => {
@@ -75,16 +83,28 @@ impl Engine {
         match desc.sdp_type {
             RTCSdpType::Offer => self.on_offer(key, desc, via, now),
             RTCSdpType::Answer => self.on_answer(key, desc, now),
-            other => warn!(session = %self.session_id(key), ?other, "unexpected session description type"),
+            other => {
+                warn!(session = %self.session_id(key), ?other, "unexpected session description type")
+            }
         }
     }
 
-    fn on_offer(&mut self, key: SessionKey, offer: RTCSessionDescription, via: Channel, now: Instant) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
+    fn on_offer(
+        &mut self,
+        key: SessionKey,
+        offer: RTCSessionDescription,
+        via: Channel,
+        now: Instant,
+    ) {
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         let first = matches!(s.phase, Phase::AwaitingFirstOffer { .. });
         // Both sides offering at once: the SFU's offer stands, the participant's is dropped (a
         // polite client retries once it has our answer).
-        if matches!(s.phase, Phase::Offering { .. }) || s.pc.signaling_state() != RTCSignalingState::Stable {
+        if matches!(s.phase, Phase::Offering { .. })
+            || s.pc.signaling_state() != RTCSignalingState::Stable
+        {
             debug!(session = %s.cfg.session_id, "signaling conflict, ignoring offer");
             return;
         }
@@ -97,11 +117,15 @@ impl Engine {
             return;
         }
         self.add_local_candidates(key);
-        let Some(s) = self.sessions.get_mut(key) else { return };
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         for c in std::mem::take(&mut s.early_candidates) {
             let _ = s.pc.add_remote_candidate(c);
         }
-        let answered = s.pc.create_answer(None).and_then(|answer| s.pc.set_local_description(now, answer));
+        let answered =
+            s.pc.create_answer(None)
+                .and_then(|answer| s.pc.set_local_description(now, answer));
         if let Err(err) = answered {
             self.negotiation_failed(key, first, "answer", &err.to_string(), now);
             return;
@@ -115,27 +139,43 @@ impl Engine {
     }
 
     fn on_answer(&mut self, key: SessionKey, answer: RTCSessionDescription, now: Instant) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         if !matches!(s.phase, Phase::Offering { .. }) {
             debug!(session = %s.cfg.session_id, "answer without an offer, ignoring");
             return;
         }
         if let Err(err) = s.pc.set_remote_description(now, answer) {
-            self.negotiation_failed(key, false, "set remote description of the answer", &err.to_string(), now);
+            self.negotiation_failed(
+                key,
+                false,
+                "set remote description of the answer",
+                &err.to_string(),
+                now,
+            );
             return;
         }
+        debug!(session = %s.cfg.session_id, "answer applied");
         let group = s.cfg.group_id.clone();
         s.phase = Phase::Idle;
         s.offer_failures = 0;
+        // Video that just went live starts at a keyframe, which its sender is asked for.
+        let mut keyframes = Vec::new();
         for slot in s.down.streams.iter_mut() {
             let Some(ds) = slot else { continue };
             match ds.phase {
                 DownPhase::Adding => {
                     ds.phase = DownPhase::Active;
-                    self.metrics.track_added(&group, Direction::Out, &ds.codec.mime_type);
+                    self.metrics
+                        .track_added(&group, Direction::Out, &ds.codec.mime_type);
+                    if let Some(target) = ds.target {
+                        keyframes.push((ds.publisher, target));
+                    }
                 }
                 DownPhase::Removing => {
-                    self.metrics.track_removed(&group, Direction::Out, &ds.codec.mime_type);
+                    self.metrics
+                        .track_removed(&group, Direction::Out, &ds.codec.mime_type);
                     *slot = None;
                 }
                 _ => {}
@@ -144,11 +184,23 @@ impl Engine {
         if let Some(held) = s.lock.server_unlock(now) {
             self.metrics.signaling_lock_held_time(&group, held);
         }
+        for (publisher, source) in keyframes {
+            self.request_keyframe(publisher, source, now);
+        }
         self.mark_dirty(key);
     }
 
-    fn negotiation_failed(&mut self, key: SessionKey, first: bool, what: &str, err: &str, now: Instant) {
-        let Some(s) = self.sessions.get(key) else { return };
+    fn negotiation_failed(
+        &mut self,
+        key: SessionKey,
+        first: bool,
+        what: &str,
+        err: &str,
+        now: Instant,
+    ) {
+        let Some(s) = self.sessions.get(key) else {
+            return;
+        };
         error!(session = %s.cfg.session_id, what, err, first, "negotiation failed");
         self.metrics.error(&s.cfg.group_id, "signaling");
         if first {
@@ -158,10 +210,10 @@ impl Engine {
         }
         // Leave the connection as it was, so the next offer starts clean.
         let s = self.sessions.get_mut(key).expect("checked above");
-        if s.pc.signaling_state() != RTCSignalingState::Stable {
-            if let Ok(rollback) = RTCSessionDescription::rollback(None) {
-                let _ = s.pc.set_local_description(now, rollback);
-            }
+        if s.pc.signaling_state() != RTCSignalingState::Stable
+            && let Ok(rollback) = RTCSessionDescription::rollback(None)
+        {
+            let _ = s.pc.set_local_description(now, rollback);
         }
         if matches!(s.phase, Phase::Offering { .. }) {
             self.offer_unanswered(key, now);
@@ -172,12 +224,11 @@ impl Engine {
     pub(super) fn offer_timed_out(&mut self, key: SessionKey, now: Instant) {
         warn!(session = %self.session_id(key), "timed out waiting for an answer");
         self.metrics.error(&self.group_id(key), "signaling");
-        if let Some(s) = self.sessions.get_mut(key) {
-            if s.pc.signaling_state() != RTCSignalingState::Stable {
-                if let Ok(rollback) = RTCSessionDescription::rollback(None) {
-                    let _ = s.pc.set_local_description(now, rollback);
-                }
-            }
+        if let Some(s) = self.sessions.get_mut(key)
+            && s.pc.signaling_state() != RTCSignalingState::Stable
+            && let Ok(rollback) = RTCSessionDescription::rollback(None)
+        {
+            let _ = s.pc.set_local_description(now, rollback);
         }
         self.offer_unanswered(key, now);
     }
@@ -185,7 +236,9 @@ impl Engine {
     /// Gives up on the offer in flight: its changes go back to pending, and after repeated
     /// failures the session ends.
     fn offer_unanswered(&mut self, key: SessionKey, now: Instant) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         s.offer_failures += 1;
         s.phase = Phase::Idle;
         s.lock.server_unlock(now);
@@ -206,19 +259,25 @@ impl Engine {
     /// Learns the ICE username fragment the connection is listening with now (it changes on an ICE
     /// restart) so checks for it find the session.
     pub(super) fn register_ufrag(&mut self, key: SessionKey) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
-        if let Ok(p) = s.pc.local_ice_parameters() {
-            if !s.ufrags.contains(&p.username_fragment) {
-                s.ufrags.push(p.username_fragment.clone());
-                self.routes.add_ufrag(p.username_fragment, key);
-            }
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
+        if let Ok(p) = s.pc.local_ice_parameters()
+            && !s.ufrags.contains(&p.username_fragment)
+        {
+            s.ufrags.push(p.username_fragment.clone());
+            self.routes.add_ufrag(p.username_fragment, key);
         }
     }
 
     /// Sends the connection's local description to the participant.
     fn send_local_description(&mut self, key: SessionKey, via: Channel, now: Instant) {
-        let Some(s) = self.sessions.get(key) else { return };
-        let Some(desc) = s.pc.local_description() else { return };
+        let Some(s) = self.sessions.get(key) else {
+            return;
+        };
+        let Some(desc) = s.pc.local_description() else {
+            return;
+        };
         let json = serde_json::json!({ "type": desc.sdp_type.to_string(), "sdp": with_opus_dtx(&desc.sdp) });
         let data = json.to_string().into_bytes();
         match via {
@@ -229,7 +288,9 @@ impl Engine {
 
     /// Makes an offer of everything pending, if the session is ready for one.
     pub(super) fn advance_negotiation(&mut self, key: SessionKey, now: Instant) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         if s.phase != Phase::Idle || !s.down.ready {
             return;
         }
@@ -246,22 +307,39 @@ impl Engine {
             return;
         }
         s.wants_offer_since = None;
-        self.metrics.signaling_lock_grab_time(&s.cfg.group_id, now.saturating_duration_since(waiting_since));
+        self.metrics.signaling_lock_grab_time(
+            &s.cfg.group_id,
+            now.saturating_duration_since(waiting_since),
+        );
 
         if let Err(err) = self.apply_downlink(key) {
             self.negotiation_failed(key, false, "apply tracks", &err, now);
             return;
         }
-        let Some(s) = self.sessions.get_mut(key) else { return };
-        let offered = s.pc.create_offer(None).and_then(|offer| s.pc.set_local_description(now, offer));
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
+        let offered =
+            s.pc.create_offer(None)
+                .and_then(|offer| s.pc.set_local_description(now, offer));
         if let Err(err) = offered {
             // The streams were applied but cannot be offered: put the connection back and retry.
-            s.phase = Phase::Offering { deadline: now, via: Channel::Ws };
+            s.phase = Phase::Offering {
+                deadline: now,
+                via: Channel::Ws,
+            };
             self.negotiation_failed(key, false, "offer", &err.to_string(), now);
             return;
         }
-        let via = if s.cfg.props.dc_signaling() { Channel::Dc } else { Channel::Ws };
-        s.phase = Phase::Offering { deadline: now + self.cfg.answer_timeout, via };
+        let via = if s.cfg.props.dc_signaling() {
+            Channel::Dc
+        } else {
+            Channel::Ws
+        };
+        s.phase = Phase::Offering {
+            deadline: now + self.cfg.answer_timeout,
+            via,
+        };
         info!(session = %s.cfg.session_id, "offering");
         self.register_ufrag(key);
         self.send_media_map(key, now);
@@ -271,20 +349,31 @@ impl Engine {
     /// Puts the pending additions and removals into the connection.
     fn apply_downlink(&mut self, key: SessionKey) -> Result<(), String> {
         use rtc::media_stream::MediaStreamTrack;
-        use rtc::rtp_transceiver::rtp_sender::{RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind};
+        use rtc::rtp_transceiver::rtp_sender::{
+            RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind,
+        };
 
-        let Some(s) = self.sessions.get_mut(key) else { return Ok(()) };
+        let Some(s) = self.sessions.get_mut(key) else {
+            return Ok(());
+        };
         for slot in s.down.streams.iter_mut().flatten() {
             match slot.phase {
                 DownPhase::PendingAdd => {
-                    let kind = if slot.codec.mime_type.starts_with("audio/") { RtpCodecKind::Audio } else { RtpCodecKind::Video };
+                    let kind = if slot.codec.mime_type.starts_with("audio/") {
+                        RtpCodecKind::Audio
+                    } else {
+                        RtpCodecKind::Video
+                    };
                     let track = MediaStreamTrack::new(
                         slot.publisher_session_id.clone(),
                         slot.out_track_id.clone(),
                         slot.out_track_id.clone(),
                         kind,
                         vec![RTCRtpEncodingParameters {
-                            rtp_coding_parameters: RTCRtpCodingParameters { ssrc: Some(slot.ssrc), ..Default::default() },
+                            rtp_coding_parameters: RTCRtpCodingParameters {
+                                ssrc: Some(slot.ssrc),
+                                ..Default::default()
+                            },
                             codec: slot.codec.clone(),
                             ..Default::default()
                         }],
@@ -318,16 +407,30 @@ impl Engine {
 
     /// Tells the participant which mid carries which track, ahead of the offer that introduces them.
     fn send_media_map(&mut self, key: SessionKey, now: Instant) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         let mut map = std::collections::BTreeMap::new();
         for id in s.pc.get_transceivers().collect::<Vec<_>>() {
-            let Some(trx) = s.pc.rtp_transceiver(id) else { continue };
+            let Some(trx) = s.pc.rtp_transceiver(id) else {
+                continue;
+            };
             let (mid, sender) = (trx.mid().clone(), trx.sender());
-            let (Some(mid), Some(sender)) = (mid, sender) else { continue };
-            let Some(sender) = s.pc.rtp_sender(sender) else { continue };
+            let (Some(mid), Some(sender)) = (mid, sender) else {
+                continue;
+            };
+            let Some(sender) = s.pc.rtp_sender(sender) else {
+                continue;
+            };
             let track_id = sender.track().track_id().to_string();
             if let Some((ty, from)) = parse_track_id(&track_id) {
-                map.insert(mid, TrackInfo { kind: ty.as_str().to_owned(), sender_id: from.to_owned() });
+                map.insert(
+                    mid,
+                    TrackInfo {
+                        kind: ty.as_str().to_owned(),
+                        sender_id: from.to_owned(),
+                    },
+                );
             }
         }
         if !map.is_empty() {
@@ -349,15 +452,22 @@ pub(crate) fn with_opus_dtx(sdp: &str) -> String {
         .filter_map(|l| l.strip_prefix("a=rtpmap:"))
         .filter_map(|m| {
             let (pt, codec) = m.split_once(' ')?;
-            codec.to_ascii_lowercase().starts_with("opus/").then_some(pt)
+            codec
+                .to_ascii_lowercase()
+                .starts_with("opus/")
+                .then_some(pt)
         })
         .collect();
     lines
         .iter()
-        .map(|line| match line.strip_prefix("a=fmtp:").and_then(|f| f.split_once(' ')) {
-            Some((pt, params)) if opus.contains(&pt) && !params.contains("usedtx=") => format!("{line};usedtx=1"),
-            _ => (*line).to_owned(),
-        })
+        .map(
+            |line| match line.strip_prefix("a=fmtp:").and_then(|f| f.split_once(' ')) {
+                Some((pt, params)) if opus.contains(&pt) && !params.contains("usedtx=") => {
+                    format!("{line};usedtx=1")
+                }
+                _ => (*line).to_owned(),
+            },
+        )
         .collect::<Vec<_>>()
         .join("\r\n")
 }
@@ -370,7 +480,10 @@ mod tests {
     fn dtx_is_added_to_opus_only() {
         let sdp = "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\na=rtpmap:111 opus/48000/2\r\na=fmtp:111 minptime=10;useinbandfec=1\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=rtpmap:96 VP8/90000\r\na=fmtp:96 x=1\r\n";
         let out = with_opus_dtx(sdp);
-        assert!(out.contains("a=fmtp:111 minptime=10;useinbandfec=1;usedtx=1\r\n"), "{out}");
+        assert!(
+            out.contains("a=fmtp:111 minptime=10;useinbandfec=1;usedtx=1\r\n"),
+            "{out}"
+        );
         assert!(out.contains("a=fmtp:96 x=1\r\n"), "{out}");
     }
 

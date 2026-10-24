@@ -20,9 +20,13 @@ pub enum Channel {
 pub enum Holder {
     Free,
     /// The SFU, while an offer of its own is unanswered.
-    Server { since: Instant },
+    Server {
+        since: Instant,
+    },
     /// The participant, between its lock request and its unlock.
-    Client { since: Instant },
+    Client {
+        since: Instant,
+    },
 }
 
 /// The signaling lock of one session.
@@ -34,9 +38,13 @@ pub struct SignalingLock {
 
 impl SignalingLock {
     pub fn new(max_hold: Duration) -> Self {
-        Self { holder: Holder::Free, max_hold }
+        Self {
+            holder: Holder::Free,
+            max_hold,
+        }
     }
 
+    #[cfg(test)]
     pub fn holder(&self) -> Holder {
         self.holder
     }
@@ -113,10 +121,15 @@ impl SignalingLock {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Phase {
     /// The participant's first offer has not arrived.
-    AwaitingFirstOffer { deadline: Instant },
+    AwaitingFirstOffer {
+        deadline: Instant,
+    },
     Idle,
     /// An offer of the SFU's is out, waiting for the participant's answer.
-    Offering { deadline: Instant, via: Channel },
+    Offering {
+        deadline: Instant,
+        via: Channel,
+    },
 }
 
 #[cfg(test)]
@@ -132,9 +145,15 @@ mod tests {
         assert!(lock.client_lock(t));
         assert!(!lock.client_lock(t), "already held");
         assert!(!lock.server_lock(t), "the SFU waits for the participant");
-        assert_eq!(lock.client_unlock(t + Duration::from_millis(40)), Some(Duration::from_millis(40)));
+        assert_eq!(
+            lock.client_unlock(t + Duration::from_millis(40)),
+            Some(Duration::from_millis(40))
+        );
         assert!(lock.server_lock(t));
-        assert!(!lock.client_lock(t), "the participant waits for the SFU's answer");
+        assert!(
+            !lock.client_lock(t),
+            "the participant waits for the SFU's answer"
+        );
         assert!(lock.server_unlock(t).is_some());
     }
 
@@ -144,7 +163,11 @@ mod tests {
         let mut lock = SignalingLock::new(HOLD);
         assert_eq!(lock.client_unlock(t), None);
         assert!(lock.server_lock(t));
-        assert_eq!(lock.client_unlock(t), None, "the participant cannot release the SFU's hold");
+        assert_eq!(
+            lock.client_unlock(t),
+            None,
+            "the participant cannot release the SFU's hold"
+        );
         assert!(matches!(lock.holder(), Holder::Server { .. }));
     }
 

@@ -17,6 +17,7 @@ mod route;
 mod session;
 mod signaling;
 mod types;
+mod video;
 
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::panic::{AssertUnwindSafe, catch_unwind};
@@ -73,7 +74,10 @@ pub struct Engine {
 
 impl std::fmt::Debug for Engine {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Engine").field("sessions", &self.sessions.len()).field("calls", &self.calls.len()).finish()
+        f.debug_struct("Engine")
+            .field("sessions", &self.sessions.len())
+            .field("calls", &self.calls.len())
+            .finish()
     }
 }
 
@@ -116,7 +120,14 @@ impl Engine {
     }
 
     /// Delivers a datagram received on `local` from `peer`.
-    pub fn handle_datagram(&mut self, now: Instant, proto: Proto, local: std::net::SocketAddr, peer: std::net::SocketAddr, data: BytesMut) {
+    pub fn handle_datagram(
+        &mut self,
+        now: Instant,
+        proto: Proto,
+        local: std::net::SocketAddr,
+        peer: std::net::SocketAddr,
+        data: BytesMut,
+    ) {
         if let Some(key) = self.route(proto, peer, &data) {
             if let Some(s) = self.sessions.get_mut(key) {
                 use rtc::shared::{TaggedBytesMut, TransportContext};
@@ -183,11 +194,11 @@ impl Engine {
     }
 
     fn mark_dirty(&mut self, key: SessionKey) {
-        if let Some(s) = self.sessions.get_mut(key) {
-            if !s.dirty {
-                s.dirty = true;
-                self.dirty.push(key);
-            }
+        if let Some(s) = self.sessions.get_mut(key)
+            && !s.dirty
+        {
+            s.dirty = true;
+            self.dirty.push(key);
         }
     }
 
@@ -202,9 +213,18 @@ impl Engine {
             // One participant's bug must not take the whole shard's calls down with it.
             let outcome = catch_unwind(AssertUnwindSafe(|| self.pump(key, now)));
             if outcome.is_err() {
-                let id = self.sessions.get(key).map(|s| s.cfg.session_id.clone()).unwrap_or_default();
+                let id = self
+                    .sessions
+                    .get(key)
+                    .map(|s| s.cfg.session_id.clone())
+                    .unwrap_or_default();
                 error!(session = %id, "session panicked; closing it");
-                self.metrics.error(self.sessions.get(key).map_or("", |s| s.cfg.group_id.as_str()), "panic");
+                self.metrics.error(
+                    self.sessions
+                        .get(key)
+                        .map_or("", |s| s.cfg.group_id.as_str()),
+                    "panic",
+                );
                 self.close_session(key, CloseReason::SignalingFailed, now);
             }
         }
@@ -214,7 +234,9 @@ impl Engine {
     /// negotiation needs next, what it wants to send.
     fn pump(&mut self, key: SessionKey, now: Instant) {
         self.process_events(key, now);
-        let Some(rtp) = self.process_reads(key, now) else { return };
+        let Some(rtp) = self.process_reads(key, now) else {
+            return;
+        };
         self.advance_negotiation(key, now);
         self.forward(key, rtp, now);
         self.flush(key);
@@ -223,16 +245,33 @@ impl Engine {
 
     /// Moves what the connection wants to send into the output queue.
     fn flush(&mut self, key: SessionKey) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         while let Some(t) = s.pc.poll_write() {
             let proto = Proto::from_transport(t.transport.transport_protocol);
-            self.out.push_back(Transmit { proto, local: t.transport.local_addr, peer: t.transport.peer_addr, data: t.message });
+            tracing::trace!(session = %s.cfg.session_id, bytes = t.message.len(), peer = %t.transport.peer_addr, "transmit");
+            self.out.push_back(Transmit {
+                proto,
+                local: t.transport.local_addr,
+                peer: t.transport.peer_addr,
+                data: t.message,
+            });
         }
     }
 
     /// Registers the session's next wake-up in the timer queue.
     fn reschedule(&mut self, key: SessionKey, now: Instant) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
+        let needs_tick = self.needs_tick(key);
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
+        // Video wants looking at once a second, as long as there is any.
+        s.tick = match (needs_tick, s.tick) {
+            (false, _) => None,
+            (true, None) => Some(now + Self::tick_interval()),
+            (true, kept) => kept,
+        };
         let mut next = s.pc.poll_timeout();
         let mut consider = |t: Option<Instant>| {
             if let Some(t) = t {
@@ -240,8 +279,10 @@ impl Engine {
             }
         };
         consider(s.lock.deadline());
+        consider(s.tick);
         consider(match s.phase {
-            signaling::Phase::AwaitingFirstOffer { deadline } | signaling::Phase::Offering { deadline, .. } => Some(deadline),
+            signaling::Phase::AwaitingFirstOffer { deadline }
+            | signaling::Phase::Offering { deadline, .. } => Some(deadline),
             signaling::Phase::Idle => None,
         });
         if s.lifecycle == session::Lifecycle::Connecting {
@@ -266,12 +307,23 @@ impl Engine {
 
     /// Acts on a session's expired deadlines.
     fn check_deadlines(&mut self, key: SessionKey, now: Instant) {
-        let Some(s) = self.sessions.get_mut(key) else { return };
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         if let Some(lost) = s.lock.expire(now) {
             warn!(session = %s.cfg.session_id, ?lost, "signaling lock expired");
-            self.metrics.error(&s.cfg.group_id, "signaling_lock_timeout");
+            self.metrics
+                .error(&s.cfg.group_id, "signaling_lock_timeout");
         }
         let (phase, lifecycle, created_at) = (s.phase, s.lifecycle, s.created_at);
+        if s.tick.is_some_and(|t| now >= t) {
+            s.tick = Some(now + Self::tick_interval());
+            self.housekeeping(key, now);
+        }
+        let Some(s) = self.sessions.get(key) else {
+            return;
+        };
+        let _ = s;
         match phase {
             signaling::Phase::AwaitingFirstOffer { deadline } if now >= deadline => {
                 warn!(session = %self.session_id(key), "timed out waiting for the first offer");
@@ -285,23 +337,33 @@ impl Engine {
             }
             _ => {}
         }
-        if lifecycle == session::Lifecycle::Connecting && now >= created_at + self.cfg.connect_timeout {
+        if lifecycle == session::Lifecycle::Connecting
+            && now >= created_at + self.cfg.connect_timeout
+        {
             warn!(session = %self.session_id(key), "never connected");
             self.close_session(key, CloseReason::ConnectTimeout, now);
         }
     }
 
     fn session_id(&self, key: SessionKey) -> String {
-        self.sessions.get(key).map(|s| s.cfg.session_id.clone()).unwrap_or_default()
+        self.sessions
+            .get(key)
+            .map(|s| s.cfg.session_id.clone())
+            .unwrap_or_default()
     }
 
     fn group_id(&self, key: SessionKey) -> String {
-        self.sessions.get(key).map(|s| s.cfg.group_id.clone()).unwrap_or_default()
+        self.sessions
+            .get(key)
+            .map(|s| s.cfg.group_id.clone())
+            .unwrap_or_default()
     }
 
     /// Queues a message for the service about a session.
     fn emit(&mut self, key: SessionKey, kind: MessageType, data: Vec<u8>) {
-        let Some(s) = self.sessions.get(key) else { return };
+        let Some(s) = self.sessions.get(key) else {
+            return;
+        };
         self.events.push_back(Event::Message(Message {
             group_id: s.cfg.group_id.clone(),
             user_id: s.cfg.user_id.clone(),

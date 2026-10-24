@@ -16,7 +16,11 @@ pub struct RateMonitor {
 impl RateMonitor {
     pub fn new(window: Duration) -> Self {
         assert!(!window.is_zero(), "the window must be positive");
-        Self { window, samples: VecDeque::new(), total: 0 }
+        Self {
+            window,
+            samples: VecDeque::new(),
+            total: 0,
+        }
     }
 
     /// Records a packet of `size` bytes seen at `now`.

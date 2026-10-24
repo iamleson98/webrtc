@@ -75,5 +75,9 @@ pub enum Event {
     /// A message for a session's client: an answer or offer, an ICE candidate, voice activity.
     Message(Message),
     /// A session ended, for whatever reason, and no longer exists.
-    SessionClosed { group_id: String, session_id: String, reason: CloseReason },
+    SessionClosed {
+        group_id: String,
+        session_id: String,
+        reason: CloseReason,
+    },
 }

@@ -6,11 +6,14 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use rtc::interceptor::{
-    CongestionControlBuilder, NackGeneratorBuilder, NackResponderBuilder, PacerBuilder, ReceiverReportBuilder,
-    Registry, SenderReportBuilder, Slot, TwccReceiverBuilder, TwccSenderBuilder,
+    CongestionControlBuilder, KeyframeRequestForwarderBuilder, NackGeneratorBuilder,
+    NackResponderBuilder, PacerBuilder, ReceiverReportBuilder, Registry, SenderReportBuilder, Slot,
+    TwccReceiverBuilder, TwccSenderBuilder,
 };
 use rtc::peer_connection::configuration::RTCConfigurationBuilder;
-use rtc::peer_connection::configuration::media_engine::{MIME_TYPE_AV1, MIME_TYPE_OPUS, MIME_TYPE_VP8, MediaEngine};
+use rtc::peer_connection::configuration::media_engine::{
+    MIME_TYPE_AV1, MIME_TYPE_OPUS, MIME_TYPE_VP8, MediaEngine,
+};
 use rtc::peer_connection::configuration::setting_engine::SettingEngineBuilder;
 use rtc::peer_connection::transport::RTCDtlsRole;
 use rtc::peer_connection::{RTCPeerConnection, RTCPeerConnectionBuilder};
@@ -38,7 +41,10 @@ const VIDEO_EXTENSIONS: [&str; 3] = [
 ];
 
 fn feedback(typ: &str, parameter: &str) -> RTCPFeedback {
-    RTCPFeedback { typ: typ.to_owned(), parameter: parameter.to_owned() }
+    RTCPFeedback {
+        typ: typ.to_owned(),
+        parameter: parameter.to_owned(),
+    }
 }
 
 fn video_codec(mime: &str, payload_type: u8) -> RTCRtpCodecParameters {
@@ -56,7 +62,6 @@ fn video_codec(mime: &str, payload_type: u8) -> RTCRtpCodecParameters {
             ],
         },
         payload_type,
-        ..Default::default()
     }
 }
 
@@ -72,46 +77,81 @@ fn media_engine() -> Result<MediaEngine> {
                 rtcp_feedback: vec![],
             },
             payload_type: OPUS_PAYLOAD_TYPE,
-            ..Default::default()
         },
         RtpCodecKind::Audio,
     )?;
-    m.register_codec(video_codec(MIME_TYPE_VP8, VP8_PAYLOAD_TYPE), RtpCodecKind::Video)?;
-    m.register_codec(video_codec(MIME_TYPE_AV1, AV1_PAYLOAD_TYPE), RtpCodecKind::Video)?;
+    m.register_codec(
+        video_codec(MIME_TYPE_VP8, VP8_PAYLOAD_TYPE),
+        RtpCodecKind::Video,
+    )?;
+    m.register_codec(
+        video_codec(MIME_TYPE_AV1, AV1_PAYLOAD_TYPE),
+        RtpCodecKind::Video,
+    )?;
     m.register_header_extension(
-        RTCRtpHeaderExtensionCapability { uri: AUDIO_LEVEL_URI.to_owned() },
+        RTCRtpHeaderExtensionCapability {
+            uri: AUDIO_LEVEL_URI.to_owned(),
+        },
         RtpCodecKind::Audio,
         None,
     )?;
     for uri in VIDEO_EXTENSIONS {
-        m.register_header_extension(RTCRtpHeaderExtensionCapability { uri: uri.to_owned() }, RtpCodecKind::Video, None)?;
+        m.register_header_extension(
+            RTCRtpHeaderExtensionCapability {
+                uri: uri.to_owned(),
+            },
+            RtpCodecKind::Video,
+            None,
+        )?;
     }
     Ok(m)
 }
 
 /// A new peer connection for a session, and the handle to its bandwidth estimate.
-pub(crate) fn new_peer(cfg: &EngineConfig, now: Instant) -> Result<(RTCPeerConnection, Arc<Estimate>)> {
+pub(crate) fn new_peer(
+    cfg: &EngineConfig,
+    now: Instant,
+) -> Result<(RTCPeerConnection, Arc<Estimate>)> {
     let mut media = media_engine()?;
-    let (estimator, estimate) = SharedGcc::new(cfg.min_bitrate as f64, cfg.min_bitrate as f64, cfg.max_bitrate as f64);
+    let (estimator, estimate) = SharedGcc::new(
+        cfg.min_bitrate as f64,
+        cfg.min_bitrate as f64,
+        cfg.max_bitrate as f64,
+    );
 
     // Order in the chain is decided by the slots, not by the order they are added here.
     let mut registry = Registry::new()
-        .with(Slot::NackResponder, NackResponderBuilder::new().with_size(cfg.nack_buffer_size).build())
+        .with(
+            Slot::NackResponder,
+            NackResponderBuilder::new()
+                .with_size(cfg.nack_buffer_size)
+                .build(),
+        )
         .with(Slot::NackGenerator, NackGeneratorBuilder::new().build())
         .with(Slot::ReceiverReport, ReceiverReportBuilder::new().build())
         .with(Slot::SenderReport, SenderReportBuilder::new().build())
+        // A subscriber's request for a keyframe is the SFU's cue to ask the publisher.
+        .with(
+            Slot::KeyframeRequests,
+            KeyframeRequestForwarderBuilder::new().build(),
+        )
         // Feedback about what the participant sends us, for their own estimator.
         .with(Slot::TwccReceiver, TwccReceiverBuilder::new().build())
         // Numbering of what we send, and the estimator that reads the feedback on it.
         .with(Slot::TwccSender, TwccSenderBuilder::new().build())
-        .with(Slot::CongestionControl, CongestionControlBuilder::new(estimator).build());
+        .with(
+            Slot::CongestionControl,
+            CongestionControlBuilder::new(estimator).build(),
+        );
     if cfg.pacing {
         registry = registry.with(Slot::Pacer, PacerBuilder::new().build());
     }
     for kind in [RtpCodecKind::Video, RtpCodecKind::Audio] {
         media.register_feedback(feedback("transport-cc", ""), kind);
         media.register_header_extension(
-            RTCRtpHeaderExtensionCapability { uri: rtc::sdp::extmap::TRANSPORT_CC_URI.to_owned() },
+            RTCRtpHeaderExtensionCapability {
+                uri: rtc::sdp::extmap::TRANSPORT_CC_URI.to_owned(),
+            },
             kind,
             None,
         )?;
