@@ -29,6 +29,7 @@ use rtc::sansio::Protocol;
 use rtcd_proto::{Message, MessageType};
 use tracing::{debug, error, info, warn};
 
+pub(crate) use route::FastMap;
 pub use route::RouteUpdate;
 pub(crate) use route::stun_local_ufrag;
 pub use signaling::Channel;

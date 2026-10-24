@@ -30,6 +30,10 @@ case $SERVER in
   rust) (cd "$ROOT/rtcd-rust" && cargo test --workspace --no-fail-fast 2>&1) > "$OUT/unit.txt" ;;
 esac
 tail -5 "$OUT/unit.txt"
+# What failed, where the run's annotations can show it (the full output stays in the artifact).
+if grep -qE "FAILED|^FAIL|panicked" "$OUT/unit.txt"; then
+  echo "::warning title=$SERVER unit test failures::$(grep -E "^test .* FAILED|^--- FAIL|^FAIL|panicked at" -A6 "$OUT/unit.txt" | head -60 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+fi
 done_
 
 step "harness bundle"

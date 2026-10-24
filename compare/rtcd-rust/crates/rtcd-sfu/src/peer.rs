@@ -141,7 +141,10 @@ pub(crate) fn new_peer(
         .with(Slot::TwccSender, TwccSenderBuilder::new().build())
         .with(
             Slot::CongestionControl,
-            CongestionControlBuilder::new(estimator).build(),
+            CongestionControlBuilder::new(estimator)
+                // Browsers send transport-wide feedback only, and only video is numbered.
+                .with_twcc_only(true)
+                .build(),
         );
     if cfg.pacing {
         registry = registry.with(Slot::Pacer, PacerBuilder::new().build());

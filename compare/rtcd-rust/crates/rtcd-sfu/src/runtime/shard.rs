@@ -1,7 +1,6 @@
 //! One thread serving a share of the calls: it reads the sockets, hands datagrams to its engine,
 //! and writes what the engine wants sent, in batches.
 
-use std::collections::HashMap;
 use std::io;
 use std::net::SocketAddr;
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, TrySendError};
@@ -19,7 +18,7 @@ use super::config::SfuConfig;
 use super::directory::Directory;
 use super::registry::Registry;
 use super::tcp::TcpConn;
-use crate::engine::{Command, Engine, Event, Proto, RouteUpdate};
+use crate::engine::{Command, Engine, Event, FastMap, Proto, RouteUpdate};
 use crate::metrics::{Metrics, NetTraffic};
 
 const WAKER: Token = Token(0);
@@ -141,19 +140,18 @@ pub(crate) struct Shard {
     poll: Poll,
     commands: Receiver<ShardCommand>,
     udp: Vec<UdpSock>,
-    udp_by_advertised: HashMap<SocketAddr, usize>,
     /// Sockets whose read stopped at the round limit with datagrams left.
     udp_backlog: Vec<bool>,
     recv: RecvBatch,
     send: Vec<SendBatch>,
     peer_socks: Vec<Option<PeerSock>>,
     peer_free: Vec<usize>,
-    peer_by_addr: HashMap<SocketAddr, usize>,
+    peer_by_addr: FastMap<SocketAddr, usize>,
     /// Connected sockets that have something to read.
     peer_ready: Vec<usize>,
     tcp: Vec<Option<TcpConn>>,
     tcp_free: Vec<usize>,
-    tcp_by_peer: HashMap<SocketAddr, usize>,
+    tcp_by_peer: FastMap<SocketAddr, usize>,
     sink: Arc<dyn EventSink>,
     registry: Arc<Registry>,
     cfg: Arc<SfuConfig>,
@@ -187,11 +185,6 @@ impl Shard {
             poll.registry()
                 .register(&mut u.socket, Token(1 + i), Interest::READABLE)?;
         }
-        let udp_by_advertised = udp
-            .iter()
-            .enumerate()
-            .map(|(i, u)| (u.advertised, i))
-            .collect();
         let n = udp.len();
         let mut engine = engine;
         engine.publish_routes(directory.is_some());
@@ -201,18 +194,17 @@ impl Shard {
             engine,
             poll,
             commands,
-            udp_by_advertised,
             udp_backlog: vec![false; n],
             recv: RecvBatch::new(cfg.recv_batch),
             send: (0..n).map(|_| SendBatch::new()).collect(),
             udp,
             peer_socks: Vec::new(),
             peer_free: Vec::new(),
-            peer_by_addr: HashMap::new(),
+            peer_by_addr: FastMap::default(),
             peer_ready: Vec::new(),
             tcp: Vec::new(),
             tcp_free: Vec::new(),
-            tcp_by_peer: HashMap::new(),
+            tcp_by_peer: FastMap::default(),
             sink,
             registry,
             cfg,
@@ -340,6 +332,12 @@ impl Shard {
         }
     }
 
+    /// Which shared socket is the one advertised as `local`. There are a handful of them, one per
+    /// address, so a scan beats hashing the address for every packet sent.
+    fn udp_index(&self, local: SocketAddr) -> Option<usize> {
+        self.udp.iter().position(|u| u.advertised == local)
+    }
+
     /// Opens a socket connected to `peer` next to the shared socket it was heard on, so its
     /// datagrams stop taking a detour through whichever shard the kernel would have picked.
     fn open_peer_socket(&mut self, local: SocketAddr, peer: SocketAddr) {
@@ -349,7 +347,7 @@ impl Shard {
         {
             return;
         }
-        let Some(&idx) = self.udp_by_advertised.get(&local) else {
+        let Some(idx) = self.udp_index(local) else {
             return;
         };
         let Ok(bind) = self.udp[idx].socket.local_addr() else {
@@ -722,7 +720,7 @@ impl Shard {
                 Proto::Udp => {
                     self.traffic.udp_out_bytes += t.data.len() as u64;
                     self.traffic.udp_out_packets += 1;
-                    let idx = self.udp_by_advertised.get(&t.local).copied().unwrap_or(0);
+                    let idx = self.udp_index(t.local).unwrap_or(0);
                     self.send[idx].push(t.peer, t.data);
                 }
                 Proto::Tcp => {

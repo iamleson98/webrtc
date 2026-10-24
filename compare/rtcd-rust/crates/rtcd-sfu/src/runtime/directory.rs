@@ -10,12 +10,12 @@ use std::net::SocketAddr;
 use std::sync::RwLock;
 
 use crate::engine::stun_local_ufrag;
-use crate::engine::{Proto, RouteUpdate};
+use crate::engine::{FastMap, Proto, RouteUpdate};
 
 #[derive(Debug, Default)]
 pub(crate) struct Directory {
     ufrags: RwLock<HashMap<String, usize>>,
-    addrs: RwLock<HashMap<(Proto, SocketAddr), usize>>,
+    addrs: RwLock<FastMap<(Proto, SocketAddr), usize>>,
 }
 
 impl Directory {

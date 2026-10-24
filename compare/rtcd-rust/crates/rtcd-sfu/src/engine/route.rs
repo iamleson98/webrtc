@@ -5,6 +5,10 @@
 //! the ICE username fragment the SFU gave it in its answer.
 
 use std::collections::HashMap;
+
+/// A map hashed with a fast, randomly seeded function: it is read for every datagram, and the
+/// standard SipHash costs more than the lookup is worth.
+pub(crate) type FastMap<K, V> = HashMap<K, V, foldhash::fast::RandomState>;
 use std::net::SocketAddr;
 
 use bytes::BytesMut;
@@ -29,7 +33,7 @@ pub enum RouteUpdate {
 
 #[derive(Debug, Default)]
 pub(crate) struct Routes {
-    by_addr: HashMap<(Proto, SocketAddr), SessionKey>,
+    by_addr: FastMap<(Proto, SocketAddr), SessionKey>,
     by_ufrag: HashMap<String, SessionKey>,
     /// Whether changes are recorded in `updates` (only when other shards need to know).
     publish: bool,

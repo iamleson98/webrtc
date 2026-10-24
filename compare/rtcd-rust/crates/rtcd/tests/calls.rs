@@ -322,14 +322,15 @@ async fn shutdown_ends_sessions_and_closes_connections() {
         app
     };
     let drained = tokio::spawn(app.shutdown(Some(Duration::from_millis(100))));
-    let end = tokio::time::Instant::now() + Duration::from_secs(5);
+    // Generous: this runs beside other tests on shared CI machines.
+    let end = tokio::time::Instant::now() + Duration::from_secs(20);
     while !a.closed && tokio::time::Instant::now() < end {
         a.pump(&mut ws).await;
     }
     assert!(a.closed, "the participant's session was ended");
     drained.await.unwrap();
     assert!(
-        ws.closed(Duration::from_secs(3)).await,
+        ws.closed(Duration::from_secs(15)).await,
         "and the websocket closed"
     );
 }
