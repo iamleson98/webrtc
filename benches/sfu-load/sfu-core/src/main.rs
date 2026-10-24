@@ -18,7 +18,7 @@ use std::time::{Duration, Instant};
 use anyhow::Result;
 use bytes::BytesMut;
 use clap::Parser;
-use rtc::interceptor::Registry;
+use rtc::interceptor::{NackResponderBuilder, Registry, SenderReportBuilder, Slot};
 use rtc::media_stream::MediaStreamTrack;
 use rtc::peer_connection::configuration::RTCConfigurationBuilder;
 use rtc::peer_connection::configuration::interceptor_registry::register_default_interceptors;
@@ -32,9 +32,10 @@ use rtc::peer_connection::transport::{
     CandidateConfig, CandidateHostConfig, RTCDtlsRole, RTCIceCandidate,
 };
 use rtc::peer_connection::{RTCPeerConnection, RTCPeerConnectionBuilder};
+use rtc::rtcp::payload_feedbacks::full_intra_request::FullIntraRequest;
 use rtc::rtcp::payload_feedbacks::picture_loss_indication::PictureLossIndication;
 use rtc::rtp_transceiver::rtp_sender::{
-    RTCRtpCodec, RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind,
+    RTCRtpCodec, RTCPFeedback, RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind,
 };
 use rtc::rtp_transceiver::{RTCRtpReceiverId, RTCRtpSenderId};
 use rtc::sansio::Protocol;
@@ -47,6 +48,13 @@ struct Cli {
     /// Send with sendmmsg and UDP GSO (Linux) instead of one sendto per datagram.
     #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
     batch: bool,
+    /// Viewer connections only send media: give them just a NACK responder and sender reports,
+    /// not the receive-side interceptors (NACK generator, receiver reports, TWCC receiver).
+    #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
+    lean_viewers: bool,
+    /// Packets each viewer's NACK responder remembers (a power of two).
+    #[arg(long, default_value_t = 256)]
+    nack_size: u16,
 }
 
 enum Role {
@@ -79,10 +87,15 @@ struct Server {
     codec: Option<RTCRtpCodec>,
     out: Vec<Out>,
     batch: bool,
+    lean_viewers: bool,
+    nack_size: u16,
     /// UDP GSO works on this host (cleared the first time the kernel refuses it).
     gso: bool,
     forwarded: u64,
     last_pli: Instant,
+    /// A viewer asked for a keyframe (PLI/FIR) or joined; forwarded to the publisher at most once
+    /// a second, as rtcd does.
+    keyframe_wanted: bool,
 }
 
 fn main() -> Result<()> {
@@ -117,9 +130,12 @@ fn main() -> Result<()> {
         codec: None,
         out: Vec::with_capacity(256),
         batch: cli.batch,
+        lean_viewers: cli.lean_viewers,
+        nack_size: cli.nack_size,
         gso: true,
         forwarded: 0,
         last_pli: Instant::now(),
+        keyframe_wanted: false,
     };
     server.run(offer_rx)
 }
@@ -185,8 +201,10 @@ impl Server {
                 }
             }
             if let Some(p) = self.publisher
-                && now.duration_since(self.last_pli) > Duration::from_secs(3)
+                && (now.duration_since(self.last_pli) > Duration::from_secs(3)
+                    || (self.keyframe_wanted && now.duration_since(self.last_pli) >= Duration::from_secs(1)))
             {
+                self.keyframe_wanted = false;
                 self.last_pli = now;
                 self.request_keyframe(p, now);
             }
@@ -218,7 +236,19 @@ impl Server {
 
         let mut media_engine = MediaEngine::default();
         media_engine.register_default_codecs()?;
-        let registry = register_default_interceptors(Registry::new(), &mut media_engine)?;
+        let registry = if is_publisher || !self.lean_viewers {
+            register_default_interceptors(Registry::new(), &mut media_engine)?
+        } else {
+            for (typ, parameter) in [("nack", ""), ("nack", "pli")] {
+                media_engine.register_feedback(
+                    RTCPFeedback { typ: typ.to_owned(), parameter: parameter.to_owned() },
+                    RtpCodecKind::Video,
+                );
+            }
+            Registry::new()
+                .with(Slot::NackResponder, NackResponderBuilder::new().with_size(self.nack_size).build())
+                .with(Slot::SenderReport, SenderReportBuilder::new().build())
+        };
         let mut pc = RTCPeerConnectionBuilder::new()
             .with_configuration(RTCConfigurationBuilder::new().build())
             .with_setting_engine(
@@ -331,6 +361,9 @@ impl Server {
                     while let Some(event) = c.pc.poll_event() {
                         match event {
                             RTCPeerConnectionEvent::OnConnectionStateChangeEvent(state) => {
+                                if state == RTCPeerConnectionState::Connected && matches!(c.role, Role::Viewer { .. }) {
+                                    self.keyframe_wanted = true;
+                                }
                                 if matches!(state, RTCPeerConnectionState::Failed | RTCPeerConnectionState::Closed) {
                                     c.gone = true;
                                 }
@@ -352,8 +385,16 @@ impl Server {
                         }
                     }
                     while let Some(m) = c.pc.poll_read() {
-                        if let (Role::Publisher { .. }, RTCMessage::RtpPacket(_, packet)) = (&c.role, m.message) {
-                            forward.push(packet);
+                        match (&c.role, m.message) {
+                            (Role::Publisher { .. }, RTCMessage::RtpPacket(_, packet)) => forward.push(packet),
+                            (Role::Viewer { .. }, RTCMessage::RtcpPacket(_, packets)) => {
+                                if packets.iter().any(|p| {
+                                    p.as_any().is::<PictureLossIndication>() || p.as_any().is::<FullIntraRequest>()
+                                }) {
+                                    self.keyframe_wanted = true;
+                                }
+                            }
+                            _ => {}
                         }
                     }
                 }
