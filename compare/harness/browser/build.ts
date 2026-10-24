@@ -1,11 +1,11 @@
-// Bundles harness.ts with the LMS web app's real call client (bun build.ts <lms-web dir> <out.js>).
+// Bundles harness.ts with the LMS web app's call client from ./lms (bun build.ts <out.js>).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
-const [lmsWeb, out] = process.argv.slice(2);
-if (!lmsWeb || !out) throw new Error('usage: bun build.ts <lms-web dir> <out.js>');
+const [out] = process.argv.slice(2);
+if (!out) throw new Error('usage: bun build.ts <out.js>');
 const here = import.meta.dir;
-const client = resolve(lmsWeb, 'src/lib/features/calls/call-client.ts');
+const client = resolve(here, 'lms/call-client.ts');
 const entry = resolve(here, '.entry.ts');
 writeFileSync(entry, (await Bun.file(resolve(here, 'harness.ts')).text()).replace('LMS_CALL_CLIENT', client));
 

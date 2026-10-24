@@ -28,6 +28,8 @@ type conn struct {
 	mu     sync.Mutex
 	peers  map[string]*peer
 	closed map[string]bool
+	// onRTC, when set, takes every rtc message instead of the peers (the browser bridge's).
+	onRTC func(rtc.Message)
 }
 
 func dial(register bool) (*conn, error) {
@@ -54,6 +56,10 @@ func dial(register bool) (*conn, error) {
 			case service.ClientMessageRTC, service.ClientMessageVAD:
 				m, ok := msg.Data.(rtc.Message)
 				if !ok {
+					continue
+				}
+				if c.onRTC != nil {
+					c.onRTC(m)
 					continue
 				}
 				c.mu.Lock()
@@ -143,6 +149,9 @@ func main() {
 	flag.Parse()
 	if *loadCalls > 0 {
 		os.Exit(runLoad())
+	}
+	if *browserBundle != "" {
+		os.Exit(runBrowser())
 	}
 	c, err := dial(true)
 	if err != nil {

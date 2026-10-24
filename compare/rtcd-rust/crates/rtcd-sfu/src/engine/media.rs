@@ -203,6 +203,18 @@ impl Engine {
         let Some(s) = self.sessions.get_mut(key) else {
             return;
         };
+        // A renegotiation can announce a stream that is already being received (Chrome's does):
+        // it stays the source it was, or the receivers waiting on it would wait on a stale id.
+        if let Some(known) = s.up.sources.iter().find(|x| x.ssrc == init.ssrc) {
+            if known.receiver == init.receiver_id {
+                return;
+            }
+            let stale = known.id;
+            self.remove_source(key, stale);
+        }
+        let Some(s) = self.sessions.get_mut(key) else {
+            return;
+        };
         let Some(mut receiver) = s.pc.rtp_receiver(init.receiver_id) else {
             return;
         };

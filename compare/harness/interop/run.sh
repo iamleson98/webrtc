@@ -11,7 +11,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 SRC=$(cd "${RTCD_GO_SRC:-$HERE/../../rtcd-go}" && pwd)
 WORK=${INTEROP_WORK:-$(mktemp -d)}
 mkdir -p "$WORK"
-cp "$HERE"/*.go "$WORK"/
+cp "$HERE"/*.go "$HERE"/*.html "$WORK"/
 cat > "$WORK/go.mod" <<MOD
 module interop
 

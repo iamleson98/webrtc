@@ -114,7 +114,11 @@ async function until(what: string, ms: number, done: () => boolean): Promise<voi
 		};
 		const pc = connections[0];
 		if (!pc) return out;
-		(await pc.getStats()).forEach((s: any) => {
+		(out as any).remoteSdp = pc.remoteDescription?.sdp ?? '';
+		(out as any).localSdp = pc.localDescription?.sdp ?? '';
+		const stats = await pc.getStats();
+		const codecOf = (s: any) => (s.codecId ? (stats.get(s.codecId) as any)?.mimeType : '') ?? '';
+		stats.forEach((s: any) => {
 			if (s.type === 'inbound-rtp' && s.kind === 'audio') {
 				out.audioIn += s.packetsReceived ?? 0;
 				out.audioBytesIn += s.bytesReceived ?? 0;
@@ -125,6 +129,10 @@ async function until(what: string, ms: number, done: () => boolean): Promise<voi
 					width: s.frameWidth ?? 0,
 					height: s.frameHeight ?? 0,
 					lost: s.packetsLost ?? 0,
+					codec: codecOf(s),
+					keyframes: s.keyFramesDecoded ?? 0,
+					plis: s.pliCount ?? 0,
+					nacks: s.nackCount ?? 0,
 				});
 			} else if (s.type === 'outbound-rtp' && s.kind === 'video') {
 				out.videoOut.push({
@@ -132,6 +140,9 @@ async function until(what: string, ms: number, done: () => boolean): Promise<voi
 					packets: s.packetsSent ?? 0,
 					frames: s.framesEncoded ?? 0,
 					width: s.frameWidth ?? 0,
+					codec: codecOf(s),
+					plis: s.pliCount ?? 0,
+					keyframes: s.keyFramesEncoded ?? 0,
 				});
 			}
 		});
