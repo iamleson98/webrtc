@@ -326,5 +326,18 @@ async fn system(State(svc): State<Arc<Service>>, method: axum::http::Method) -> 
     if method != axum::http::Method::GET {
         return not_found();
     }
-    json_response(&svc.system.info())
+    // `cpu_load` is the Go service's key; the rest is for choosing the instance a new call goes to.
+    #[derive(serde::Serialize)]
+    struct Body {
+        cpu_load: f64,
+        /// Sessions running on this instance.
+        sessions: usize,
+        /// Threads serving them.
+        shards: usize,
+    }
+    json_response(&Body {
+        cpu_load: svc.system.info().cpu_load,
+        sessions: svc.sfu.session_count(),
+        shards: svc.sfu.shard_count(),
+    })
 }

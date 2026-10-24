@@ -43,6 +43,17 @@ async fn the_version_has_the_keys_clients_decode() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
+async fn the_system_info_carries_the_load_of_the_instance() {
+    let s = TestServer::start().await;
+    let (code, v) = body(s.http.get(s.url("/system")).send().await.unwrap()).await;
+    assert_eq!(code, 200);
+    // `cpu_load` is the Go service's key; a client decoding only that one is unaffected by the rest.
+    assert!(v["cpu_load"].is_number(), "{v}");
+    assert_eq!(v["sessions"], 0, "{v}");
+    assert!(v["shards"].as_u64().unwrap() >= 1, "{v}");
+}
+
+#[tokio::test(flavor = "multi_thread")]
 async fn a_client_registers_logs_in_and_unregisters_itself() {
     let s = TestServer::start().await;
     let (code, v) = body(

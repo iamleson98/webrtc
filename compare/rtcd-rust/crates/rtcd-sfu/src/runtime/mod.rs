@@ -255,6 +255,11 @@ impl Sfu {
         self.registry.len()
     }
 
+    /// How many threads serve sessions.
+    pub fn shard_count(&self) -> usize {
+        self.shards.len()
+    }
+
     /// Stops the SFU: refuses new sessions, waits up to `drain` for the running ones to end on
     /// their own, then ends the rest and stops the threads.
     pub fn shutdown(&self, drain: Duration) {
