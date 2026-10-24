@@ -29,6 +29,8 @@ use rtc::sansio::Protocol;
 use rtcd_proto::{Message, MessageType};
 use tracing::{debug, error, info, warn};
 
+pub use route::RouteUpdate;
+pub(crate) use route::stun_local_ufrag;
 pub use signaling::Channel;
 pub use types::{CloseReason, Command, Event, Proto, Transmit};
 
@@ -55,6 +57,8 @@ pub(crate) struct CallId {
 
 /// The core of an SFU shard.
 pub struct Engine {
+    /// Counts packet writes, to time one in a few.
+    write_clock: u32,
     cfg: Arc<EngineConfig>,
     metrics: Arc<dyn Metrics>,
     rng: Rng,
@@ -84,6 +88,7 @@ impl std::fmt::Debug for Engine {
 impl Engine {
     pub fn new(cfg: Arc<EngineConfig>, metrics: Arc<dyn Metrics>, rng: Rng) -> Self {
         Self {
+            write_clock: 0,
             cfg,
             metrics,
             rng,

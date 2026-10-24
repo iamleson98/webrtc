@@ -32,6 +32,64 @@ fn two_browsers_connect_and_hear_each_other_over_real_sockets() {
     );
 }
 
+/// Calls live on different shards, but the kernel hands each datagram to whichever shard owns the
+/// sender's socket hash: the shards must pass on what is not theirs.
+#[test]
+fn calls_on_several_shards_connect_and_hear_only_their_own_call() {
+    let mut live = Live::start(4);
+    let mut pairs = Vec::new();
+    for c in 0..8 {
+        let a = live.join(&format!("a{c}"), &format!("call{c}"));
+        let b = live.join(&format!("b{c}"), &format!("call{c}"));
+        pairs.push((a, b));
+    }
+    assert_eq!(live.sfu.session_count(), 16);
+
+    for &(a, b) in &pairs {
+        live.speak(a, 30);
+        live.speak(b, 30);
+    }
+    live.run(Duration::from_millis(500));
+
+    for (c, &(a, b)) in pairs.iter().enumerate() {
+        assert!(
+            live.browsers[b].received(&format!("voice_session-a{c}")) > 15,
+            "b{c} heard {} from a{c}",
+            live.browsers[b].received("voice_")
+        );
+        assert!(
+            live.browsers[a].received(&format!("voice_session-b{c}")) > 15,
+            "a{c} heard {} from b{c}",
+            live.browsers[a].received("voice_")
+        );
+        // Nobody hears another call.
+        assert_eq!(
+            live.browsers[a].received("voice_"),
+            live.browsers[a].received(&format!("voice_session-b{c}")),
+            "a{c} heard someone outside the call"
+        );
+    }
+}
+
+#[test]
+fn a_session_can_leave_and_a_new_one_take_its_place_on_several_shards() {
+    let mut live = Live::start(3);
+    let a = live.join("alice", "call1");
+    let b = live.join("bob", "call1");
+    live.speak(a, 20);
+    live.run(Duration::from_millis(200));
+    assert!(live.browsers[b].received("voice_session-alice") > 5);
+
+    live.sfu.leave("session-bob");
+    assert!(live.run_until(Duration::from_secs(5), |l| l.sfu.session_count() == 1));
+    let c = live.join("carol", "call1");
+    live.speak(c, 30);
+    live.speak(a, 30);
+    live.run(Duration::from_millis(400));
+    assert!(live.browsers[a].received("voice_session-carol") > 15);
+    assert!(live.browsers[c].received("voice_session-alice") > 15);
+}
+
 #[test]
 fn the_http_lookups_see_sessions_by_group_call_and_id() {
     let mut live = Live::start(1);

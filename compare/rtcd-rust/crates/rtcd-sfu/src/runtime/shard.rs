@@ -4,8 +4,8 @@
 use std::collections::HashMap;
 use std::io;
 use std::net::SocketAddr;
-use std::sync::Arc;
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, TrySendError};
+use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
@@ -16,9 +16,11 @@ use tracing::{debug, error, warn};
 
 use super::EventSink;
 use super::config::SfuConfig;
+use super::directory::Directory;
 use super::registry::Registry;
 use super::tcp::TcpConn;
 use crate::engine::{Command, Engine, Event, Proto};
+use crate::metrics::{Metrics, NetTraffic};
 
 const WAKER: Token = Token(0);
 const TCP_BASE: usize = 1 << 16;
@@ -27,10 +29,27 @@ const MAX_ROUNDS: usize = 16;
 /// How often idle TCP connections are looked for.
 const SWEEP_EVERY: Duration = Duration::from_secs(1);
 
+/// A datagram another shard read and found to be this one's.
+#[derive(Debug)]
+pub(crate) struct Forwarded {
+    pub proto: Proto,
+    pub local: SocketAddr,
+    pub peer: SocketAddr,
+    pub data: BytesMut,
+}
+
 /// What a shard is told to do.
 #[derive(Debug)]
 pub(crate) enum ShardCommand {
     Engine(Command),
+    /// Datagrams another shard read that belong to this one's sessions.
+    Datagrams(Vec<Forwarded>),
+    /// A TCP connection another shard accepted whose first packet named a session of this one,
+    /// with the packets read from it so far.
+    TcpHandover {
+        conn: Box<TcpConn>,
+        frames: Vec<BytesMut>,
+    },
     /// A TCP connection accepted on `local` (the address as advertised).
     Tcp {
         stream: std::net::TcpStream,
@@ -90,6 +109,11 @@ pub(crate) struct ShardParts {
     pub sink: Arc<dyn EventSink>,
     pub registry: Arc<Registry>,
     pub cfg: Arc<SfuConfig>,
+    /// Present when there are several shards.
+    pub metrics: Arc<dyn Metrics>,
+    pub directory: Option<Arc<Directory>>,
+    /// Every shard's handle, set once they all exist.
+    pub peers: Arc<OnceLock<Vec<ShardHandle>>>,
 }
 
 pub(crate) struct Shard {
@@ -109,6 +133,13 @@ pub(crate) struct Shard {
     sink: Arc<dyn EventSink>,
     registry: Arc<Registry>,
     cfg: Arc<SfuConfig>,
+    metrics: Arc<dyn Metrics>,
+    /// What crossed the sockets since it was last reported.
+    traffic: NetTraffic,
+    directory: Option<Arc<Directory>>,
+    peers: Arc<OnceLock<Vec<ShardHandle>>>,
+    /// Datagrams read for other shards, collected per shard until the end of a read round.
+    forward: Vec<Vec<Forwarded>>,
     stopping: bool,
     next_sweep: Instant,
 }
@@ -124,6 +155,9 @@ impl Shard {
             sink,
             registry,
             cfg,
+            metrics,
+            directory,
+            peers,
         } = parts;
         for (i, u) in udp.iter_mut().enumerate() {
             poll.registry()
@@ -135,6 +169,9 @@ impl Shard {
             .map(|(i, u)| (u.advertised, i))
             .collect();
         let n = udp.len();
+        let mut engine = engine;
+        engine.publish_routes(directory.is_some());
+        let shards = cfg.shards;
         Ok(Self {
             id,
             engine,
@@ -151,6 +188,11 @@ impl Shard {
             sink,
             registry,
             cfg,
+            metrics,
+            traffic: NetTraffic::default(),
+            directory,
+            peers,
+            forward: (0..shards).map(|_| Vec::new()).collect(),
             stopping: false,
             next_sweep: Instant::now() + SWEEP_EVERY,
         })
@@ -232,6 +274,21 @@ impl Shard {
                 let Some((peer, data)) = self.recv.get(k) else {
                     continue;
                 };
+                self.traffic.udp_in_bytes += data.len() as u64;
+                self.traffic.udp_in_packets += 1;
+                if let Some(dir) = &self.directory
+                    && !self.engine.would_route(Proto::Udp, peer, data)
+                    && let Some(owner) = dir.owner(Proto::Udp, peer, data)
+                    && owner != self.id
+                {
+                    self.forward[owner].push(Forwarded {
+                        proto: Proto::Udp,
+                        local: advertised,
+                        peer,
+                        data: BytesMut::from(data),
+                    });
+                    continue;
+                }
                 self.engine.handle_datagram(
                     now,
                     Proto::Udp,
@@ -240,6 +297,7 @@ impl Shard {
                     BytesMut::from(data),
                 );
             }
+            self.send_forwards();
             if n < self.cfg.recv_batch {
                 return;
             }
@@ -250,7 +308,77 @@ impl Shard {
         }
     }
 
+    /// Passes the datagrams read for other shards on, one wake-up per shard.
+    fn send_forwards(&mut self) {
+        let Some(peers) = self.peers.get() else {
+            return;
+        };
+        for (owner, batch) in self.forward.iter_mut().enumerate() {
+            if batch.is_empty() {
+                continue;
+            }
+            // A shard that is full or gone loses them, as a congested network would.
+            let _ = peers[owner].send(ShardCommand::Datagrams(std::mem::take(batch)));
+        }
+    }
+
     // ----------------------------------------------------------------------------------- TCP
+
+    /// Takes over a connection another shard accepted, and the packets it has already read.
+    fn tcp_adopt(&mut self, mut conn: TcpConn, frames: Vec<BytesMut>, now: Instant) {
+        let idx = self.tcp_free.pop().unwrap_or_else(|| {
+            self.tcp.push(None);
+            self.tcp.len() - 1
+        });
+        if let Err(err) = self.poll.registry().register(
+            &mut conn.stream,
+            Token(TCP_BASE + idx),
+            Interest::READABLE,
+        ) {
+            warn!(shard = self.id, %err, "tcp registration failed");
+            self.tcp_free.push(idx);
+            return;
+        }
+        conn.wants_write = false;
+        let (local, peer) = (conn.local, conn.peer);
+        if let Some(old) = self.tcp_by_peer.insert(peer, idx) {
+            self.tcp_close(old);
+        }
+        self.tcp[idx] = Some(conn);
+        let mut identified = false;
+        for frame in frames {
+            identified |= self
+                .engine
+                .handle_datagram(now, Proto::Tcp, local, peer, frame);
+        }
+        if let Some(c) = self.tcp.get_mut(idx).and_then(Option::as_mut) {
+            c.identified = identified;
+        }
+        if !identified {
+            self.tcp_close(idx);
+        }
+    }
+
+    /// Moves connection `idx` to the shard `owner`, with `frames` (the packets read from it that
+    /// are not handled yet).
+    fn tcp_hand_over(&mut self, idx: usize, owner: usize, frames: Vec<BytesMut>) {
+        let Some(mut conn) = self.tcp.get_mut(idx).and_then(Option::take) else {
+            return;
+        };
+        let _ = self.poll.registry().deregister(&mut conn.stream);
+        if self.tcp_by_peer.get(&conn.peer) == Some(&idx) {
+            self.tcp_by_peer.remove(&conn.peer);
+        }
+        self.tcp_free.push(idx);
+        if let Some(peers) = self.peers.get() {
+            // If the owner cannot take it the connection is dropped, which the participant
+            // answers by connecting again.
+            let _ = peers[owner].send(ShardCommand::TcpHandover {
+                conn: Box::new(conn),
+                frames,
+            });
+        }
+    }
 
     fn tcp_add(
         &mut self,
@@ -292,7 +420,21 @@ impl Shard {
             let (frames, open) = conn.read(now);
             let (local, peer) = (conn.local, conn.peer);
             let mut identified = conn.identified;
-            for frame in frames {
+            let mut frames = frames.into_iter();
+            while let Some(frame) = frames.next() {
+                self.traffic.tcp_in_bytes += frame.len() as u64;
+                self.traffic.tcp_in_packets += 1;
+                if !identified
+                    && let Some(dir) = &self.directory
+                    && !self.engine.would_route(Proto::Tcp, peer, &frame)
+                    && let Some(owner) = dir.owner(Proto::Tcp, peer, &frame)
+                    && owner != self.id
+                {
+                    let mut rest = vec![frame];
+                    rest.extend(frames);
+                    self.tcp_hand_over(idx, owner, rest);
+                    return;
+                }
                 let routed = self
                     .engine
                     .handle_datagram(now, Proto::Tcp, local, peer, frame);
@@ -395,6 +537,15 @@ impl Shard {
         loop {
             match self.commands.try_recv() {
                 Ok(ShardCommand::Engine(cmd)) => self.engine.handle_command(now, cmd),
+                Ok(ShardCommand::Datagrams(batch)) => {
+                    for d in batch {
+                        self.engine
+                            .handle_datagram(now, d.proto, d.local, d.peer, d.data);
+                    }
+                }
+                Ok(ShardCommand::TcpHandover { conn, frames }) => {
+                    self.tcp_adopt(*conn, frames, now)
+                }
                 Ok(ShardCommand::Tcp {
                     stream,
                     local,
@@ -419,18 +570,28 @@ impl Shard {
 
     /// Sends what the engine wants sent and reports what it wants reported.
     fn flush(&mut self) {
+        if let Some(dir) = &self.directory {
+            dir.apply(self.id, self.engine.take_route_updates());
+        }
         while let Some(t) = self.engine.poll_transmit() {
             match t.proto {
                 Proto::Udp => {
+                    self.traffic.udp_out_bytes += t.data.len() as u64;
+                    self.traffic.udp_out_packets += 1;
                     let idx = self.udp_by_advertised.get(&t.local).copied().unwrap_or(0);
                     self.send[idx].push(t.peer, t.data);
                 }
-                Proto::Tcp => self.tcp_send(t.peer, &t.data),
+                Proto::Tcp => {
+                    self.traffic.tcp_out_bytes += t.data.len() as u64;
+                    self.traffic.tcp_out_packets += 1;
+                    self.tcp_send(t.peer, &t.data)
+                }
             }
         }
         for (i, batch) in self.send.iter_mut().enumerate() {
             if !batch.is_empty() {
                 let report = batch.flush(&self.udp[i].socket);
+                self.traffic.udp_dropped_packets += report.dropped as u64;
                 if report.dropped > 0 {
                     debug!(
                         shard = self.id,
@@ -439,6 +600,9 @@ impl Shard {
                     );
                 }
             }
+        }
+        if !self.traffic.is_empty() {
+            self.metrics.net_traffic(std::mem::take(&mut self.traffic));
         }
         while let Some(event) = self.engine.poll_event() {
             if let Event::SessionClosed { session_id, .. } = &event {

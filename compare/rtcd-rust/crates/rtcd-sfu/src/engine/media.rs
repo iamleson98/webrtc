@@ -35,6 +35,8 @@ pub(crate) struct Fan {
     /// Receivers that take this stream over from another at its next keyframe, or start with it.
     pub waiting: Vec<SubRef>,
     pub vp8: bool,
+    /// What the stream carries, for the uplink counter.
+    pub ty: TrackType,
 }
 
 #[derive(Deserialize)]
@@ -299,6 +301,7 @@ impl Engine {
                 serving: Vec::new(),
                 waiting: Vec::new(),
                 vp8: is_vp8,
+                ty,
             },
         );
 
@@ -539,6 +542,9 @@ impl Engine {
             let Some(fan) = self.fanout.get(&sk) else {
                 continue;
             };
+            // The uplink counts whether or not anyone receives the stream.
+            let size = packet.marshal_size() as u64;
+            self.metrics.rtp_bytes_received(fan.ty, size);
             if fan.serving.is_empty() && fan.waiting.is_empty() {
                 continue;
             }
@@ -571,13 +577,22 @@ impl Engine {
                     switched.push(sub);
                 }
             }
-            for &sub in &fan.serving {
+            // One write in 64 is timed, for the write-time metric.
+            self.write_clock = self.write_clock.wrapping_add(1);
+            let timed = self.write_clock.is_multiple_of(64);
+            for (n, &sub) in fan.serving.iter().enumerate() {
                 let Some(r) = self.sessions.get_mut(sub.session) else {
                     continue;
                 };
-                if write_down(r, sub, &packet, now, &mut self.dirty) {
-                    sent[type_slot(r.down.get(sub.stream).map_or(TrackType::Voice, |d| d.ty))] +=
-                        size;
+                let started = (timed && n == 0).then(Instant::now);
+                let wrote = write_down(r, sub, &packet, now, &mut self.dirty);
+                let ty = r.down.get(sub.stream).map_or(TrackType::Voice, |d| d.ty);
+                if wrote {
+                    sent[type_slot(ty)] += size;
+                }
+                if let Some(started) = started {
+                    self.metrics
+                        .rtp_write_time(&r.cfg.group_id, ty, started.elapsed());
                 }
             }
             for ty in TrackType::ALL {

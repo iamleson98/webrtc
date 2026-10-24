@@ -4,10 +4,11 @@
 use std::time::Duration;
 
 use prometheus::{
-    CounterVec, Encoder, GaugeVec, HistogramOpts, HistogramVec, Opts, Registry, TextEncoder,
+    Counter, CounterVec, Encoder, GaugeVec, HistogramOpts, HistogramVec, Opts, Registry,
+    TextEncoder,
 };
 use rtcd_sfu::ids::TrackType;
-use rtcd_sfu::metrics::{Direction, Metrics as SfuMetrics};
+use rtcd_sfu::metrics::{Direction, Metrics as SfuMetrics, NetTraffic};
 
 const NAMESPACE: &str = "rtcd";
 const LATENCY_BUCKETS: [f64; 14] = [
@@ -25,7 +26,14 @@ const SETUP_BUCKETS: [f64; 14] = [
 pub struct Metrics {
     registry: Registry,
     rtp_tracks: GaugeVec,
-    rtp_bytes_sent: CounterVec,
+    /// One counter per track type, resolved once: a label lookup on every packet would show.
+    rtp_bytes_sent: [Counter; 4],
+    rtp_write_time: HistogramVec,
+    rtp_bytes_received: [Counter; 4],
+    /// Bytes and packets on the sockets: [udp in, udp out, tcp in, tcp out].
+    net_bytes: [Counter; 4],
+    net_packets: [Counter; 4],
+    net_dropped: Counter,
     rtc_sessions: GaugeVec,
     conn_states: CounterVec,
     rtc_errors: CounterVec,
@@ -96,7 +104,10 @@ impl Metrics {
         #[cfg(target_os = "linux")]
         {
             // Process CPU, memory and file descriptors, prefixed like the Go process collector.
-            let collector = prometheus::process_collector::ProcessCollector::for_self();
+            let collector = prometheus::process_collector::ProcessCollector::new(
+                std::process::id() as i32,
+                NAMESPACE,
+            );
             let _ = registry.register(Box::new(collector));
         }
         let r = &registry;
@@ -108,12 +119,69 @@ impl Metrics {
                 "Total number of active RTP tracks",
                 &["groupID", "direction", "type"],
             ),
-            rtp_bytes_sent: counter(
+            rtp_bytes_sent: {
+                let family = counter(
+                    r,
+                    "rtc",
+                    "rtp_bytes_sent_total",
+                    "RTP bytes (header and payload) sent to receivers, by track type",
+                    &["type"],
+                );
+                // Every type is reported from the start, at 0, as the Go service does.
+                TrackType::ALL.map(|t| family.with_label_values(&[t.as_str()]))
+            },
+            rtp_bytes_received: {
+                let family = counter(
+                    r,
+                    "rtc",
+                    "rtp_bytes_received_total",
+                    "RTP bytes (header and payload) received from participants, by track type",
+                    &["type"],
+                );
+                TrackType::ALL.map(|t| family.with_label_values(&[t.as_str()]))
+            },
+            net_bytes: {
+                let family = counter(
+                    r,
+                    "net",
+                    "bytes_total",
+                    "Bytes that crossed the media sockets (RTP, RTCP, STUN and DTLS), without IP and UDP headers",
+                    &["direction", "transport"],
+                );
+                [("in", "udp"), ("out", "udp"), ("in", "tcp"), ("out", "tcp")]
+                    .map(|(d, t)| family.with_label_values(&[d, t]))
+            },
+            net_packets: {
+                let family = counter(
+                    r,
+                    "net",
+                    "packets_total",
+                    "Packets that crossed the media sockets",
+                    &["direction", "transport"],
+                );
+                [("in", "udp"), ("out", "udp"), ("in", "tcp"), ("out", "tcp")]
+                    .map(|(d, t)| family.with_label_values(&[d, t]))
+            },
+            net_dropped: {
+                let c = Counter::with_opts(
+                    Opts::new(
+                        "dropped_packets_total",
+                        "Datagrams the kernel refused to send",
+                    )
+                    .namespace(NAMESPACE)
+                    .subsystem("net"),
+                )
+                .expect("valid metric");
+                r.register(Box::new(c.clone())).expect("unique metric");
+                c
+            },
+            rtp_write_time: histogram(
                 r,
                 "rtc",
-                "rtp_bytes_sent_total",
-                "RTP bytes (header and payload) sent to receivers, by track type",
-                &["type"],
+                "rtp_tracks_writes_time",
+                "Time taken to write to RTP tracks",
+                &LATENCY_BUCKETS,
+                &["groupID", "type"],
             ),
             rtc_sessions: gauge(
                 r,
@@ -309,9 +377,45 @@ impl SfuMetrics for Metrics {
     }
 
     fn rtp_bytes_sent(&self, kind: TrackType, bytes: u64) {
-        self.rtp_bytes_sent
-            .with_label_values(&[kind.as_str()])
-            .inc_by(bytes as f64);
+        if let Some(i) = TrackType::ALL.iter().position(|t| *t == kind) {
+            self.rtp_bytes_sent[i].inc_by(bytes as f64);
+        }
+    }
+
+    fn rtp_bytes_received(&self, kind: TrackType, bytes: u64) {
+        if let Some(i) = TrackType::ALL.iter().position(|t| *t == kind) {
+            self.rtp_bytes_received[i].inc_by(bytes as f64);
+        }
+    }
+
+    fn net_traffic(&self, t: NetTraffic) {
+        let bytes = [
+            t.udp_in_bytes,
+            t.udp_out_bytes,
+            t.tcp_in_bytes,
+            t.tcp_out_bytes,
+        ];
+        let packets = [
+            t.udp_in_packets,
+            t.udp_out_packets,
+            t.tcp_in_packets,
+            t.tcp_out_packets,
+        ];
+        for i in 0..4 {
+            if bytes[i] > 0 {
+                self.net_bytes[i].inc_by(bytes[i] as f64);
+                self.net_packets[i].inc_by(packets[i] as f64);
+            }
+        }
+        if t.udp_dropped_packets > 0 {
+            self.net_dropped.inc_by(t.udp_dropped_packets as f64);
+        }
+    }
+
+    fn rtp_write_time(&self, group: &str, kind: TrackType, took: Duration) {
+        self.rtp_write_time
+            .with_label_values(&[group, kind.as_str()])
+            .observe(took.as_secs_f64());
     }
 }
 

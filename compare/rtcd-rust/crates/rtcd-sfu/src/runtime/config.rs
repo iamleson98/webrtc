@@ -49,7 +49,7 @@ pub enum SfuConfigError {
     Engine(#[from] ConfigError),
     #[error("at least one address to listen on is required")]
     NoAddresses,
-    #[error("shards must be 1 (cross-shard datagram routing is not implemented), got {0}")]
+    #[error("shards must be between 1 and 256, got {0}")]
     Shards(usize),
     #[error("recv_batch must be between 1 and 1024, got {0}")]
     RecvBatch(usize),
@@ -61,9 +61,7 @@ impl SfuConfig {
         if self.engine.addresses.is_empty() {
             return Err(SfuConfigError::NoAddresses);
         }
-        // Sockets of several shards share a port and the kernel picks which one gets a datagram, so
-        // a shard must be able to pass on what belongs to another. That routing is not built yet.
-        if self.shards != 1 {
+        if !(1..=256).contains(&self.shards) {
             return Err(SfuConfigError::Shards(self.shards));
         }
         if !(1..=1024).contains(&self.recv_batch) {

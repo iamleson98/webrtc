@@ -70,6 +70,42 @@ pub trait Metrics: Send + Sync + 'static {
     fn rtp_bytes_sent(&self, kind: TrackType, bytes: u64) {
         let _ = (kind, bytes);
     }
+    /// RTP bytes (header and payload) received from participants, by track type: the uplink.
+    fn rtp_bytes_received(&self, kind: TrackType, bytes: u64) {
+        let _ = (kind, bytes);
+    }
+    /// Everything that crossed the sockets since the last report, RTCP, STUN and DTLS included:
+    /// what the network bill is made of. Payload bytes only; IP and UDP headers add 28 bytes per
+    /// IPv4 datagram.
+    fn net_traffic(&self, traffic: NetTraffic) {
+        let _ = traffic;
+    }
+    /// How long writing one packet to one receiver took. Reported for a sample of the packets: the
+    /// clock reads would cost more than they tell if every write were timed.
+    fn rtp_write_time(&self, group: &str, kind: TrackType, took: Duration) {
+        let _ = (group, kind, took);
+    }
+}
+
+/// Traffic on the sockets over some span, per transport.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct NetTraffic {
+    pub udp_in_bytes: u64,
+    pub udp_in_packets: u64,
+    pub udp_out_bytes: u64,
+    pub udp_out_packets: u64,
+    pub tcp_in_bytes: u64,
+    pub tcp_in_packets: u64,
+    pub tcp_out_bytes: u64,
+    pub tcp_out_packets: u64,
+    /// Datagrams the kernel refused to send (a full send buffer, an unreachable peer).
+    pub udp_dropped_packets: u64,
+}
+
+impl NetTraffic {
+    pub fn is_empty(&self) -> bool {
+        *self == Self::default()
+    }
 }
 
 /// Discards everything.

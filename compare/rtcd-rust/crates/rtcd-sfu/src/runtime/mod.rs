@@ -2,6 +2,7 @@
 //! service uses to start sessions and pass messages in and out.
 
 mod config;
+mod directory;
 mod registry;
 mod shard;
 mod tcp;
@@ -11,7 +12,7 @@ use std::net::SocketAddr;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::sync_channel;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
@@ -23,6 +24,7 @@ use tracing::{error, info, warn};
 pub use config::{SfuConfig, SfuConfigError};
 pub use registry::AdmitError;
 
+use self::directory::Directory;
 use self::registry::Registry;
 use self::shard::{Shard, ShardCommand, ShardHandle, ShardParts, UdpSock, Undelivered};
 use crate::config::LocalAddress;
@@ -122,6 +124,8 @@ impl Sfu {
 
         let cfg = Arc::new(cfg);
         let registry = Arc::new(Registry::new(n));
+        let directory = (n > 1).then(|| Arc::new(Directory::default()));
+        let peers: Arc<OnceLock<Vec<ShardHandle>>> = Arc::new(OnceLock::new());
         let mut handles = Vec::with_capacity(n);
         let mut threads = Vec::with_capacity(n + 1);
         for (id, udp) in sockets.into_iter().enumerate() {
@@ -143,6 +147,9 @@ impl Sfu {
                 sink: sink.clone(),
                 registry: registry.clone(),
                 cfg: cfg.clone(),
+                metrics: metrics.clone(),
+                directory: directory.clone(),
+                peers: peers.clone(),
             };
             let shard = Shard::new(parts)?;
             let sink = sink.clone();
@@ -161,6 +168,7 @@ impl Sfu {
             );
         }
 
+        let _ = peers.set(handles.clone());
         let acceptor = if listeners.is_empty() {
             None
         } else {

@@ -16,24 +16,57 @@ use super::types::Proto;
 /// Addresses remembered per session; a participant moving between networks adds one now and then.
 const MAX_ADDRS_PER_SESSION: usize = 8;
 
+/// A change to what this engine answers for, published so other shards can send it the datagrams
+/// that reached them instead.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RouteUpdate {
+    AddUfrag(String),
+    RemoveUfrag(String),
+    AddAddr(Proto, SocketAddr),
+    RemoveAddr(Proto, SocketAddr),
+}
+
 #[derive(Debug, Default)]
 pub(crate) struct Routes {
     by_addr: HashMap<(Proto, SocketAddr), SessionKey>,
     by_ufrag: HashMap<String, SessionKey>,
+    /// Whether changes are recorded in `updates` (only when other shards need to know).
+    publish: bool,
+    updates: Vec<RouteUpdate>,
 }
 
 impl Routes {
     pub fn add_ufrag(&mut self, ufrag: String, key: SessionKey) {
+        if self.publish {
+            self.updates.push(RouteUpdate::AddUfrag(ufrag.clone()));
+        }
         self.by_ufrag.insert(ufrag, key);
     }
 
     pub fn remove_session(&mut self, ufrags: &[String], addrs: &[(Proto, SocketAddr)]) {
         for u in ufrags {
             self.by_ufrag.remove(u);
+            if self.publish {
+                self.updates.push(RouteUpdate::RemoveUfrag(u.clone()));
+            }
         }
         for a in addrs {
             self.by_addr.remove(a);
+            if self.publish {
+                self.updates.push(RouteUpdate::RemoveAddr(a.0, a.1));
+            }
         }
+    }
+
+    pub fn set_publishing(&mut self, on: bool) {
+        self.publish = on;
+        if !on {
+            self.updates.clear();
+        }
+    }
+
+    pub fn take_updates(&mut self) -> Vec<RouteUpdate> {
+        std::mem::take(&mut self.updates)
     }
 }
 
@@ -55,10 +88,35 @@ impl Engine {
             // Forget the oldest address; the session is alive and recently seen ones win.
             let old = s.addrs.remove(0);
             self.routes.by_addr.remove(&old);
+            if self.routes.publish {
+                self.routes
+                    .updates
+                    .push(RouteUpdate::RemoveAddr(old.0, old.1));
+            }
         }
         s.addrs.push((proto, peer));
         self.routes.by_addr.insert((proto, peer), key);
+        if self.routes.publish {
+            self.routes.updates.push(RouteUpdate::AddAddr(proto, peer));
+        }
         Some(key)
+    }
+
+    /// Whether this engine would take `data` from `peer`: the address is known, or the datagram
+    /// is an ICE check naming one of its sessions.
+    pub fn would_route(&self, proto: Proto, peer: SocketAddr, data: &[u8]) -> bool {
+        self.routes.by_addr.contains_key(&(proto, peer))
+            || stun_local_ufrag(data).is_some_and(|u| self.routes.by_ufrag.contains_key(u))
+    }
+
+    /// Starts or stops recording route changes for [`Engine::take_route_updates`].
+    pub fn publish_routes(&mut self, on: bool) {
+        self.routes.set_publishing(on);
+    }
+
+    /// The route changes since the last call.
+    pub fn take_route_updates(&mut self) -> Vec<RouteUpdate> {
+        self.routes.take_updates()
     }
 }
 

@@ -18,6 +18,20 @@ can be swapped in for the Go service without changing the LMS server or the web 
 The LMS web app's own call client (`harness/browser/lms`) runs against it in headless Chrome in CI,
 next to the Go service, with the same checks.
 
+## Measuring network usage
+
+The metrics are Prometheus counters, meant for a time-series database that measures traffic and
+predicts the network bill (`increase(...[1d])` is GB per day):
+
+| metric | what it counts |
+|---|---|
+| `rtcd_net_bytes_total{direction,transport}` | everything that crossed the media sockets (RTP, RTCP, STUN, DTLS), in and out, UDP and TCP. IP and UDP headers add 28 bytes per IPv4 datagram on top |
+| `rtcd_net_packets_total{direction,transport}` | the same in packets, for the header overhead |
+| `rtcd_net_dropped_packets_total` | datagrams the kernel refused to send (a full send buffer) |
+| `rtcd_rtc_rtp_bytes_sent_total{type}` | RTP bytes sent to participants by `voice`, `video`, `screen`, `screen-audio` (the Go service's metric) |
+| `rtcd_rtc_rtp_bytes_received_total{type}` | the uplink, by the same types |
+| `rtcd_rtc_rtp_tracks_writes_time{groupID,type}` | time to write one packet to one receiver (a sample of the writes) |
+
 ## Layout
 
 ```
