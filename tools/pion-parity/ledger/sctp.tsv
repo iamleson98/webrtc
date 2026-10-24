@@ -1,10 +1,10 @@
 # file	test	status	ref	note   (see tools/pion-parity/parity.py)
 ack_timer_test.go	TestAckTimer	todo		
-association_interleaving_options_test.go	TestInterleavingSettingsWeightedFairQueueingFactorySnapshotsWeights	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_interleaving_options_test.go	TestCloneInterleavingSettingsWeightedFairQueueingFactoryUsesClonedWeights	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_interleaving_options_test.go	TestInterleavingSettingsWeightedFairQueueingFactorySnapshotsWeights	rust	test_interleaving_settings_weighted_fair_queueing_factory_snapshots_weights	association::interleaving_test; config is a cloneable value, the scheduler an association builds keeps its weights
+association_interleaving_options_test.go	TestCloneInterleavingSettingsWeightedFairQueueingFactoryUsesClonedWeights	rust	test_clone_interleaving_settings_weighted_fair_queueing_factory_uses_cloned_weights	association::interleaving_test
 association_options_test.go	TestAssociationOptions_ApplyBothSides	na		Go functional-options applyServer/applyClient API; rtc-sctp shares one TransportConfig between client and server
 association_options_test.go	TestConfigComparable	na		Go struct-comparability check; language-level semantics
-association_options_test.go	TestAssociationOptions_Interleaving	gap		message interleaving (RFC 8260) not implemented in rtc-sctp
+association_options_test.go	TestAssociationOptions_Interleaving	rust	test_association_options_interleaving	association::interleaving_test; DEFAULT DIFFERS BY DESIGN: pion enables interleaving by default, rtc-sctp offers it only with with_enable_interleaving(true) (browsers do not speak I-DATA); the option deciding the INIT offer is what is tested
 association_options_test.go	TestAssociationOptions_DefaultMTU	rust	association_options_default_mtu	budget derives from INITIAL_MTU=1191; mtu() is the reconstructed effective DATA-packet MTU (1188)
 association_options_test.go	TestAssociationOptions_Validation	na		functional-options validation errors; builder setters apply values directly (MTU floor covered in config tests)
 association_options_test.go	TestClientWithOptions_ValidatesOptionValues	na		sans-I/O ClientConfig::new takes a TransportConfig; no net-conn requirement
@@ -15,14 +15,14 @@ association_rack_options_test.go	TestRACKOptions_AtomicApply_NoPartialMutationOn
 association_rack_options_test.go	TestRACKOptions_ApplyToConfig	na		WithRACKOptions absent; RACK tunables not configurable
 association_rack_options_test.go	TestRACKOptions_EndToEnd_DefaultsAndOverrides	na		needs WithRACKOptions + live association pair; rtc-sctp RACK defaults are fixed constants
 association_test.go	TestAssocStressDuplex	todo		
-association_test.go	TestAssociationPRForwardTSNChunkTypeMatchesInterleaving	todo		
-association_test.go	TestAssociationInterleavingNegotiationPayloadChunkType	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_test.go	TestAssociationInterleavingUpdatesMaxPayloadSize	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_test.go	TestAssociationMetadataNotReadyBeforeHandshake	todo		
-association_test.go	TestAssociationMetadataJSON	todo		
-association_test.go	TestAssociationInterleavingProtocolViolationWrongPayloadChunkType	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_test.go	TestAssociationInterleavingFinalizedOnEstablishedTransition	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_test.go	TestAssociationDataIgnoredOutsideReceiveStates	todo		
+association_test.go	TestAssociationPRForwardTSNChunkTypeMatchesInterleaving	rust	partial_reliability_is_carried_by_the_forward_tsn_chunk_matching_the_negotiation	endpoint::endpoint_test::interleaving
+association_test.go	TestAssociationInterleavingNegotiationPayloadChunkType	rust	interleaving_is_negotiated_only_when_both_sides_offer_it	endpoint::endpoint_test::interleaving; 4 on/off combinations over a real association pair: chunk type on the wire, metadata, both sides agree
+association_test.go	TestAssociationInterleavingUpdatesMaxPayloadSize	rust	test_association_interleaving_updates_max_payload_size	association::interleaving_test; 1160 vs 1156 at the default MTU
+association_test.go	TestAssociationMetadataNotReadyBeforeHandshake	rust	test_association_metadata_not_ready_before_handshake	association::interleaving_test
+association_test.go	TestAssociationMetadataJSON	na		Go struct tags / encoding/json; AssociationMetadata carries the same four fields (test_association_metadata_reports_the_negotiation)
+association_test.go	TestAssociationInterleavingProtocolViolationWrongPayloadChunkType	rust	a_chunk_that_contradicts_the_negotiation_aborts_with_a_protocol_violation	endpoint::endpoint_test::interleaving (over the wire) + test_association_interleaving_protocol_violation_wrong_payload_chunk_type (unit)
+association_test.go	TestAssociationInterleavingFinalizedOnEstablishedTransition	rust	test_association_interleaving_finalized_on_established_transition	association::interleaving_test; cookie ack and cookie echo
+association_test.go	TestAssociationDataIgnoredOutsideReceiveStates	rust	test_association_data_ignored_outside_receive_states	association::interleaving_test; also covers shutdown-ack-sent. Behaviour change: DATA outside Established/ShutdownPending/ShutdownSent is ignored
 association_test.go	TestAssociationDataAcknowledgedInShutdownSent	todo		
 association_test.go	TestAssociationShutdownProcessesCumulativeTSNAck	todo		
 association_test.go	TestAssociationShutdownRejectsBufferedAmountLowWrite	todo		
@@ -40,20 +40,20 @@ association_test.go	TestAssociationCrossedShutdownDrainsPendingData	todo
 association_test.go	TestAssociationSendsForwardTSNWhileDrainingShutdown	todo		
 association_test.go	TestAssociationShutdownAdvancesAfterPendingStreamReset	todo		
 association_test.go	TestAssociationShutdownSentRespondsToInvalidCumulativeTSNAck	todo		
-association_test.go	TestAssociationInterleavingProtocolViolationWrongForwardTSNChunkType	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_test.go	TestAssociationIForwardTSNValidationAbort	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_test.go	TestAssociationIForwardTSNDuplicateEntriesUseLargestMID	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_test.go	TestAssociationInterleavingProtocolViolationMIDLimit	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_test.go	TestAssociationInterleavingMIDLimitDisabledByDefault	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_test.go	TestAssociationInterleavingProtocolViolationWrongForwardTSNChunkType	rust	a_chunk_that_contradicts_the_negotiation_aborts_with_a_protocol_violation	endpoint::endpoint_test::interleaving (over the wire) + test_association_interleaving_protocol_violation_wrong_forward_tsn_chunk_type (unit)
+association_test.go	TestAssociationIForwardTSNValidationAbort	rust	test_association_i_forward_tsn_validation_abort	association::interleaving_test
+association_test.go	TestAssociationIForwardTSNDuplicateEntriesUseLargestMID	rust	test_association_i_forward_tsn_duplicate_entries_use_largest_mid	association::interleaving_test; normalization is a function (normalize_i_forward_tsn_streams) not an in-place mutation of the chunk
+association_test.go	TestAssociationInterleavingProtocolViolationMIDLimit	rust	test_association_interleaving_protocol_violation_mid_limit	association::interleaving_test
+association_test.go	TestAssociationInterleavingMIDLimitDisabledByDefault	rust	test_association_interleaving_mid_limit_disabled_by_default	association::interleaving_test
 association_test.go	TestAssociationDataReassemblyLimitProtocolViolation	todo		
 association_test.go	TestAssocReliable	todo		
 association_test.go	TestAssocUnreliable	todo		
 association_test.go	TestAssocUnreliableRexmitLimit	todo		
 association_test.go	TestInitVerificationTagIsZero	todo		
 association_test.go	TestCreateForwardTSN	todo		
-association_test.go	TestCreateIForwardTSN	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_test.go	TestHandleForwardTSN	todo		
-association_test.go	TestHandleIForwardTSN	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
+association_test.go	TestCreateIForwardTSN	rust	test_create_i_forward_tsn	association::interleaving_test; drives note_abandoned_for_i_forward_tsn (the map create_i_forward_tsn emits) instead of pushing abandoned chunks, like the existing test_create_forward_tsn_*
+association_test.go	TestHandleForwardTSN	rust	test_handle_forward_tsn_far_forward_advances_in_bounded_time	association::interleaving_test (the far-jump subtest; the others are test_handle_forward_tsn_* in association_test). REAL BUG FIXED: a far FORWARD-TSN walked the gap one TSN at a time (4.4 s CPU per chunk at 2^31 in release)
+association_test.go	TestHandleIForwardTSN	rust	test_handle_i_forward_tsn	association::interleaving_test; 3 subtests incl. the 2^31-1 far jump in bounded time
 association_test.go	TestHandleDataAckTriggering	todo		
 association_test.go	TestAssocT1InitTimer	todo		
 association_test.go	TestAssocT1CookieTimer	todo		
@@ -62,7 +62,7 @@ association_test.go	TestAssocT3RtxTimer	todo
 association_test.go	TestAssocCongestionControl	todo		
 association_test.go	TestAssocDelayedAck	named	test_assoc_delayed_ack	
 association_test.go	TestAssocReset	todo		
-association_test.go	TestAssocResetResetsInterleavingCounters	todo		
+association_test.go	TestAssocResetResetsInterleavingCounters	rust	a_reset_stream_restarts_its_message_identifiers	endpoint::endpoint_test::interleaving; a reset stream is dropped and recreated here, so its counters restart at 0
 association_test.go	TestAssocAbort	named	test_assoc_abort	
 association_test.go	TestRoutineLeak	todo		
 association_test.go	TestStats	todo		
@@ -105,25 +105,25 @@ association_test.go	TestHandleSack_ReversedGapDoesNotPartiallyProcess	todo
 association_test.go	TestHandleSackCreditsOriginalStreamAfterIDReuse	todo		
 association_test.go	TestProcessSelectiveAck_CumulativeTSNWrap	todo		
 association_test.go	TestRTOClearsFastRecovery	todo		
-association_test.go	TestTLR_AllowSend_BudgetGatingAndFirstSendAlwaysAllowed	todo		
-association_test.go	TestTLR_Begin_SetsEndTSNToHighestOutstanding	todo		
-association_test.go	TestTLR_PhaseSwitchesToLaterOnAckProgress	todo		
-association_test.go	TestTLR_FirstRTTExpiresByTime_SRTTAndFallback	todo		
-association_test.go	TestTLR_ApplyAdditionalLoss_FirstRTT_StepDownAndClamp	todo		
-association_test.go	TestTLR_ApplyAdditionalLoss_LaterRTT_StepDownAndClamp	todo		
-association_test.go	TestTLR_MaybeFinish_EndsAndClearsState_AndGoodOpsReset	todo		
-association_test.go	TestTLR_PopPendingDataChunksToSend_RespectsBurstBudget_FirstRTT_OnePacketPerChunk	todo		
-association_test.go	TestTLR_GetDataPacketsToRetransmit_RespectsBurstBudget_LaterRTT	todo		
-association_test.go	TestPopPendingDataChunksToSend_UsesIDataChunkSizeForBudget	todo		
-association_test.go	TestGetDataPacketsToRetransmit_UsesIDataChunkSizeForBudget	todo		
-association_test.go	TestGatherOutboundFastRetransmissionPackets_UsesFullDataChunkSizeForBudget	todo		
+association_test.go	TestTLR_AllowSend_BudgetGatingAndFirstSendAlwaysAllowed	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestTLR_Begin_SetsEndTSNToHighestOutstanding	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestTLR_PhaseSwitchesToLaterOnAckProgress	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestTLR_FirstRTTExpiresByTime_SRTTAndFallback	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestTLR_ApplyAdditionalLoss_FirstRTT_StepDownAndClamp	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestTLR_ApplyAdditionalLoss_LaterRTT_StepDownAndClamp	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestTLR_MaybeFinish_EndsAndClearsState_AndGoodOpsReset	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestTLR_PopPendingDataChunksToSend_RespectsBurstBudget_FirstRTT_OnePacketPerChunk	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestTLR_GetDataPacketsToRetransmit_RespectsBurstBudget_LaterRTT	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestPopPendingDataChunksToSend_UsesIDataChunkSizeForBudget	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestGetDataPacketsToRetransmit_UsesIDataChunkSizeForBudget	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
+association_test.go	TestGatherOutboundFastRetransmissionPackets_UsesFullDataChunkSizeForBudget	gap		TLR adaptive burst mitigation (pion v1.12) is not implemented in rtc-sctp; the budget accounting these tests pin does not exist
 association_test.go	TestAbortStillSendsWhenWriteLoopClosing	todo		
 association_test.go	TestAbort_WaitsForAbortWriteAttempt	todo		
 association_test.go	TestAbortSentChClosedWhenAbortMarshalFails	todo		
 association_test.go	TestAssociationAbortProtocolViolation	todo		
 association_test.go	TestAssociationSNAPInvalidInit	todo		
 association_test.go	TestAssociationSNAP	todo		
-association_test.go	TestAssociationSNAPInterleavingNegotiationPayloadChunkType	todo		
+association_test.go	TestAssociationSNAPInterleavingNegotiationPayloadChunkType	gap		SNAP (out-of-band INIT exchange, WithSNAP) is not implemented in rtc-sctp
 association_test.go	TestSelectiveAckMTU	todo		
 association_test.go	TestAssociationPeerRestartEndToEnd	todo		
 association_test.go	TestAssociationRestartRejectsStaleWriteWhileBlocked	todo		
@@ -152,15 +152,15 @@ chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_Failure_NoParams	rust	chunk_h
 chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_Failure_MoreThanOneParam	rust	chunk_heartbeat_marshal_failure_more_than_one_param	
 chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_Failure_WrongParamType	rust	chunk_heartbeat_marshal_failure_wrong_param_type	
 chunk_heartbeat_test.go	TestChunkHeartbeat_Check	rust	chunk_heartbeat_check	
-chunk_i_data_test.go	TestChunkIDataMarshalUnmarshal	todo		
-chunk_i_data_test.go	TestPayloadDataHeaderSizeAccounting	todo		
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSN_Success	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_NormalizesDuplicateStreams	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_Failure	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_FailureDoesNotKeepPartialStreams	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNCheck	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNMarshal_NormalizesDuplicateStreams	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNMarshal_ZeroCumulativeTSN	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
+chunk_i_data_test.go	TestChunkIDataMarshalUnmarshal	rust	test_chunk_i_data_marshal_unmarshal	chunk::chunk_payload_data::test
+chunk_i_data_test.go	TestPayloadDataHeaderSizeAccounting	rust	test_payload_data_header_size_accounting	chunk::chunk_payload_data::test
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSN_Success	rust	test_chunk_i_forward_tsn_success	chunk::chunk_i_forward_tsn::test
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_NormalizesDuplicateStreams	rust	test_chunk_i_forward_tsn_unmarshal_normalizes_duplicate_streams	chunk::chunk_i_forward_tsn::test
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_Failure	rust	test_chunk_i_forward_tsn_unmarshal_failure	chunk::chunk_i_forward_tsn::test
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_FailureDoesNotKeepPartialStreams	rust	test_chunk_i_forward_tsn_unmarshal_failure_does_not_keep_partial_streams	chunk::chunk_i_forward_tsn::test; unmarshal returns a value or an error, so no partial state can exist; the error is pinned
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNCheck	rust	test_chunk_i_forward_tsn_check	chunk::chunk_i_forward_tsn::test; check() is read-only here, normalization is checked through normalize_i_forward_tsn_streams
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNMarshal_NormalizesDuplicateStreams	rust	test_chunk_i_forward_tsn_marshal_normalizes_duplicate_streams	chunk::chunk_i_forward_tsn::test
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNMarshal_ZeroCumulativeTSN	rust	test_chunk_i_forward_tsn_marshal_zero_cumulative_tsn	chunk::chunk_i_forward_tsn::test
 chunk_init_test.go	TestChunkInit_UnrecognizedParameters	todo		
 chunk_reconfig_test.go	TestChunkReconfig_Success	named	test_chunk_reconfig_success	
 chunk_reconfig_test.go	TestChunkReconfigUnmarshal_Failure	named	test_chunk_reconfig_unmarshal_failure	
@@ -202,8 +202,8 @@ paramtype_test.go	TestParamType_String	todo
 payload_queue_test.go	TestPayloadQueue	todo		
 pending_queue_test.go	TestPendingBaseQueue	rust	test_pending_base_queue_push_and_pop	
 pending_queue_test.go	TestPendingQueue	rust	test_pending_queue_push_and_pop	portable subtests; set-interleaving subtests need the stream-scheduler policy API (see gap rows)
-pending_queue_test.go	TestRoundRobinPendingQueuePolicy	gap		queue policy not implemented in rtc-sctp
-pending_queue_test.go	TestWeightedFairQueueingPendingQueuePolicy	gap		queue policy not implemented in rtc-sctp
+pending_queue_test.go	TestRoundRobinPendingQueuePolicy	rust	test_round_robin_pending_queue_policy	queue::interleaved_queue::test; "pop errors" subtests have no counterpart (pop takes no chunk argument); differential: matches_pion_stream_schedulers, 100,000 random push/pop sequences vs pion v1.12.0, 0 divergences
+pending_queue_test.go	TestWeightedFairQueueingPendingQueuePolicy	rust	test_weighted_fair_queueing_pending_queue_policy	queue::interleaved_queue::test; same differential as round robin
 pending_queue_test.go	TestPendingQueue_PopErrors	rust	pending_queue_pop_errors	portable subtests; wrong-chunk-popped subtests unrepresentable (Rust pop takes fragment flags)
 queue_test.go	TestQueue	todo		
 queue_test.go	TestPendingBaseQueuePopReleasesReferences	todo		
@@ -211,20 +211,20 @@ reassembly_queue_test.go	TestReassemblyQueue	rust	test_reassembly_queue_ordered_
 reassembly_queue_test.go	TestChunkSet	rust	test_chunk_set_empty_chunk_set	chunk-set helpers covered incl. duplicate pushes and incomplete sets
 receive_payload_queue_test.go	TestReceivePayloadQueue	rust	receive_payload_queue	
 receive_payload_queue_test.go	TestReceivePayloadQueueAdvanceCumulativeTSN	rust	receive_payload_queue_advance_cumulative_tsn	driven through handle_forward_tsn since the association owns peer_last_tsn
-receive_payload_queue_test.go	TestBitfunc	gap		TSN bitmask helpers absent; rtc-sctp tracks TSNs in a sorted deque, not a bitmask
+receive_payload_queue_test.go	TestBitfunc	rust	test_bitfunc	util::test; helpers kept for parity, unused by the deque-based receive queue
 rtx_timer_test.go	TestRTOManager	rust	test_rto_manager	
 rtx_timer_test.go	TestRtxTimer	rust	test_rtx_timer	
 stream_test.go	TestSessionBufferedAmount	rust	session_buffered_amount	callback count maps to StreamState::on_buffer_released's bool
-stream_test.go	TestStreamHandleForwardTSNForMID	gap		I-DATA/MID (RFC 8260) not implemented in rtc-sctp
-stream_test.go	TestStreamPacketizeInterleavingMIDAllocation	gap		I-DATA/MID (RFC 8260) not implemented in rtc-sctp
-stream_test.go	TestStreamWriteSCTPRollsBackInterleavingMIDsOnSendError	gap		I-DATA/MID (RFC 8260) not implemented in rtc-sctp
+stream_test.go	TestStreamHandleForwardTSNForMID	rust	test_stream_handle_forward_tsn_for_mid	association::interleaving_test
+stream_test.go	TestStreamPacketizeInterleavingMIDAllocation	rust	test_stream_packetize_interleaving_mid_allocation	association::interleaving_test
+stream_test.go	TestStreamWriteSCTPRollsBackInterleavingMIDsOnSendError	rust	test_stream_write_leaves_interleaving_mids_untouched_on_send_error	association::interleaving_test; writes fail before an identifier is taken, so nothing needs rolling back
 util_test.go	TestPadByte_Success	rust	test_pad_byte_success	new pub(crate) pad_byte helper beside get_padding_size
 util_test.go	TestSerialNumberArithmetic	rust	test_serial_number_arithmetic32bit	pre-existing port in util.rs (32- and 16-bit)
 vnet_test.go	TestRwndFull	na		uses pion vnet network simulator (Go-only)
 vnet_test.go	TestStreamClose	na		uses pion vnet network simulator (Go-only)
 vnet_test.go	TestCookieEchoRetransmission	na		uses pion vnet network simulator (Go-only)
 vnet_test.go	TestRACK_RTTSwitch_Reordering_NoDrop	na		uses pion vnet network simulator (Go-only)
-windowedmin_test.go	TestWindowedMin_Basic	gap		no windowed-min structure in rtc-sctp; RACK keeps a single min-RTT sample with a fixed 30s window
-windowedmin_test.go	TestWindowedMin_WindowExpiry	gap		no windowed-min structure in rtc-sctp; RACK keeps a single min-RTT sample with a fixed 30s window
-windowedmin_test.go	TestWindowedMin_EqualValues	gap		no windowed-min structure in rtc-sctp; RACK keeps a single min-RTT sample with a fixed 30s window
-windowedmin_test.go	TestWindowedMin_DefaultWindow30s	gap		no windowed-min structure in rtc-sctp; RACK keeps a single min-RTT sample with a fixed 30s window
+windowedmin_test.go	TestWindowedMin_Basic	rust	test_windowed_min_basic	association::windowed_min::test; differential matches_pion_windowed_min, 200,000 sequences, 0 divergences
+windowedmin_test.go	TestWindowedMin_WindowExpiry	rust	test_windowed_min_window_expiry	association::windowed_min::test
+windowedmin_test.go	TestWindowedMin_EqualValues	rust	test_windowed_min_equal_values	association::windowed_min::test
+windowedmin_test.go	TestWindowedMin_DefaultWindow30s	rust	test_windowed_min_default_window_30s	association::windowed_min::test; zero window only (Duration is unsigned)
