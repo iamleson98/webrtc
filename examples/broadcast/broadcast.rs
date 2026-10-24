@@ -16,6 +16,7 @@ use rtc::rtp_transceiver::rtp_sender::{
 };
 use rtc::rtp_transceiver::{RTCRtpTransceiverDirection, RTCRtpTransceiverInit};
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::{fs::OpenOptions, io::Write, str::FromStr};
 use webrtc::error::Result as WebRtcResult;
 use webrtc::media_stream::track_local::TrackLocal;
@@ -25,7 +26,12 @@ use webrtc::peer_connection::{
     PeerConnection, PeerConnectionBuilder, PeerConnectionEventHandler, RTCIceGatheringState,
     RTCPeerConnectionState,
 };
-use webrtc::runtime::{BroadcastSender, Runtime, Sender, broadcast_channel, channel};
+use webrtc::runtime::{Runtime, Sender, channel};
+
+/// One bounded queue per viewer, shared by the forwarder. A single shared broadcast channel makes
+/// every viewer task contend on its internal lock for every packet; a queue each keeps the fan-out
+/// to one short critical section on the sending side.
+type Viewers = Arc<Mutex<Vec<Sender<rtp::Packet>>>>;
 
 #[path = "../common/mod.rs"]
 mod common;
@@ -40,8 +46,8 @@ struct BroadcastHandler {
     done_tx: Sender<()>,
     // Sends the broadcaster's codec once when on_track fires
     codec_tx: Sender<RTCRtpCodec>,
-    // Broadcast sender: each viewer subscribes to get its own receiver
-    broadcast_tx: BroadcastSender<rtp::Packet>,
+    // Viewer queues the forwarder fans packets out to
+    viewers: Viewers,
 }
 
 #[async_trait::async_trait]
@@ -89,11 +95,18 @@ impl PeerConnectionEventHandler for BroadcastHandler {
         }));
 
         // Forward RTP packets to all subscribers via broadcast channel
-        let broadcast_tx = self.broadcast_tx.clone();
+        let viewers = self.viewers.clone();
         self.runtime.spawn(Box::pin(async move {
             while let Some(evt) = track.poll().await {
                 if let TrackRemoteEvent::OnRtpPacket(packet) = evt {
-                    let _ = broadcast_tx.send(packet);
+                    // A full queue drops the packet for that slow viewer only; a closed one
+                    // leaves the list.
+                    viewers.lock().unwrap().retain(|tx| {
+                        !matches!(
+                            tx.try_send(packet.clone()),
+                            Err(webrtc::runtime::TrySendError::Disconnected(_))
+                        )
+                    });
                 }
             }
         }));
@@ -199,15 +212,14 @@ async fn async_main() -> Result<()> {
         let _ = ctrlc_tx.try_send(());
     })?;
 
-    // Broadcast sender: each viewer will subscribe to get its own receiver
-    let broadcast_tx = broadcast_channel::<rtp::Packet>(256);
+    let viewers: Viewers = Arc::new(Mutex::new(Vec::new()));
 
     let broadcast_handler = Arc::new(BroadcastHandler {
         runtime: runtime.clone(),
         gather_complete_tx: broadcast_gather_tx,
         done_tx: done_tx.clone(),
         codec_tx,
-        broadcast_tx: broadcast_tx.clone(),
+        viewers: viewers.clone(),
     });
 
     let mut broadcaster_media_engine = MediaEngine::default();
@@ -347,21 +359,17 @@ async fn async_main() -> Result<()> {
                     println!("generate viewer local_description failed!");
                 }
 
-                // Each viewer subscribes to the broadcast channel and gets its own receiver
-                let mut viewer_rx = broadcast_tx.subscribe();
+                // Each viewer gets its own bounded queue
+                let (viewer_tx, mut viewer_rx) = channel::<rtp::Packet>(256);
+                viewers.lock().unwrap().push(viewer_tx);
 
                 // Spawn a per-viewer task: reads packets and writes to this viewer's track
                 runtime.spawn(Box::pin(async move {
-                    loop {
-                        match viewer_rx.recv().await {
-                            Ok(mut packet) => {
-                                packet.header.ssrc = viewer_ssrc;
-                                if let Err(err) = viewer_track.write_rtp(packet).await {
-                                    println!("viewer write_rtp error: {err}");
-                                    break;
-                                }
-                            }
-                            Err(_) => break, // closed or lagged
+                    while let Some(mut packet) = viewer_rx.recv().await {
+                        packet.header.ssrc = viewer_ssrc;
+                        if let Err(err) = viewer_track.write_rtp(packet).await {
+                            println!("viewer write_rtp error: {err}");
+                            break;
                         }
                     }
                 }));
