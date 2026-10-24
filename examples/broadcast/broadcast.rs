@@ -15,6 +15,7 @@ use rtc::rtp_transceiver::rtp_sender::{
     RTCRtpCodec, RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind,
 };
 use rtc::rtp_transceiver::{RTCRtpTransceiverDirection, RTCRtpTransceiverInit};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::{fs::OpenOptions, io::Write, str::FromStr};
@@ -118,6 +119,9 @@ impl PeerConnectionEventHandler for BroadcastHandler {
 #[derive(Clone)]
 struct ViewerHandler {
     gather_complete_tx: Sender<()>,
+    /// Tells the main loop this viewer is gone, so it can drop the peer connection.
+    gone_tx: Sender<u32>,
+    id: u32,
 }
 
 #[async_trait::async_trait]
@@ -130,6 +134,9 @@ impl PeerConnectionEventHandler for ViewerHandler {
 
     async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
         println!("Viewer Peer Connection State: {state}");
+        if state == RTCPeerConnectionState::Failed || state == RTCPeerConnectionState::Closed {
+            let _ = self.gone_tx.try_send(self.id);
+        }
     }
 }
 
@@ -149,6 +156,13 @@ struct Cli {
     output_log_file: String,
     #[arg(long, default_value_t = 8080)]
     port: u16,
+    /// Threads in the dedicated reactor pool that drives the peer connections (0 = drive them
+    /// on the ambient runtime). A media server forwards many tiny packets: each one wakes a
+    /// task, and spread over every worker of a work-stealing runtime each wake is a futex round
+    /// trip. A couple of pinned reactor threads cost less than half the CPU (see
+    /// benches/sfu-load).
+    #[arg(long, default_value_t = 2)]
+    reactors: usize,
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────
@@ -240,6 +254,7 @@ async fn async_main() -> Result<()> {
             .with_interceptor_registry(broadcaster_registry)
             .with_handler(broadcast_handler as Arc<dyn PeerConnectionEventHandler>)
             .with_runtime(runtime.clone())
+            .with_dedicated_reactor_pool_size(cli.reactors)
             .with_udp_addrs(vec![format!("{}:0", signal::get_local_ip())])
             .build()
             .await?,
@@ -281,7 +296,8 @@ async fn async_main() -> Result<()> {
 
     // ── Viewer loop ──────────────────────────────────────────────────────────
 
-    let mut viewer_pcs: Vec<Arc<dyn PeerConnection>> = Vec::new();
+    let mut viewer_pcs: HashMap<u32, Arc<dyn PeerConnection>> = HashMap::new();
+    let (gone_tx, mut gone_rx) = channel::<u32>(1024);
 
     loop {
         println!("\nCurl a base64 SDP to start a viewer peer connection");
@@ -297,8 +313,12 @@ async fn async_main() -> Result<()> {
                 let viewer_offer = serde_json::from_str::<RTCSessionDescription>(&desc_data)?;
 
                 let (viewer_gather_tx, mut viewer_gather_rx) = channel::<()>(1);
+                // Each viewer gets its own track with a unique SSRC, which also names it here.
+                let viewer_ssrc = rand::random::<u32>();
                 let viewer_handler = Arc::new(ViewerHandler {
                     gather_complete_tx: viewer_gather_tx,
+                    gone_tx: gone_tx.clone(),
+                    id: viewer_ssrc,
                 });
 
                 let mut viewer_media_engine = MediaEngine::default();
@@ -319,13 +339,12 @@ async fn async_main() -> Result<()> {
                         .with_interceptor_registry(viewer_registry)
                         .with_handler(viewer_handler as Arc<dyn PeerConnectionEventHandler>)
                         .with_runtime(runtime.clone())
+                        .with_dedicated_reactor_pool_size(cli.reactors)
                         .with_udp_addrs(vec![format!("{}:0", signal::get_local_ip())])
                         .build()
                         .await?,
                 );
 
-                // Each viewer gets its own track with a unique SSRC
-                let viewer_ssrc = rand::random::<u32>();
                 let viewer_track = Arc::new(TrackLocalStaticRTP::new(MediaStreamTrack::new(
                     format!("webrtc-rs-broadcast-{}", viewer_ssrc),
                     format!("webrtc-rs-broadcast-track-{}", viewer_ssrc),
@@ -365,17 +384,39 @@ async fn async_main() -> Result<()> {
 
                 // Spawn a per-viewer task: reads packets and writes to this viewer's track
                 runtime.spawn(Box::pin(async move {
-                    while let Some(mut packet) = viewer_rx.recv().await {
-                        packet.header.ssrc = viewer_ssrc;
-                        if let Err(err) = viewer_track.write_rtp(packet).await {
-                            println!("viewer write_rtp error: {err}");
-                            break;
+                    while let Some(first) = viewer_rx.recv().await {
+                        // Write every packet already queued back to back: the driver then
+                        // sees them together and, on Linux, sends consecutive same-size
+                        // datagrams to this viewer in a single UDP GSO syscall, instead of one
+                        // syscall per packet (the syscall is the largest single CPU cost of a
+                        // forwarder).
+                        let mut next = Some(first);
+                        let mut burst = 0;
+                        while let Some(mut packet) = next.take() {
+                            packet.header.ssrc = viewer_ssrc;
+                            if let Err(err) = viewer_track.write_rtp(packet).await {
+                                println!("viewer write_rtp error: {err}");
+                                return;
+                            }
+                            burst += 1;
+                            if burst < 32 {
+                                next = viewer_rx.try_recv().ok();
+                            }
                         }
                     }
                 }));
 
-                viewer_pcs.push(viewer_pc);
+                viewer_pcs.insert(viewer_ssrc, viewer_pc);
                 println!("Total active viewer connections: {}", viewer_pcs.len());
+            }
+            gone = gone_rx.recv().fuse() => {
+                // Dropping the last handle releases the connection's sockets, tasks and buffers.
+                if let Some(id) = gone
+                    && let Some(pc) = viewer_pcs.remove(&id)
+                {
+                    let _ = pc.close().await;
+                    println!("Total active viewer connections: {}", viewer_pcs.len());
+                }
             }
             _ = done_rx.recv().fuse() => {
                 println!("Broadcaster disconnected, shutting down.");
@@ -388,7 +429,7 @@ async fn async_main() -> Result<()> {
         }
     }
 
-    for pc in &viewer_pcs {
+    for pc in viewer_pcs.values() {
         let _ = pc.close().await;
     }
     let _ = broadcaster_pc.close().await;

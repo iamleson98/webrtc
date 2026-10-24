@@ -581,7 +581,9 @@ pub(crate) enum PeerConnectionDriverEvent {
     SenderRtp(RTCRtpSenderId, rtp::Packet),
     SenderRtcp(RTCRtpSenderId, Vec<Box<dyn rtcp::Packet>>),
     ReceiverRtcp(RTCRtpReceiverId, Vec<Box<dyn rtcp::Packet>>),
-    RemoteIceTcpPassiveCandidate(Candidate),
+    // Boxed: a `Candidate` is 280 bytes, and the queue of these events is allocated at full
+    // capacity per connection, so the largest variant sets the size of every slot.
+    RemoteIceTcpPassiveCandidate(Box<Candidate>),
     IncomingTcpStream(FourTuple, Arc<dyn AsyncTcpStream>),
     WriteNotify,
     UpdateIceConfiguration {

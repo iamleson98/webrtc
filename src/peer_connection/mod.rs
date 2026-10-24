@@ -1386,7 +1386,9 @@ impl PeerConnection for PeerConnectionImpl {
             // overflow: awaited — producer is the application in `add_ice_candidate`.
             self.inner
                 .driver_event_tx
-                .send(PeerConnectionDriverEvent::RemoteIceTcpPassiveCandidate(c))
+                .send(PeerConnectionDriverEvent::RemoteIceTcpPassiveCandidate(
+                    Box::new(c),
+                ))
                 .await
                 .map_err(|e| Error::Other(format!("{:?}", e)))
         } else {

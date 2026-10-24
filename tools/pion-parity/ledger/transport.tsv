@@ -30,16 +30,16 @@ netctx/packetconn_test.go	TestWriteToTimeout	todo
 netctx/packetconn_test.go	TestWriteToCancel	todo		
 netctx/packetconn_test.go	TestWriteToClosed	todo		
 netctx/packetconn_test.go	TestPacketConnLocalAddrAndRemoteAddr	todo		
-packetio/buffer_test.go	TestBufferWraparound	todo		
-packetio/buffer_test.go	TestBufferLimitSize	todo		
-packetio/buffer_test.go	TestBufferAlloc	todo		
-packetio/buffer_test.go	TestBufferConcurrentRead	todo		
-packetio/buffer_test.go	TestBufferAttributes	todo		
-packetio/buffer_test.go	TestBufferAttributesDeadlineAndClose	todo		
-packetio/buffer_test.go	TestBufferTruncationPreservesAttributes	todo		
-packetio/buffer_test.go	TestBufferAttributeLimits	todo		
-packetio/buffer_test.go	TestBufferAttributeStorageCap	todo		
-packetio/buffer_test.go	TestBufferAttributesConcurrent	todo		
+packetio/buffer_test.go	TestBufferWraparound	rust	test_buffer_wraparound	
+packetio/buffer_test.go	TestBufferLimitSize	rust	test_buffer_limit_size	
+packetio/buffer_test.go	TestBufferAlloc	na		Go allocation counting; Rust read() reuses the caller Vec and ring slots by construction
+packetio/buffer_test.go	TestBufferConcurrentRead	na		goroutines and blocking reads; Rust Buffer is poll-style (Error::Empty/Eof), close semantics in test_buffer_close_drains_then_eof
+packetio/buffer_test.go	TestBufferAttributes	rust	test_buffer_attributes	
+packetio/buffer_test.go	TestBufferAttributesDeadlineAndClose	na		read deadlines need a clock and blocking; the close/drain half is test_buffer_close_drains_then_eof
+packetio/buffer_test.go	TestBufferTruncationPreservesAttributes	rust	test_buffer_truncation_preserves_attributes	
+packetio/buffer_test.go	TestBufferAttributeLimits	rust	test_buffer_attribute_limits	
+packetio/buffer_test.go	TestBufferAttributeStorageCap	rust	test_buffer_attribute_storage_cap	
+packetio/buffer_test.go	TestBufferAttributesConcurrent	na		goroutines; Buffer takes &mut self, exclusivity is enforced by the borrow checker
 replaydetector/fixedbig_test.go	TestFixedBigIntShiftAcrossWindow	rust	test_fixed_big_int_shift_across_window	
 replaydetector/replaydetector_test.go	TestReplayDetector	rust	test_replay_detector	plus 20,000 random check/accept sequences identical to pion transport v5.1.1
 replaydetector/replaydetector_test.go	TestReplayDetectorWrapped	rust	test_replay_detector_wrapped	same differential run, wrapped detector

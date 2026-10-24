@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -35,7 +36,9 @@ var (
 	duration = flag.Duration("duration", 20*time.Second, "measurement window")
 	pps      = flag.Int("pps", 120, "publisher packets per second")
 	size     = flag.Int("size", 1100, "RTP payload bytes")
+	burst    = flag.Int("burst", 1, "packets per video frame: -pps is split into frames of this many back-to-back packets (a real encoder sends a frame as a burst)")
 	pid      = flag.Int("pid", 0, "server pid to sample")
+	churn    = flag.Duration("churn", 0, "soak mode: keep -subs viewers connected, each leaving after a random time up to this long and being replaced; samples server memory every 15s")
 )
 
 func main() {
@@ -61,7 +64,11 @@ func main() {
 	var sent atomic.Int64
 	stop := make(chan struct{})
 	go func() {
-		t := time.NewTicker(time.Second / time.Duration(*pps))
+		frames := *pps / *burst
+		if frames < 1 {
+			frames = 1
+		}
+		t := time.NewTicker(time.Second / time.Duration(frames))
 		defer t.Stop()
 		var seq uint16
 		var ts uint32
@@ -71,13 +78,20 @@ func main() {
 			case <-stop:
 				return
 			case <-t.C:
-				seq++
-				ts += 90000 / uint32(*pps)
-				_ = track.WriteRTP(&rtp.Packet{Header: rtp.Header{Version: 2, PayloadType: 96, SequenceNumber: seq, Timestamp: ts, SSRC: 1234}, Payload: payload})
-				sent.Add(1)
+				ts += 90000 / uint32(frames)
+				for i := 0; i < *burst; i++ {
+					seq++
+					_ = track.WriteRTP(&rtp.Packet{Header: rtp.Header{Version: 2, PayloadType: 96, SequenceNumber: seq, Timestamp: ts, SSRC: 1234, Marker: i == *burst-1}, Payload: payload})
+					sent.Add(1)
+				}
 			}
 		}
 	}()
+
+	if *churn > 0 {
+		soak(stop, &sent)
+		return
+	}
 
 	var got []*atomic.Int64
 	var mu sync.Mutex
@@ -88,27 +102,7 @@ func main() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			pc := newPeer(false)
-			pc.OnTrack(func(tr *webrtc.TrackRemote, _ *webrtc.RTPReceiver) {
-				buf := make([]byte, 1500)
-				for {
-					if _, _, err := tr.Read(buf); err != nil {
-						return
-					}
-					c.Add(1)
-				}
-			})
-			if _, err := pc.AddTransceiverFromKind(webrtc.RTPCodecTypeVideo, webrtc.RTPTransceiverInit{Direction: webrtc.RTPTransceiverDirectionRecvonly}); err != nil {
-				panic(err)
-			}
-			off, _ := pc.CreateOffer(nil)
-			g := webrtc.GatheringCompletePromise(pc)
-			must(pc.SetLocalDescription(off))
-			<-g
-			mu.Lock() // the example serves one signaling exchange at a time
-			ans := signal(pc.LocalDescription())
-			mu.Unlock()
-			must(pc.SetRemoteDescription(ans))
+			joinViewer(&mu, c)
 		}()
 	}
 	wg.Wait()
@@ -147,6 +141,71 @@ func main() {
 }
 
 var pubTrack *webrtc.TrackLocalStaticRTP
+
+// joinViewer connects one receive-only viewer, counting its packets in c, and returns it. The
+// example serves one signaling exchange at a time, so callers share mu.
+func joinViewer(mu *sync.Mutex, c *atomic.Int64) *webrtc.PeerConnection {
+	pc := newPeer(false)
+	pc.OnTrack(func(tr *webrtc.TrackRemote, _ *webrtc.RTPReceiver) {
+		buf := make([]byte, 1500)
+		for {
+			if _, _, err := tr.Read(buf); err != nil {
+				return
+			}
+			c.Add(1)
+		}
+	})
+	if _, err := pc.AddTransceiverFromKind(webrtc.RTPCodecTypeVideo, webrtc.RTPTransceiverInit{Direction: webrtc.RTPTransceiverDirectionRecvonly}); err != nil {
+		panic(err)
+	}
+	off, _ := pc.CreateOffer(nil)
+	g := webrtc.GatheringCompletePromise(pc)
+	must(pc.SetLocalDescription(off))
+	<-g
+	mu.Lock()
+	ans := signal(pc.LocalDescription())
+	mu.Unlock()
+	must(pc.SetRemoteDescription(ans))
+	return pc
+}
+
+// soak keeps -subs viewers connected for -duration while each one leaves after a random time of up
+// to -churn and is replaced, and prints the server's resident memory and CPU every 15 s. A leak
+// per connection shows as memory that keeps rising although the number of viewers does not.
+func soak(stop chan struct{}, sent *atomic.Int64) {
+	var mu sync.Mutex
+	var joined, left atomic.Int64
+	var received atomic.Int64
+	end := time.Now().Add(*duration)
+	var wg sync.WaitGroup
+	for i := 0; i < *subs; i++ {
+		wg.Add(1)
+		go func(slot int) {
+			defer wg.Done()
+			// Spread the first departures so the viewers do not all leave at once.
+			life := time.Duration(float64(*churn) * float64(slot+1) / float64(*subs))
+			for time.Now().Before(end) {
+				pc := joinViewer(&mu, &received)
+				joined.Add(1)
+				time.Sleep(life)
+				_ = pc.Close()
+				left.Add(1)
+				life = time.Duration(float64(*churn) * (0.3 + 0.7*rand.Float64()))
+			}
+		}(i)
+	}
+	cpuPrev, tPrev := cpuSeconds(), time.Now()
+	for time.Now().Before(end) {
+		time.Sleep(15 * time.Second)
+		cpu, now := cpuSeconds(), time.Now()
+		fmt.Printf("t=%3.0fs joined=%d left=%d live=%d sent=%d received=%d rss=%.0f MiB cpu=%.1f%%\n",
+			time.Until(end).Seconds()*-1+duration.Seconds(), joined.Load(), left.Load(), joined.Load()-left.Load(),
+			sent.Load(), received.Load(), rssMiB(), 100*(cpu-cpuPrev)/now.Sub(tPrev).Seconds())
+		cpuPrev, tPrev = cpu, now
+	}
+	wg.Wait()
+	close(stop)
+}
 
 func newPeer(publisher bool) *webrtc.PeerConnection {
 	me := &webrtc.MediaEngine{}
@@ -200,6 +259,27 @@ func lines() []string {
 	return out
 }
 
+// procStat returns the process's user+system CPU seconds and resident MiB from /proc (Linux),
+// with ok false elsewhere. `ps` only has whole-second cputime on Linux, too coarse for a 30 s window.
+func procStat() (cpu float64, rss float64, ok bool) {
+	raw, err := os.ReadFile("/proc/" + strconv.Itoa(*pid) + "/stat")
+	if err != nil {
+		return 0, 0, false
+	}
+	// Fields after the parenthesised command name: state is field 3; utime and stime are 14 and 15.
+	s := string(raw)
+	i := strings.LastIndex(s, ")")
+	f := strings.Fields(s[i+1:])
+	if len(f) < 22 {
+		return 0, 0, false
+	}
+	ut, _ := strconv.ParseFloat(f[11], 64)
+	st, _ := strconv.ParseFloat(f[12], 64)
+	pages, _ := strconv.ParseFloat(f[21], 64)
+	const ticks = 100 // CLK_TCK is 100 on Linux
+	return (ut + st) / ticks, pages * float64(os.Getpagesize()) / (1 << 20), true
+}
+
 func ps(field string) string {
 	out, _ := exec.Command("ps", "-o", field+"=", "-p", strconv.Itoa(*pid)).Output()
 	return strings.TrimSpace(string(bytes.TrimSpace(out)))
@@ -209,6 +289,9 @@ func ps(field string) string {
 func cpuSeconds() float64 {
 	if *pid == 0 {
 		return 0
+	}
+	if c, _, ok := procStat(); ok {
+		return c
 	}
 	s := ps("cputime")
 	var secs float64
@@ -220,6 +303,9 @@ func cpuSeconds() float64 {
 }
 
 func rssMiB() float64 {
+	if _, r, ok := procStat(); ok {
+		return r
+	}
 	v, _ := strconv.ParseFloat(ps("rss"), 64)
 	return v / 1024
 }

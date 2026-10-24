@@ -1,0 +1,93 @@
+name: sfu-profile
+
+# Where the CPU goes in the fan-out: `perf record` of the broadcast server (webrtc-rs and pion)
+# under load, on a Linux runner, printed as the top symbols (kernel and user) in the job summary.
+# Manual: it is a diagnostic, not a gate.
+
+on:
+  workflow_dispatch:
+    inputs:
+      subs:
+        description: subscribers
+        default: "200"
+      extra_args:
+        description: extra arguments for the webrtc-rs broadcast example
+        default: ""
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install perf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y linux-tools-common linux-tools-$(uname -r) || sudo apt-get install -y linux-tools-generic
+          sudo sysctl -w kernel.perf_event_paranoid=-1 kernel.kptr_restrict=0
+          perf --version
+
+      - name: Build
+        shell: bash
+        env:
+          CARGO_PROFILE_RELEASE_DEBUG: "1"
+          RUSTFLAGS: "-C force-frame-pointers=yes"
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          cargo build --release --example broadcast
+          cp target/release/examples/broadcast "$RUNNER_TEMP/bin/rust-broadcast"
+          (cd benches/sfu-load/sfu-core && cargo build --release && cp target/release/sfu-core "$RUNNER_TEMP/bin/core-broadcast")
+          cd benches/sfu-load
+          go build -o "$RUNNER_TEMP/bin/sfu-loadgen" .
+          GOFLAGS=-mod=mod go build -o "$RUNNER_TEMP/bin/pion-broadcast" github.com/pion/webrtc/v4/examples/broadcast
+
+      - name: Profile
+        shell: bash
+        env:
+          BIN: ${{ runner.temp }}/bin
+        run: |
+          ulimit -n 65535 || true
+          cd benches/sfu-load
+          for kind in core rust pion; do
+            PERF_OUT="$RUNNER_TEMP/perf-$kind" EXTRA_ARGS="${{ inputs.extra_args }}" ./run.sh $kind "${{ inputs.subs || '200' }}" 40s || true
+          done
+          set +e +o pipefail
+          for kind in core rust pion; do
+            ls -la "$RUNNER_TEMP/perf-$kind.data"
+            perf report -i "$RUNNER_TEMP/perf-$kind.data" --no-children --sort symbol --stdio > "$RUNNER_TEMP/perf-$kind-symbols.txt" 2>"$RUNNER_TEMP/perf-$kind-err.txt"
+            perf report -i "$RUNNER_TEMP/perf-$kind.data" --no-children --sort dso --stdio > "$RUNNER_TEMP/perf-$kind-dso.txt" 2>>"$RUNNER_TEMP/perf-$kind-err.txt"
+            perf report -i "$RUNNER_TEMP/perf-$kind.data" --children --sort symbol --stdio -g none > "$RUNNER_TEMP/perf-$kind-children.txt" 2>>"$RUNNER_TEMP/perf-$kind-err.txt"
+          done
+          {
+            for kind in core rust pion; do
+              echo "## perf, $kind, self time by symbol"
+              echo '```'
+              grep -v '^#' "$RUNNER_TEMP/perf-$kind-symbols.txt" | grep -v '^$' | head -45
+              echo '```'
+              echo "## perf, $kind, by dso"
+              echo '```'
+              grep -v '^#' "$RUNNER_TEMP/perf-$kind-dso.txt" | grep -v '^$' | head -10
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sfu-profile
+          path: |
+            ${{ runner.temp }}/perf-*.data
+            ${{ runner.temp }}/perf-*.txt
+            ${{ runner.temp }}/bin/sfu-*.log

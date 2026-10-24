@@ -1,0 +1,74 @@
+name: sfu-soak
+
+# Leak check: one publisher, a steady number of viewers that keep leaving and being replaced, for
+# a long time, against the `broadcast` example of webrtc-rs and of pion. Server memory and CPU are
+# sampled every 15 s. A per-connection leak shows as memory that keeps rising while the number of
+# live viewers does not.
+# Manual: gh workflow run sfu-soak.yml -f minutes=30 -f viewers=50 -f churn=20s
+
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: soak length in minutes (per server)
+        default: "30"
+      viewers:
+        description: live viewers
+        default: "50"
+      churn:
+        description: longest time a viewer stays
+        default: "20s"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  soak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          cargo build --release --example broadcast
+          cp target/release/examples/broadcast "$RUNNER_TEMP/bin/rust-broadcast"
+          (cd benches/sfu-load/sfu-core && cargo build --release && cp target/release/sfu-core "$RUNNER_TEMP/bin/core-broadcast")
+          cd benches/sfu-load
+          go build -o "$RUNNER_TEMP/bin/sfu-loadgen" .
+          GOFLAGS=-mod=mod go build -o "$RUNNER_TEMP/bin/pion-broadcast" github.com/pion/webrtc/v4/examples/broadcast
+
+      - name: Soak
+        shell: bash
+        env:
+          BIN: ${{ runner.temp }}/bin
+        run: |
+          ulimit -n 65535 || true
+          cd benches/sfu-load
+          for kind in core rust pion; do
+            EXTRA_LOADGEN_ARGS="-churn ${{ inputs.churn || '20s' }}" ./run.sh $kind "${{ inputs.viewers || '50' }}" "$(( ${{ inputs.minutes || '30' }} * 60 ))s" | tee "$RUNNER_TEMP/soak-$kind.txt"
+          done
+          {
+            for kind in core rust pion; do
+              echo "## soak, $kind ($(( ${{ inputs.minutes || '30' }} )) min, ${{ inputs.viewers || '50' }} viewers, churn ${{ inputs.churn || '20s' }})"
+              echo '```'
+              # first and last minutes of samples: the difference in rss is the leak
+              grep '^t=' "$RUNNER_TEMP/soak-$kind.txt" | (head -4; echo ...; tail -4)
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sfu-soak
+          path: ${{ runner.temp }}/soak-*.txt
