@@ -710,6 +710,48 @@ impl Drop for MuxSocketHandle {
     }
 }
 
+/// Binds a UDP socket, making an IPv6 wildcard genuinely dual-stack: the platform default for
+/// `IPV6_V6ONLY` differs (Windows and some Linux configurations default it on), and a mux that
+/// advertises IPv4 candidates must receive IPv4.
+fn bind_udp(addr: SocketAddr) -> io::Result<std::net::UdpSocket> {
+    if is_dual_stack_wildcard(addr) {
+        let socket = socket2::Socket::new(
+            socket2::Domain::IPV6,
+            socket2::Type::DGRAM,
+            Some(socket2::Protocol::UDP),
+        )?;
+        socket.set_only_v6(false)?;
+        socket.bind(&addr.into())?;
+        return Ok(socket.into());
+    }
+    std::net::UdpSocket::bind(addr)
+}
+
+/// `[::]:port`: the address a dual-stack listener binds.
+fn is_dual_stack_wildcard(addr: SocketAddr) -> bool {
+    addr.is_ipv6() && addr.ip().is_unspecified()
+}
+
+/// An IPv4-mapped IPv6 address as the plain IPv4 address the rest of the stack (candidates,
+/// connections' peer addresses) uses; anything else unchanged.
+fn canonical_ip(ip: IpAddr) -> IpAddr {
+    match ip {
+        IpAddr::V6(v6) => v6.to_ipv4_mapped().map_or(ip, IpAddr::V4),
+        other => other,
+    }
+}
+
+fn canonical_addr(addr: SocketAddr) -> SocketAddr {
+    SocketAddr::new(canonical_ip(addr.ip()), addr.port())
+}
+
+fn map_to_v6(addr: SocketAddr) -> SocketAddr {
+    match addr {
+        SocketAddr::V4(v4) => SocketAddr::new(IpAddr::V6(v4.ip().to_ipv6_mapped()), v4.port()),
+        other => other,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -988,47 +1030,5 @@ mod tests {
                 assert_eq!(&buf[..n], reply, "{name}");
             }
         }));
-    }
-}
-
-/// Binds a UDP socket, making an IPv6 wildcard genuinely dual-stack: the platform default for
-/// `IPV6_V6ONLY` differs (Windows and some Linux configurations default it on), and a mux that
-/// advertises IPv4 candidates must receive IPv4.
-fn bind_udp(addr: SocketAddr) -> io::Result<std::net::UdpSocket> {
-    if is_dual_stack_wildcard(addr) {
-        let socket = socket2::Socket::new(
-            socket2::Domain::IPV6,
-            socket2::Type::DGRAM,
-            Some(socket2::Protocol::UDP),
-        )?;
-        socket.set_only_v6(false)?;
-        socket.bind(&addr.into())?;
-        return Ok(socket.into());
-    }
-    std::net::UdpSocket::bind(addr)
-}
-
-/// `[::]:port`: the address a dual-stack listener binds.
-fn is_dual_stack_wildcard(addr: SocketAddr) -> bool {
-    addr.is_ipv6() && addr.ip().is_unspecified()
-}
-
-/// An IPv4-mapped IPv6 address as the plain IPv4 address the rest of the stack (candidates,
-/// connections' peer addresses) uses; anything else unchanged.
-fn canonical_ip(ip: IpAddr) -> IpAddr {
-    match ip {
-        IpAddr::V6(v6) => v6.to_ipv4_mapped().map_or(ip, IpAddr::V4),
-        other => other,
-    }
-}
-
-fn canonical_addr(addr: SocketAddr) -> SocketAddr {
-    SocketAddr::new(canonical_ip(addr.ip()), addr.port())
-}
-
-fn map_to_v6(addr: SocketAddr) -> SocketAddr {
-    match addr {
-        SocketAddr::V4(v4) => SocketAddr::new(IpAddr::V6(v4.ip().to_ipv6_mapped()), v4.port()),
-        other => other,
     }
 }

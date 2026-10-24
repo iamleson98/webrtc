@@ -564,19 +564,19 @@ pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseValidFrames	rust	test_i
 pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFrameHeader	rust	test_ivf_reader_parse_incomplete_frame_header	
 pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_ParseIncompleteFramePayload	rust	test_ivf_reader_parse_incomplete_frame_payload	
 pkg/media/ivfreader/ivfreader_test.go	TestIVFReader_EOFWhenNoFramesLeft	rust	test_ivf_reader_eof_when_no_frames_left	
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Basic	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8	todo		
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Basic	rust	test_ivf_writer_basic	nil io.Writer / nil packet unrepresentable in Rust; close idempotence, write-after-close ErrFileNotOpened, initial state ported
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8	rust	test_ivf_writer_add_packet_and_close	same packets and count assertions; 5000 random streams byte-identical to pion
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_EmptyPayload	rust	test_ivf_writer_empty_payload	
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP8DescriptorOnlyPayload	rust	test_ivf_writer_vp8_descriptor_only_payload	
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Errors	todo		
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_Errors	rust	test_ivf_writer_errors	unknown MIME type -> ErrNoSuchCodec via IvfCodec::from_mime_type; errCodecAlreadySet has no Rust counterpart (codec is one typed value); zero timebase checked
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_AV1	rust	test_ivf_writer_av1	
 pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_VP9	rust	test_ivf_writer_vp9	
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithWidthAndHeight	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithFrameRate	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithDirectPTS	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_DirectPTS_VP8	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_DirectPTS_Precision	todo		
-pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_BackwardCompatibility	todo		
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithWidthAndHeight	rust	test_ivf_writer_with_width_and_height	width/height come from the IVFFileHeader passed to IVFWriter::new
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithFrameRate	rust	test_ivf_writer_with_frame_rate	frame rate comes from the header timebase
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_WithDirectPTS	rust	test_ivf_writer_with_direct_pts	
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_DirectPTS_VP8	rust	test_ivf_writer_direct_pts_vp8	
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_DirectPTS_Precision	rust	test_ivf_writer_direct_pts_precision	
+pkg/media/ivfwriter/ivfwriter_test.go	TestIVFWriter_BackwardCompatibility	rust	test_ivf_writer_backward_compatibility	PTS now derived from RTP timestamps like pion (was frame index)
 pkg/media/oggreader/oggreader_test.go	TestOggReader_ParseValidHeader	rust	test_ogg_reader_parse_valid_header	
 pkg/media/oggreader/oggreader_test.go	TestOggReader_ParseNextPage	rust	test_ogg_reader_parse_next_page	
 pkg/media/oggreader/oggreader_test.go	TestOggReader_ParseErrors	rust	test_ogg_reader_parse_errors	
@@ -629,32 +629,32 @@ pkg/media/rtpdump/rtpdump_test.go	TestMarshalHeader	rust	test_rtpdump_marshal_he
 pkg/media/rtpdump/rtpdump_test.go	TestPacketRoundTrip	rust	test_rtpdump_packet_round_trip	
 pkg/media/rtpdump/writer_test.go	TestWriter	rust	test_rtpdump_writer	
 pkg/media/rtpdump/writer_test.go	TestRoundTrip	rust	test_rtpdump_round_trip	
-pkg/media/samplebuilder/sampleSequenceLocation_test.go	TestSampleSequenceLocationCompare	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilder	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderMaxLate	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSeqnumDistance	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderCleanReference	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderPushMaxZero	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderWithPacketReleaseHandler	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderWithPacketHeadHandler	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderData	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderPacketUnreference	todo		
-pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilder_Flush	todo		
-pkg/null/null_test.go	TestNewBool	todo		
-pkg/null/null_test.go	TestNewByte	todo		
-pkg/null/null_test.go	TestNewComplex128	todo		
-pkg/null/null_test.go	TestNewComplex64	todo		
-pkg/null/null_test.go	TestNewFloat32	todo		
-pkg/null/null_test.go	TestNewFloat64	todo		
-pkg/null/null_test.go	TestNewInt	todo		
-pkg/null/null_test.go	TestNewInt16	todo		
-pkg/null/null_test.go	TestNewInt32	todo		
-pkg/null/null_test.go	TestNewInt64	todo		
-pkg/null/null_test.go	TestNewInt8	todo		
-pkg/null/null_test.go	TestNewRune	todo		
-pkg/null/null_test.go	TestNewString	todo		
-pkg/null/null_test.go	TestNewUint	todo		
-pkg/null/null_test.go	TestNewUint16	todo		
-pkg/null/null_test.go	TestNewUint32	todo		
-pkg/null/null_test.go	TestNewUint64	todo		
-pkg/null/null_test.go	TestNewUint8	todo		
+pkg/media/samplebuilder/sampleSequenceLocation_test.go	TestSampleSequenceLocationCompare	rust	test_sample_sequence_location_compare	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilder	rust	test_pion_sample_builder	pion table with its fake depacketizer; RTP-headers case in test_pion_sample_builder_rtp_headers; deliberate divergences: dropped-packet count 12 not 13 in the too-old case (pion double counts)
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderMaxLate	rust	test_sample_builder_max_late	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSeqnumDistance	rust	test_seqnum_distance	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderCleanReference	rust	test_sample_builder_clean_reference	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderPushMaxZero	rust	test_sample_builder_push_max_zero	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderWithPacketReleaseHandler	rust	test_pion_sample_builder_with_packet_release_handler	with_packet_release_handler added
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderWithPacketHeadHandler	rust	test_pion_sample_builder_with_packet_head_handler	with_packet_head_handler + pop_detailed added; handler receives the head packet (pion passes the depacketizer)
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderData	rust	test_sample_builder_data	
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilderPacketUnreference	rust	test_pion_sample_builder_packet_unreference	Go finalizers replaced by the release handler count and the number of buffered packets; found a u16 overflow panic in dropped-packet counters (fixed)
+pkg/media/samplebuilder/samplebuilder_test.go	TestSampleBuilder_Flush	rust	test_pion_sample_builder_flush	flush added
+pkg/null/null_test.go	TestNewBool	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewByte	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewComplex128	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewComplex64	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewFloat32	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewFloat64	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewInt	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewInt16	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewInt32	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewInt64	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewInt8	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewRune	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewString	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewUint	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewUint16	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewUint32	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewUint64	na		Go sql-style Null wrapper; Rust has Option<T>
+pkg/null/null_test.go	TestNewUint8	na		Go sql-style Null wrapper; Rust has Option<T>
