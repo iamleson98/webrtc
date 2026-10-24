@@ -7,7 +7,7 @@
 KIND=$1; N=$2; DUR=${3:-20s}
 LOG=${BIN:-/private/tmp}/sfu-$KIND.log
 pkill -f "$KIND-broadcast" 2>/dev/null; sleep 1
-"${BIN:-/private/tmp}/$KIND-broadcast" > "$LOG" 2>&1 &
+"${BIN:-/private/tmp}/$KIND-broadcast" $EXTRA_ARGS > "$LOG" 2>&1 &
 SPID=$!
 sleep 2
 ${BIN:-/private/tmp}/sfu-loadgen -log "$LOG" -subs "$N" -duration "$DUR" -pid $SPID 2>&1 | grep -v "^$"

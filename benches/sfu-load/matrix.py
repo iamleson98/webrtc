@@ -8,8 +8,9 @@ import argparse, os, re, statistics, subprocess, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-def run(kind, subs, duration, workers):
+def run(kind, subs, duration, workers, extra=""):
     env = dict(os.environ)
+    env["EXTRA_ARGS"] = extra
     if workers:
         env["TOKIO_WORKER_THREADS"] = str(workers)
     out = subprocess.run([os.path.join(HERE, "run.sh"), kind, str(subs), duration],
@@ -26,15 +27,17 @@ def main():
     ap.add_argument("--repeats", type=int, default=3)
     ap.add_argument("--duration", default="30s")
     args = ap.parse_args()
-    configs = [("pion", None, "pion v4.2.24")]
-    for w in (1, 2, 4, None):
-        configs.append(("rust", w, f"webrtc-rs, tokio workers={w if w else 'default'}"))
+    configs = [("pion", None, "", "pion v4.2.24")]
+    for reactors in (1, 2, 4):
+        configs.append(("rust", None, f"--reactors {reactors}", f"webrtc-rs, {reactors} reactor thread(s), default runtime"))
+    for w in (1, 2, None):
+        configs.append(("rust", w, "--reactors 0", f"webrtc-rs, no reactor pool, tokio workers={w if w else 'default'}"))
     print(f"cores: {os.cpu_count()}\n")
     print("| subscribers | server | CPU % of one core (median) | RSS MiB | delivery | runs |")
     print("|---|---|---|---|---|---|")
     for subs in [int(x) for x in args.subs.split(",")]:
-        for kind, workers, label in configs:
-            runs = [r for r in (run(kind, subs, args.duration, workers) for _ in range(args.repeats)) if r]
+        for kind, workers, extra, label in configs:
+            runs = [r for r in (run(kind, subs, args.duration, workers, extra) for _ in range(args.repeats)) if r]
             if not runs:
                 print(f"| {subs} | {label} | failed | | | 0 |")
                 continue

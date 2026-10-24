@@ -149,6 +149,13 @@ struct Cli {
     output_log_file: String,
     #[arg(long, default_value_t = 8080)]
     port: u16,
+    /// Threads in the dedicated reactor pool that drives the peer connections (0 = drive them
+    /// on the ambient runtime). A media server forwards many tiny packets: each one wakes a
+    /// task, and spread over every worker of a work-stealing runtime each wake is a futex round
+    /// trip. A couple of pinned reactor threads cost less than half the CPU (see
+    /// benches/sfu-load).
+    #[arg(long, default_value_t = 2)]
+    reactors: usize,
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────
@@ -240,6 +247,7 @@ async fn async_main() -> Result<()> {
             .with_interceptor_registry(broadcaster_registry)
             .with_handler(broadcast_handler as Arc<dyn PeerConnectionEventHandler>)
             .with_runtime(runtime.clone())
+            .with_dedicated_reactor_pool_size(cli.reactors)
             .with_udp_addrs(vec![format!("{}:0", signal::get_local_ip())])
             .build()
             .await?,
@@ -319,6 +327,7 @@ async fn async_main() -> Result<()> {
                         .with_interceptor_registry(viewer_registry)
                         .with_handler(viewer_handler as Arc<dyn PeerConnectionEventHandler>)
                         .with_runtime(runtime.clone())
+                        .with_dedicated_reactor_pool_size(cli.reactors)
                         .with_udp_addrs(vec![format!("{}:0", signal::get_local_ip())])
                         .build()
                         .await?,
@@ -365,11 +374,24 @@ async fn async_main() -> Result<()> {
 
                 // Spawn a per-viewer task: reads packets and writes to this viewer's track
                 runtime.spawn(Box::pin(async move {
-                    while let Some(mut packet) = viewer_rx.recv().await {
-                        packet.header.ssrc = viewer_ssrc;
-                        if let Err(err) = viewer_track.write_rtp(packet).await {
-                            println!("viewer write_rtp error: {err}");
-                            break;
+                    while let Some(first) = viewer_rx.recv().await {
+                        // Write every packet already queued back to back: the driver then
+                        // sees them together and, on Linux, sends consecutive same-size
+                        // datagrams to this viewer in a single UDP GSO syscall, instead of one
+                        // syscall per packet (the syscall is the largest single CPU cost of a
+                        // forwarder).
+                        let mut next = Some(first);
+                        let mut burst = 0;
+                        while let Some(mut packet) = next.take() {
+                            packet.header.ssrc = viewer_ssrc;
+                            if let Err(err) = viewer_track.write_rtp(packet).await {
+                                println!("viewer write_rtp error: {err}");
+                                return;
+                            }
+                            burst += 1;
+                            if burst < 32 {
+                                next = viewer_rx.try_recv().ok();
+                            }
                         }
                     }
                 }));
