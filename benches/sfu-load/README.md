@@ -41,3 +41,33 @@ many worker threads**. Every forwarded packet wakes a task, and with 10 work-ste
 wake becomes a futex round trip (about half of the 50-subscriber profile was system time and lock
 contention), so more workers cost more CPU here. A media server should run few worker threads per
 room (or one runtime per core with rooms pinned to it) rather than the default of one per core.
+
+
+## Results (Linux, GitHub Actions `ubuntu-latest`, 4 cores, release builds, 30 s windows, 2 runs, medians)
+
+Run by `.github/workflows/sfu-load.yml`. "Packets per frame" is how the publisher sends its 120 packets/s:
+1 = evenly spaced, 8 = a video frame as a back-to-back burst (what an encoder does; it lets the sender
+coalesce datagrams with UDP GSO). Delivery was 99.9 to 100 % in every cell.
+
+| subscribers | packets/frame | pion v4.2.24 | webrtc-rs async (best config) | sfu-core, sendmmsg + GSO |
+|---|---|---|---|---|
+| 50 | 1 | 13.1 % / 149 MiB | 12.1 % / 32 MiB | **7.6 % / 23 MiB** (6.0 % without batching) |
+| 50 | 8 | 9.3 % / 150 MiB | 7.1 % / 32 MiB | **3.5 % / 24 MiB** |
+| 200 | 1 | 39.9 % / 562 MiB | 42.3 % / 96 MiB | **23.9 % / 66 MiB** |
+| 200 | 8 | 32.8 % / 562 MiB | 26.9 % / 94 MiB | **10.8 % / 70 MiB** |
+
+`sfu-core` (`benches/sfu-load/sfu-core`) is a prototype of the architecture for a production SFU: the sans-IO
+`rtc` crate driven by **one thread that owns every peer connection and the shared UDP socket**. A datagram is
+read, handed to its connection, the publisher's RTP is rewritten and written to every viewer's sender in the
+same loop turn, and all resulting datagrams leave in one `sendmmsg` with equal-size runs per viewer coalesced
+by UDP GSO. No packet crosses a task or a thread.
+
+Why the async examples cost more: a Linux `perf` profile at 200 subscribers shows 45 % of the async example's
+CPU in user space (task queues, event notifications, wakeups, per-hop pipeline work) against 27 % for pion,
+whose cost is mostly the kernel (56 to 65 %). `sfu-core` removes the user-space hops and also batches the
+kernel work. `.github/workflows/sfu-profile.yml` produces those profiles; `sfu-soak.yml` is the leak check
+(viewers keep leaving and being replaced for a long time; memory must stay flat).
+
+Memory per viewer, measured with `heap`: about 290 KB, of which the NACK send buffer is 128 KB at pion's default
+size of 1024 packets (`sfu-core --nack-size 256`, rtcd's default, cuts it to 32 KB) and about 670 small allocations
+are the per-connection copy of the codec list.
