@@ -28,10 +28,11 @@ def main():
     ap.add_argument("--duration", default="30s")
     args = ap.parse_args()
     configs = [("pion", None, "", "pion v4.2.24")]
-    for reactors in (1, 2, 4):
-        configs.append(("rust", None, f"--reactors {reactors}", f"webrtc-rs, {reactors} reactor thread(s), default runtime"))
-    for w in (1, 2, None):
-        configs.append(("rust", w, "--reactors 0", f"webrtc-rs, no reactor pool, tokio workers={w if w else 'default'}"))
+    for reactors in (1, 2):
+        configs.append(("rust", None, f"--reactors {reactors}", f"webrtc-rs async, {reactors} reactor thread(s)"))
+    configs.append(("rust", 1, "--reactors 0", "webrtc-rs async, no reactor pool, tokio workers=1"))
+    configs.append(("core", None, "--batch false", "sfu-core (sans-IO, one thread), sendto per datagram"))
+    configs.append(("core", None, "--batch true", "sfu-core (sans-IO, one thread), sendmmsg"))
     print(f"cores: {os.cpu_count()}\n")
     print("| subscribers | server | CPU % of one core (median) | RSS MiB | delivery | runs |")
     print("|---|---|---|---|---|---|")

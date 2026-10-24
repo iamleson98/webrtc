@@ -1,0 +1,24 @@
+[package]
+name = "sfu-core"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = "Prototype of a one-thread-per-core forwarder on the sans-IO rtc crate, measured against the broadcast examples with benches/sfu-load"
+
+# Its own workspace: not part of the library build, lock file or CI.
+[workspace]
+
+[dependencies]
+rtc = { path = "../../../rtc" }
+rtc-signal = { path = "../../../rtc/examples/signal" }
+anyhow = "1"
+bytes = "1"
+clap = { version = "4", features = ["derive"] }
+libc = "0.2"
+serde_json = "1"
+tokio = { version = "1", features = ["rt", "macros", "sync", "time"] }
+
+[profile.release]
+debug = 1
+lto = "thin"
+codegen-units = 1

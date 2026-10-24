@@ -47,6 +47,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/bin"
           cargo build --release --example broadcast
           cp target/release/examples/broadcast "$RUNNER_TEMP/bin/rust-broadcast"
+          (cd benches/sfu-load/sfu-core && cargo build --release && cp target/release/sfu-core "$RUNNER_TEMP/bin/core-broadcast")
           cd benches/sfu-load
           go build -o "$RUNNER_TEMP/bin/sfu-loadgen" .
           GOFLAGS=-mod=mod go build -o "$RUNNER_TEMP/bin/pion-broadcast" github.com/pion/webrtc/v4/examples/broadcast
@@ -58,18 +59,18 @@ jobs:
         run: |
           ulimit -n 65535 || true
           cd benches/sfu-load
-          for kind in rust pion; do
+          for kind in core rust pion; do
             PERF_OUT="$RUNNER_TEMP/perf-$kind" EXTRA_ARGS="${{ inputs.extra_args }}" ./run.sh $kind "${{ inputs.subs || '200' }}" 40s || true
           done
           set +e +o pipefail
-          for kind in rust pion; do
+          for kind in core rust pion; do
             ls -la "$RUNNER_TEMP/perf-$kind.data"
             perf report -i "$RUNNER_TEMP/perf-$kind.data" --no-children --sort symbol --stdio > "$RUNNER_TEMP/perf-$kind-symbols.txt" 2>"$RUNNER_TEMP/perf-$kind-err.txt"
             perf report -i "$RUNNER_TEMP/perf-$kind.data" --no-children --sort dso --stdio > "$RUNNER_TEMP/perf-$kind-dso.txt" 2>>"$RUNNER_TEMP/perf-$kind-err.txt"
             perf report -i "$RUNNER_TEMP/perf-$kind.data" --children --sort symbol --stdio -g none > "$RUNNER_TEMP/perf-$kind-children.txt" 2>>"$RUNNER_TEMP/perf-$kind-err.txt"
           done
           {
-            for kind in rust pion; do
+            for kind in core rust pion; do
               echo "## perf, $kind, self time by symbol"
               echo '```'
               grep -v '^#' "$RUNNER_TEMP/perf-$kind-symbols.txt" | grep -v '^$' | head -45

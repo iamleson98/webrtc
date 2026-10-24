@@ -43,6 +43,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/bin"
           cargo build --release --example broadcast
           cp target/release/examples/broadcast "$RUNNER_TEMP/bin/rust-broadcast"
+          (cd benches/sfu-load/sfu-core && cargo build --release && cp target/release/sfu-core "$RUNNER_TEMP/bin/core-broadcast")
           cd benches/sfu-load
           go build -o "$RUNNER_TEMP/bin/sfu-loadgen" .
           GOFLAGS=-mod=mod go build -o "$RUNNER_TEMP/bin/pion-broadcast" github.com/pion/webrtc/v4/examples/broadcast
