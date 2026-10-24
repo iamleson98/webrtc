@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/rtcd-proto", "crates/rtcd-sfu", "crates/rtcd"]
+members = ["crates/rtcd-proto", "crates/rtcd-net", "crates/rtcd-sfu", "crates/rtcd"]
 
 [workspace.package]
 version = "0.1.0"
@@ -22,4 +22,3 @@ unimplemented = "deny"
 debug = 1
 lto = "thin"
 codegen-units = 1
-panic = "abort"
