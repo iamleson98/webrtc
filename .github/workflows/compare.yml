@@ -64,7 +64,7 @@ jobs:
           path: results
           merge-multiple: true
       - name: Compare the results
-        run: compare/report.py results
+        run: $GITHUB_WORKSPACE/scripts/ci-run.sh python3 compare/report.py results
       - uses: actions/upload-artifact@v4
         if: always()
         with:
