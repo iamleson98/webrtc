@@ -62,6 +62,7 @@ fi
 if [ -f "$OUT/perf.data" ]; then
   sudo perf report -i "$OUT/perf.data" --stdio --no-children --sort dso,symbol 2>/dev/null | grep -v '^#' | grep -v '^$' | head -60 > "$OUT/profile.txt"
   rm -f "$OUT/perf.data"
+  echo "::notice title=$SERVER CPU profile::$(head -40 "$OUT/profile.txt" | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
   { echo "### $SERVER CPU profile (top symbols)"; echo '```'; cat "$OUT/profile.txt"; echo '```'; } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 fi
 grep -E "joined|join time|voice|camera|server" "$OUT/load10.txt"
