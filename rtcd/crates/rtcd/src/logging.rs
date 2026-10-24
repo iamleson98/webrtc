@@ -56,9 +56,12 @@ fn keeps(target: &str, level: Level, configured: Level) -> bool {
 fn filter_for(
     configured: Level,
 ) -> impl tracing_subscriber::layer::Filter<tracing_subscriber::Registry> + Clone {
+    // The hint lets the `log` facade and the tracing macros drop what no layer wants without
+    // calling the filter, which matters because the libraries log per packet at `debug`.
     tracing_subscriber::filter::filter_fn(move |meta| {
         keeps(meta.target(), *meta.level(), configured)
     })
+    .with_max_level_hint(LevelFilter::from_level(configured))
 }
 
 /// Appends to a file, moving it aside when it grows past a size, and keeping a few old ones.
@@ -188,7 +191,6 @@ pub fn init(cfg: &LoggerConfig) -> io::Result<LogGuard> {
     }
     tracing_subscriber::registry()
         .with(layers)
-        .with(LevelFilter::TRACE)
         .try_init()
         .map_err(|e| io::Error::other(e.to_string()))?;
     Ok(LogGuard { _file: file_handle })

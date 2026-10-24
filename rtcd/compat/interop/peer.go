@@ -385,3 +385,35 @@ func (p *peer) close() {
 
 var _ = bytes.NewReader
 var _ = zlib.NewReader
+
+func audioLevelExt(p *peer) int {
+	for _, e := range p.audioSend.GetParameters().HeaderExtensions {
+		if e.URI == "urn:ietf:params:rtp-hdrext:ssrc-audio-level" {
+			return e.ID
+		}
+	}
+	return 0
+}
+
+// sendVoice sends one 20 ms frame; alternating levels read as speech.
+func (p *peer) sendVoice(ext, frame int) {
+	level := byte(20)
+	if frame%2 == 1 {
+		level = 70
+	}
+	pkt := &rtp.Packet{Header: rtp.Header{Version: 2, PayloadType: 111, SequenceNumber: p.seq, Timestamp: uint32(p.seq) * 960, SSRC: p.audioSSRC}, Payload: []byte{0xfc, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39}}
+	if ext > 0 {
+		_ = pkt.Header.SetExtension(uint8(ext), []byte{level})
+	}
+	p.seq++
+	_ = p.audio.WriteRTP(pkt)
+}
+
+func (p *peer) resetCounters() {
+	p.recvMu.Lock()
+	defer p.recvMu.Unlock()
+	for _, st := range p.recv {
+		st.packets.Store(0)
+		st.gaps.Store(0)
+	}
+}

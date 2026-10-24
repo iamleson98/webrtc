@@ -135,8 +135,15 @@ type scenario struct {
 	run  func(*conn) error
 }
 
+func flag_int(name string, def int, usage string) *int {
+	return flag.Int(name, def, usage)
+}
+
 func main() {
 	flag.Parse()
+	if *loadCalls > 0 {
+		os.Exit(runLoad())
+	}
 	c, err := dial(true)
 	if err != nil {
 		fmt.Println("cannot connect:", err)
