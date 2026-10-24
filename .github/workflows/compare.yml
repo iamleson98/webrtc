@@ -1,0 +1,72 @@
+name: compare
+
+# The Go rtcd and the Rust rtcd run through the same suite on Linux and macOS: each project's own
+# tests, the Go service client + pion interop scenarios, the LMS call client in headless Chrome, and
+# classroom load. report.py compares the results and fails when Rust is worse.
+
+on:
+  push:
+    branches: [ master ]
+    paths: [ 'compare/**', '.github/workflows/compare.yml' ]
+  pull_request:
+    branches: [ master ]
+    paths: [ 'compare/**', '.github/workflows/compare.yml' ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_PROFILE_DEV_DEBUG: 0
+
+jobs:
+  suite:
+    name: ${{ matrix.server }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        server: [ go, rust ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: compare/rtcd-go/go.mod
+          cache-dependency-path: |
+            compare/rtcd-go/go.sum
+      - uses: dtolnay/rust-toolchain@stable
+        if: matrix.server == 'rust'
+      - uses: oven-sh/setup-bun@v2
+      - name: Run the suite
+        run: compare/run-suite.sh ${{ matrix.server }} results/${{ matrix.os }}-${{ matrix.server }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-${{ matrix.os }}-${{ matrix.server }}
+          path: results/
+
+  report:
+    name: Compare
+    needs: suite
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          path: results
+          merge-multiple: true
+      - name: Compare the results
+        run: compare/report.py results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comparison
+          path: results/report.md

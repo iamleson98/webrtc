@@ -51,3 +51,19 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Test
         run: $GITHUB_WORKSPACE/scripts/ci-run.sh cargo test --workspace --no-fail-fast
+
+  image:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build
+        run: docker build -t rtcd-rust compare/rtcd-rust
+      - name: Start through the entrypoint and ask for the version
+        run: |
+          docker run -d --name rtcd -p 8045:8045 -e RTCD_ICE_HOST_OVERRIDE=127.0.0.1 rtcd-rust
+          curl --fail --retry 15 --retry-delay 1 --retry-connrefused http://127.0.0.1:8045/version \
+            || { docker logs rtcd; exit 1; }
+          docker logs rtcd

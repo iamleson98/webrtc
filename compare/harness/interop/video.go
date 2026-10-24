@@ -42,9 +42,10 @@ func (p *peer) addVideo(kind string) (*videoSender, error) {
 		return nil, err
 	}
 	v.trx = trx
+	sender := trx.Sender() // removing the track clears it from the transceiver
 	go func() {
 		for {
-			pkts, _, err := trx.Sender().ReadRTCP()
+			pkts, _, err := sender.ReadRTCP()
 			if err != nil {
 				return
 			}
