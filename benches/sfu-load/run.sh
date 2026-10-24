@@ -10,5 +10,11 @@ pkill -f "$KIND-broadcast" 2>/dev/null; sleep 1
 "${BIN:-/private/tmp}/$KIND-broadcast" $EXTRA_ARGS > "$LOG" 2>&1 &
 SPID=$!
 sleep 2
+if [ -n "$PERF_OUT" ]; then
+  # Profile the server for 15 s in the middle of the measurement window (PERF_OUT is the file prefix).
+  ( sleep 20; perf record -F 499 -g -p $SPID -o "$PERF_OUT.data" -- sleep 15 >/dev/null 2>&1 ) &
+  PERFPID=$!
+fi
 ${BIN:-/private/tmp}/sfu-loadgen -log "$LOG" -subs "$N" -duration "$DUR" -pid $SPID 2>&1 | grep -v "^$"
+[ -n "$PERFPID" ] && wait $PERFPID
 kill $SPID 2>/dev/null
