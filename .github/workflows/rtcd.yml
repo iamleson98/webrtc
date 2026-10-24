@@ -1,15 +1,15 @@
 name: rtcd
 
-# The SFU service under rtcd/. Linux only: it is also where the recvmmsg/sendmmsg/GSO socket paths
+# The Rust SFU service under compare/rtcd-rust/. Linux only: it is also where the recvmmsg/sendmmsg/GSO socket paths
 # in rtcd-net actually run.
 
 on:
   push:
     branches: [ master ]
-    paths: [ 'rtcd/**', 'rtc', 'src/**', '.github/workflows/rtcd.yml' ]
+    paths: [ 'compare/rtcd-rust/**', '.github/workflows/rtcd.yml' ]
   pull_request:
     branches: [ master ]
-    paths: [ 'rtcd/**', 'rtc', 'src/**', '.github/workflows/rtcd.yml' ]
+    paths: [ 'compare/rtcd-rust/**', '.github/workflows/rtcd.yml' ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: rtcd
+        working-directory: compare/rtcd-rust
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: rtcd
+        working-directory: compare/rtcd-rust
     steps:
       - uses: actions/checkout@v4
         with:

@@ -1,3 +1,6 @@
 [submodule "rtc"]
 	path = rtc
 	url = https://github.com/iamleson98/rtc.git
+[submodule "compare/rtcd-rust/vendor/rtc"]
+	path = compare/rtcd-rust/vendor/rtc
+	url = https://github.com/iamleson98/rtc.git

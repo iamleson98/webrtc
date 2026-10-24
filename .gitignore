@@ -14,3 +14,8 @@ Cargo.lock
 
 # Written by interop/run.sh
 /interop/interop-results.log
+
+# compare/: build outputs; the Rust lockfile is kept (it is a binary), the root rule above is for libraries
+compare/**/target/
+compare/harness/browser/.entry.ts
+!/compare/rtcd-rust/Cargo.lock
