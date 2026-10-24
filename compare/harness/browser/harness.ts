@@ -152,7 +152,11 @@ async function until(what: string, ms: number, done: () => boolean): Promise<voi
 		if (!pc) return out;
 		(out as any).remoteSdp = pc.remoteDescription?.sdp ?? '';
 		(out as any).localSdp = pc.localDescription?.sdp ?? '';
-		const stats = await pc.getStats();
+		// A browser can leave getStats unanswered on a connection in trouble: report what there is.
+		const stats = await Promise.race([
+			pc.getStats(),
+			new Promise<RTCStatsReport>((resolve) => setTimeout(() => resolve(new Map() as never), 5000)),
+		]);
 		const codecOf = (s: any) => (s.codecId ? (stats.get(s.codecId) as any)?.mimeType : '') ?? '';
 		stats.forEach((s: any) => {
 			if (s.type === 'inbound-rtp' && s.kind === 'audio') {

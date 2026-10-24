@@ -229,6 +229,7 @@ func runBrowser() int {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", br.serveWS)
 	mux.HandleFunc("/harness.js", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, *browserBundle) })
+	mux.HandleFunc("/log", func(w http.ResponseWriter, r *http.Request) { fmt.Println("  page:", r.URL.Query().Get("m")) })
 	mux.HandleFunc("/result", func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
 		select {
