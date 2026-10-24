@@ -2,18 +2,18 @@
 ack_timer_test.go	TestAckTimer	todo		
 association_interleaving_options_test.go	TestInterleavingSettingsWeightedFairQueueingFactorySnapshotsWeights	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
 association_interleaving_options_test.go	TestCloneInterleavingSettingsWeightedFairQueueingFactoryUsesClonedWeights	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
-association_options_test.go	TestAssociationOptions_ApplyBothSides	todo		
-association_options_test.go	TestConfigComparable	todo		
-association_options_test.go	TestAssociationOptions_Interleaving	todo		
-association_options_test.go	TestAssociationOptions_DefaultMTU	todo		
-association_options_test.go	TestAssociationOptions_Validation	todo		
-association_options_test.go	TestClientWithOptions_ValidatesOptionValues	todo		
-association_options_test.go	TestServerWithOptions_ValidatesOptionValues	todo		
-association_options_test.go	TestAssociationOptions_ClientAndServer	todo		
-association_rack_options_test.go	TestRACKOptions_Validation	todo		
-association_rack_options_test.go	TestRACKOptions_AtomicApply_NoPartialMutationOnError	todo		
-association_rack_options_test.go	TestRACKOptions_ApplyToConfig	todo		
-association_rack_options_test.go	TestRACKOptions_EndToEnd_DefaultsAndOverrides	todo		
+association_options_test.go	TestAssociationOptions_ApplyBothSides	na		Go functional-options applyServer/applyClient API; rtc-sctp shares one TransportConfig between client and server
+association_options_test.go	TestConfigComparable	na		Go struct-comparability check; language-level semantics
+association_options_test.go	TestAssociationOptions_Interleaving	gap		message interleaving (RFC 8260) not implemented in rtc-sctp
+association_options_test.go	TestAssociationOptions_DefaultMTU	rust	association_options_default_mtu	budget derives from INITIAL_MTU=1191; mtu() is the reconstructed effective DATA-packet MTU (1188)
+association_options_test.go	TestAssociationOptions_Validation	na		functional-options validation errors; builder setters apply values directly (MTU floor covered in config tests)
+association_options_test.go	TestClientWithOptions_ValidatesOptionValues	na		sans-I/O ClientConfig::new takes a TransportConfig; no net-conn requirement
+association_options_test.go	TestServerWithOptions_ValidatesOptionValues	na		sans-I/O ServerConfig::new takes a TransportConfig; no net-conn requirement
+association_options_test.go	TestAssociationOptions_ClientAndServer	rust	association_options_client_and_server	supported knobs asserted on both sides; name/logger/blockWrite/maxReassemblyQueueEntries/interleaving have no counterpart
+association_rack_options_test.go	TestRACKOptions_Validation	na		WithRACKOptions absent; RACK tunables are fixed constants in rtc-sctp
+association_rack_options_test.go	TestRACKOptions_AtomicApply_NoPartialMutationOnError	na		Go functional-options struct-copy/atomicity semantics
+association_rack_options_test.go	TestRACKOptions_ApplyToConfig	na		WithRACKOptions absent; RACK tunables not configurable
+association_rack_options_test.go	TestRACKOptions_EndToEnd_DefaultsAndOverrides	na		needs WithRACKOptions + live association pair; rtc-sctp RACK defaults are fixed constants
 association_test.go	TestAssocStressDuplex	todo		
 association_test.go	TestAssociationPRForwardTSNChunkTypeMatchesInterleaving	todo		
 association_test.go	TestAssociationInterleavingNegotiationPayloadChunkType	gap		RFC 8260 stream interleaving (I-DATA / I-FORWARD-TSN, per-stream schedulers) is not implemented
@@ -131,36 +131,36 @@ chunk_abort_test.go	TestAbortChunk	todo
 chunk_error_test.go	TestChunkErrorUnrecognizedChunkType	todo		
 chunk_forward_tsn_test.go	TestChunkForwardTSN_Success	named	test_chunk_forward_tsn_success	
 chunk_forward_tsn_test.go	TestChunkForwardTSNUnmarshal_Failure	named	test_chunk_forward_tsn_unmarshal_failure	
-chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_UnmarshalMarshal_Success	todo		
-chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_EmptyBody	todo		
-chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_WrongChunkType	todo		
-chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_BodyTooShort	todo		
-chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_TruncatedParamBody	todo		
-chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_WrongParamType	todo		
-chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_TrailingNonZero	todo		
-chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Marshal_Failure_ParamCount	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Success_EmptyBody	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Success_WithInfo	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Success_WithZeroPaddingAfterTLV	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_TrailingNonZeroBytes	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_WrongChunkType	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_TooShortBody	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_TruncatedParamBody	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_ParamTypeNotHeartbeatInfo	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_RoundTrip	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_Failure_NoParams	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_Failure_MoreThanOneParam	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_Failure_WrongParamType	todo		
-chunk_heartbeat_test.go	TestChunkHeartbeat_Check	todo		
+chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_UnmarshalMarshal_Success	rust	chunk_heartbeat_ack_unmarshal_marshal_success	
+chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_EmptyBody	rust	chunk_heartbeat_ack_unmarshal_empty_body	
+chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_WrongChunkType	rust	chunk_heartbeat_ack_unmarshal_failure_wrong_chunk_type	
+chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_BodyTooShort	rust	chunk_heartbeat_ack_unmarshal_failure_body_too_short	
+chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_TruncatedParamBody	rust	chunk_heartbeat_ack_unmarshal_failure_truncated_param_body	
+chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_WrongParamType	rust	chunk_heartbeat_ack_unmarshal_failure_wrong_param_type	
+chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Unmarshal_Failure_TrailingNonZero	rust	chunk_heartbeat_ack_unmarshal_failure_trailing_non_zero	
+chunk_heartbeat_ack_test.go	TestChunkHeartbeatAck_Marshal_Failure_ParamCount	rust	chunk_heartbeat_ack_marshal_failure_param_count	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Success_EmptyBody	rust	chunk_heartbeat_unmarshal_success_empty_body	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Success_WithInfo	rust	chunk_heartbeat_unmarshal_success_with_info	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Success_WithZeroPaddingAfterTLV	rust	chunk_heartbeat_unmarshal_success_with_zero_padding_after_tlv	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_TrailingNonZeroBytes	rust	chunk_heartbeat_unmarshal_failure_trailing_non_zero_bytes	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_WrongChunkType	rust	chunk_heartbeat_unmarshal_failure_wrong_chunk_type	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_TooShortBody	rust	chunk_heartbeat_unmarshal_failure_too_short_body	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_TruncatedParamBody	rust	chunk_heartbeat_unmarshal_failure_truncated_param_body	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Unmarshal_Failure_ParamTypeNotHeartbeatInfo	rust	chunk_heartbeat_unmarshal_failure_param_type_not_heartbeat_info	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_RoundTrip	rust	chunk_heartbeat_marshal_round_trip	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_Failure_NoParams	rust	chunk_heartbeat_marshal_failure_no_params	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_Failure_MoreThanOneParam	rust	chunk_heartbeat_marshal_failure_more_than_one_param	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Marshal_Failure_WrongParamType	rust	chunk_heartbeat_marshal_failure_wrong_param_type	
+chunk_heartbeat_test.go	TestChunkHeartbeat_Check	rust	chunk_heartbeat_check	
 chunk_i_data_test.go	TestChunkIDataMarshalUnmarshal	todo		
 chunk_i_data_test.go	TestPayloadDataHeaderSizeAccounting	todo		
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSN_Success	todo		
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_NormalizesDuplicateStreams	todo		
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_Failure	todo		
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_FailureDoesNotKeepPartialStreams	todo		
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNCheck	todo		
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNMarshal_NormalizesDuplicateStreams	todo		
-chunk_i_forward_tsn_test.go	TestChunkIForwardTSNMarshal_ZeroCumulativeTSN	todo		
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSN_Success	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_NormalizesDuplicateStreams	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_Failure	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNUnmarshal_FailureDoesNotKeepPartialStreams	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNCheck	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNMarshal_NormalizesDuplicateStreams	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
+chunk_i_forward_tsn_test.go	TestChunkIForwardTSNMarshal_ZeroCumulativeTSN	gap		I-FORWARD-TSN (RFC 8260) chunk not implemented in rtc-sctp
 chunk_init_test.go	TestChunkInit_UnrecognizedParameters	todo		
 chunk_reconfig_test.go	TestChunkReconfig_Success	named	test_chunk_reconfig_success	
 chunk_reconfig_test.go	TestChunkReconfigUnmarshal_Failure	named	test_chunk_reconfig_unmarshal_failure	
@@ -200,31 +200,31 @@ paramtype_test.go	TestParseParamType_Success	named	test_parse_param_type_success
 paramtype_test.go	TestParseParamType_Failure	todo		
 paramtype_test.go	TestParamType_String	todo		
 payload_queue_test.go	TestPayloadQueue	todo		
-pending_queue_test.go	TestPendingBaseQueue	todo		
-pending_queue_test.go	TestPendingQueue	todo		
-pending_queue_test.go	TestRoundRobinPendingQueuePolicy	todo		
-pending_queue_test.go	TestWeightedFairQueueingPendingQueuePolicy	todo		
-pending_queue_test.go	TestPendingQueue_PopErrors	todo		
+pending_queue_test.go	TestPendingBaseQueue	rust	test_pending_base_queue_push_and_pop	
+pending_queue_test.go	TestPendingQueue	rust	test_pending_queue_push_and_pop	portable subtests; set-interleaving subtests need the stream-scheduler policy API (see gap rows)
+pending_queue_test.go	TestRoundRobinPendingQueuePolicy	gap		queue policy not implemented in rtc-sctp
+pending_queue_test.go	TestWeightedFairQueueingPendingQueuePolicy	gap		queue policy not implemented in rtc-sctp
+pending_queue_test.go	TestPendingQueue_PopErrors	rust	pending_queue_pop_errors	portable subtests; wrong-chunk-popped subtests unrepresentable (Rust pop takes fragment flags)
 queue_test.go	TestQueue	todo		
 queue_test.go	TestPendingBaseQueuePopReleasesReferences	todo		
-reassembly_queue_test.go	TestReassemblyQueue	todo		
-reassembly_queue_test.go	TestChunkSet	todo		
-receive_payload_queue_test.go	TestReceivePayloadQueue	todo		
-receive_payload_queue_test.go	TestReceivePayloadQueueAdvanceCumulativeTSN	todo		
-receive_payload_queue_test.go	TestBitfunc	todo		
+reassembly_queue_test.go	TestReassemblyQueue	rust	test_reassembly_queue_ordered_fragments	all DATA subtests ported; i-data/MID (RFC 8260) and descriptor-limit subtests have no counterpart
+reassembly_queue_test.go	TestChunkSet	rust	test_chunk_set_empty_chunk_set	chunk-set helpers covered incl. duplicate pushes and incomplete sets
+receive_payload_queue_test.go	TestReceivePayloadQueue	rust	receive_payload_queue	
+receive_payload_queue_test.go	TestReceivePayloadQueueAdvanceCumulativeTSN	rust	receive_payload_queue_advance_cumulative_tsn	driven through handle_forward_tsn since the association owns peer_last_tsn
+receive_payload_queue_test.go	TestBitfunc	gap		TSN bitmask helpers absent; rtc-sctp tracks TSNs in a sorted deque, not a bitmask
 rtx_timer_test.go	TestRTOManager	rust	test_rto_manager	
 rtx_timer_test.go	TestRtxTimer	rust	test_rtx_timer	
-stream_test.go	TestSessionBufferedAmount	todo		
-stream_test.go	TestStreamHandleForwardTSNForMID	todo		
-stream_test.go	TestStreamPacketizeInterleavingMIDAllocation	todo		
-stream_test.go	TestStreamWriteSCTPRollsBackInterleavingMIDsOnSendError	todo		
-util_test.go	TestPadByte_Success	todo		
-util_test.go	TestSerialNumberArithmetic	todo		
-vnet_test.go	TestRwndFull	todo		
-vnet_test.go	TestStreamClose	todo		
-vnet_test.go	TestCookieEchoRetransmission	todo		
-vnet_test.go	TestRACK_RTTSwitch_Reordering_NoDrop	todo		
-windowedmin_test.go	TestWindowedMin_Basic	todo		
-windowedmin_test.go	TestWindowedMin_WindowExpiry	todo		
-windowedmin_test.go	TestWindowedMin_EqualValues	todo		
-windowedmin_test.go	TestWindowedMin_DefaultWindow30s	todo		
+stream_test.go	TestSessionBufferedAmount	rust	session_buffered_amount	callback count maps to StreamState::on_buffer_released's bool
+stream_test.go	TestStreamHandleForwardTSNForMID	gap		I-DATA/MID (RFC 8260) not implemented in rtc-sctp
+stream_test.go	TestStreamPacketizeInterleavingMIDAllocation	gap		I-DATA/MID (RFC 8260) not implemented in rtc-sctp
+stream_test.go	TestStreamWriteSCTPRollsBackInterleavingMIDsOnSendError	gap		I-DATA/MID (RFC 8260) not implemented in rtc-sctp
+util_test.go	TestPadByte_Success	rust	test_pad_byte_success	new pub(crate) pad_byte helper beside get_padding_size
+util_test.go	TestSerialNumberArithmetic	rust	test_serial_number_arithmetic32bit	pre-existing port in util.rs (32- and 16-bit)
+vnet_test.go	TestRwndFull	na		uses pion vnet network simulator (Go-only)
+vnet_test.go	TestStreamClose	na		uses pion vnet network simulator (Go-only)
+vnet_test.go	TestCookieEchoRetransmission	na		uses pion vnet network simulator (Go-only)
+vnet_test.go	TestRACK_RTTSwitch_Reordering_NoDrop	na		uses pion vnet network simulator (Go-only)
+windowedmin_test.go	TestWindowedMin_Basic	gap		no windowed-min structure in rtc-sctp; RACK keeps a single min-RTT sample with a fixed 30s window
+windowedmin_test.go	TestWindowedMin_WindowExpiry	gap		no windowed-min structure in rtc-sctp; RACK keeps a single min-RTT sample with a fixed 30s window
+windowedmin_test.go	TestWindowedMin_EqualValues	gap		no windowed-min structure in rtc-sctp; RACK keeps a single min-RTT sample with a fixed 30s window
+windowedmin_test.go	TestWindowedMin_DefaultWindow30s	gap		no windowed-min structure in rtc-sctp; RACK keeps a single min-RTT sample with a fixed 30s window

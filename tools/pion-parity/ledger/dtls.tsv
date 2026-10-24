@@ -2,11 +2,11 @@
 bench_test.go	TestSimpleReadWrite	todo		
 certificate_test.go	TestGetCertificate	todo		
 certificate_test.go	TestClientCertificateTypes	todo		
-cipher_suite_test.go	TestCipherSuiteName	todo		
-cipher_suite_test.go	TestAllCipherSuites	todo		
-cipher_suite_test.go	TestInsecureCipherSuites	todo		
-cipher_suite_test.go	TestCipherSuites	todo		
-cipher_suite_test.go	TestCustomCipherSuite	todo		
+cipher_suite_test.go	TestCipherSuiteName	rust	test_cipher_suite_name	
+cipher_suite_test.go	TestAllCipherSuites	rust	test_all_cipher_suites	
+cipher_suite_test.go	TestInsecureCipherSuites	rust	test_insecure_cipher_suites	
+cipher_suite_test.go	TestCipherSuites	rust	test_cipher_suites	
+cipher_suite_test.go	TestCustomCipherSuite	gap		no CustomCipherSuites injection point: config selects suites by id and rejects unknown ones
 config_test.go	TestValidateConfig	todo		
 conn_go_test.go	TestContextConfig	todo		
 conn_test.go	TestStressDuplex	todo		
@@ -17,13 +17,13 @@ conn_test.go	TestSequenceNumberOverflow	todo
 conn_test.go	TestHandshakeWithAlert	todo		CipherSuiteNoIntersection is test_handshake_with_alert_cipher_suite_no_intersection; SignatureSchemesNoIntersection needs a P-521/SHA-512 scheme the providers cannot sign
 conn_test.go	TestHandshakeWithInvalidRecord	todo		
 conn_test.go	TestExportKeyingMaterial	rust	test_export_keying_material	
-conn_test.go	TestPSK	todo		test_psk_identities_are_exchanged covers the identity cases over all the plain PSK suites (rtc#23); still missing: the two VerifyConnection cases (issue #24) and the two ECDHE-PSK suites
+conn_test.go	TestPSK	rust	test_psk_identities_are_exchanged	identity + VerifyConnection cases over the plain PSK suites (test_psk_server_verify_connection_fails, test_psk_client_verify_connection_fails, test_psk_verify_connection_success); the two ECDHE-PSK suite subtests are not implemented in rtc-dtls (no ECDHE-PSK cipher suites)
 conn_test.go	TestPSKHintFail	rust	test_psk_hint_fail	
 conn_test.go	TestPSKMismatchNoRetransmitLoop	rust	test_psk_mismatch_does_not_loop	
 conn_test.go	TestPSKServerKeyExchange	rust	test_psk_server_key_exchange_only_with_an_identity_hint	
 conn_test.go	TestClientTimeout	todo		was matched to a test that is commented out
 conn_test.go	TestSRTPConfiguration	named	test_srtp_configuration	ported in test_srtp_configuration except the master-key-identifier cases (MKI is not implemented)
-conn_test.go	TestClientCertificate	todo		ported in test_client_certificate_policies except the VerifyConnection, GetCertificate and GetClientCertificate cases (issue #24)
+conn_test.go	TestClientCertificate	rust	test_client_certificate_policies	policy matrix (rtc#23) plus the VerifyConnection/GetCertificate/GetClientCertificate cases in pion_config_options.rs (rtc#24)
 conn_test.go	TestConnectionID	todo		
 conn_test.go	TestExtendedMasterSecret	rust	test_extended_master_secret_policies	
 conn_test.go	TestServerCertificate	rust	test_server_certificate_verification	
@@ -40,10 +40,10 @@ conn_test.go	TestSupportedGroupsExtension	rust	test_server_hello_has_no_supporte
 conn_test.go	TestSessionResume	todo		
 conn_test.go	TestCipherSuiteMatchesCertificateType	todo		the ECDSA-certificate case is test_cipher_suite_matches_the_certificate_type; the RSA-certificate case needs RSA certificate generation
 conn_test.go	TestMultipleServerCertificates	rust	test_multiple_server_certificates	
-conn_test.go	TestEllipticCurveConfiguration	todo		
-conn_test.go	TestSkipHelloVerify	todo		
+conn_test.go	TestEllipticCurveConfiguration	rust	test_elliptic_curve_configuration	
+conn_test.go	TestSkipHelloVerify	rust	test_skip_hello_verify	
 conn_test.go	TestApplicationDataQueueLimited	rust	test_next_epoch_packet_queue_is_bounded	
-conn_test.go	TestHelloRandom	todo		
+conn_test.go	TestHelloRandom	rust	test_hello_random	
 conn_test.go	TestOnConnectionAttempt	todo		
 conn_test.go	TestOnConnectionAttemptConnectionOwnership	todo		
 conn_test.go	TestFragmentBuffer_Retransmission	todo		
@@ -52,21 +52,21 @@ conn_test.go	TestMultiHandshake	todo
 conn_test.go	TestCloseDuringHandshake	todo		
 conn_test.go	TestCloseWithoutHandshake	todo		
 conn_test.go	TestEnqueueEncryptedPacketsCopiesData	todo		
-conn_test.go	TestCertificateVerifyHonorsLocalSignatureSchemes	todo		
+conn_test.go	TestCertificateVerifyHonorsLocalSignatureSchemes	rust	test_certificate_verify_honors_local_signature_schemes	6 of 7 sub-cases exact; the SHA-384 and SHA-1 opt-in sub-cases deviate because the crypto providers bind each key to a single hash (pion signs P-256 ECDSA with SHA-384/SHA-1), documented in the test
 conn_test.go	TestEarlyApplicationDataDoesNotBlockFinished	todo		
 connection_id_test.go	TestRandomConnectionIDGenerator	todo		
 connection_id_test.go	TestOnlySendCIDGenerator	todo		
 connection_id_test.go	TestCIDDatagramRouter	todo		
 connection_id_test.go	TestCIDConnIdentifier	todo		
 crypto_test.go	TestGenerateKeySignature	named	test_generate_key_signature	
-crypto_test.go	TestRSAPSSSignatureGeneration	todo		
-crypto_test.go	TestRSAPSSSignatureVerification	todo		
-crypto_test.go	TestRSAPSSVsPKCS1v15	todo		
-crypto_test.go	TestRSAPSSRSAEVariants	todo		
-crypto_test.go	TestCertificateOIDValidation	todo		
-crypto_test.go	TestValidateCertificateSignatureAlgorithms	todo		
-crypto_test.go	TestHandshakeSignatureSchemeBinding	todo		
-crypto_test.go	TestPeerRSAKeySizeLimit	todo		
+crypto_test.go	TestRSAPSSSignatureGeneration	gap		provider abstraction cannot sign RSA-PSS (no PSS SignatureScheme; ring cannot do PSS)
+crypto_test.go	TestRSAPSSSignatureVerification	gap		provider abstraction cannot sign or verify RSA-PSS
+crypto_test.go	TestRSAPSSVsPKCS1v15	gap	test_rsa_pss_vs_pkcs1v15	PKCS#1 sign+verify half ported; the PSS halves need RSA-PSS (provider gap)
+crypto_test.go	TestRSAPSSRSAEVariants	gap	test_rsa_pss_rsae_variants	IsPSS/GetPSSHash per variant + OID binding ported; per-variant sign+verify needs RSA-PSS (provider gap)
+crypto_test.go	TestCertificateOIDValidation	rust	test_certificate_oid_validation	
+crypto_test.go	TestValidateCertificateSignatureAlgorithms	gap		no signature_algorithms_cert chain validation: rustls verifiers have no scheme allow-list
+crypto_test.go	TestHandshakeSignatureSchemeBinding	rust	test_handshake_signature_scheme_binding	
+crypto_test.go	TestPeerRSAKeySizeLimit	rust	test_peer_rsa_key_size_limit	
 errors_errno_test.go	TestErrorsTemporary	todo		
 errors_test.go	TestErrorUnwrap	todo		
 errors_test.go	TestErrorNetError	todo		
@@ -131,181 +131,181 @@ internal/net/udp/packet_conn_test.go	TestListenerAcceptFilter	todo
 internal/net/udp/packet_conn_test.go	TestListenerConcurrent	todo		
 internal/net/udp/packet_conn_test.go	TestConnClose	todo		
 internal/net/udp/packet_conn_test.go	TestListenerCustomConnIDs	todo		
-pkg/crypto/ccm/ccm_test.go	TestRFC3610Vectors	todo		
-pkg/crypto/ccm/ccm_test.go	TestNewCCMError	todo		
-pkg/crypto/ccm/ccm_test.go	TestSealError	todo		
-pkg/crypto/ccm/ccm_test.go	TestOpenError	todo		
-pkg/crypto/ccm/ccm_test.go	TestLongAdditionalData	todo		
+pkg/crypto/ccm/ccm_test.go	TestRFC3610Vectors	rust	test_rfc3610_vectors	vectors run through the ccm crate primitive at pion's parameters (13-byte nonce, M=8/10/14); the provider AeadAlgorithm fixes a 12-byte nonce and 8/16-byte tags
+pkg/crypto/ccm/ccm_test.go	TestNewCCMError	rust	test_new_ccm_error	
+pkg/crypto/ccm/ccm_test.go	TestSealError	rust	test_seal_error	
+pkg/crypto/ccm/ccm_test.go	TestOpenError	rust	test_open_error	
+pkg/crypto/ccm/ccm_test.go	TestLongAdditionalData	rust	test_long_additional_data	vectors run through the ccm crate primitive at pion's parameters (13-byte nonce, M=8/10/14); the provider AeadAlgorithm fixes a 12-byte nonce and 8/16-byte tags
 pkg/crypto/ciphersuite/ciphersuite_test.go	TestGenerateAEADAdditionalDataCID	todo		
-pkg/crypto/elliptic/elliptic_test.go	TestString	todo		
-pkg/crypto/elliptic/elliptic_test.go	TestGenerateKeypair_InvalidCurve	todo		
-pkg/crypto/elliptic/elliptic_test.go	TestGenerateKeypair_RandFailure	todo		
-pkg/crypto/elliptic/elliptic_test.go	TestToECDH_InvalidCurve	todo		
+pkg/crypto/elliptic/elliptic_test.go	TestString	rust	test_elliptic_string	
+pkg/crypto/elliptic/elliptic_test.go	TestGenerateKeypair_InvalidCurve	rust	test_generate_keypair_invalid_curve	
+pkg/crypto/elliptic/elliptic_test.go	TestGenerateKeypair_RandFailure	rust	test_generate_keypair_rand_failure	
+pkg/crypto/elliptic/elliptic_test.go	TestToECDH_InvalidCurve	rust	test_to_ecdh_invalid_curve	
 pkg/crypto/fingerprint/fingerprint_test.go	TestFingerprint	todo		
 pkg/crypto/fingerprint/fingerprint_test.go	TestFingerprint_UnavailableHash	todo		
-pkg/crypto/fingerprint/hash_test.go	TestHashFromString	todo		
-pkg/crypto/fingerprint/hash_test.go	TestStringFromHash_Roundtrip	todo		
-pkg/crypto/hash/hash_test.go	TestHashAlgorithm_StringRoundtrip	todo		
-pkg/crypto/hash/hash_test.go	TestExtractHashFromPSS	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFExtract_SHA256_VectorA1	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFExtract_Nil_Hash_Error	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFExpandLabel_Simple	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape_Label_Small	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape_Label_Big	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape_Context_Length_Zero	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape_Context_Too_Big	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestDeriveSecret	todo		
-pkg/crypto/keyschedule/keyschedule_test.go	TestDeriveSecret_Empty_Transcript	todo		
+pkg/crypto/fingerprint/hash_test.go	TestHashFromString	gap		no fingerprint hash helper anywhere in this repo
+pkg/crypto/fingerprint/hash_test.go	TestStringFromHash_Roundtrip	gap		no fingerprint hash helper anywhere in this repo
+pkg/crypto/hash/hash_test.go	TestHashAlgorithm_StringRoundtrip	gap	test_hash_algorithm_string_roundtrip	String() half ported; the parse-back half needs fingerprint.HashFromString, which exists nowhere in this repo
+pkg/crypto/hash/hash_test.go	TestExtractHashFromPSS	rust	test_extract_hash_from_pss	
+pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFExtract_SHA256_VectorA1	rust	hkdf_extract_sha256_vector_a1	
+pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFExtract_Nil_Hash_Error	rust	hkdf_extract_nil_hash_error	
+pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFExpandLabel_Simple	rust	hkdf_expand_label_simple	
+pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape	rust	hkdf_label_encoding_shape	
+pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape_Label_Small	rust	hkdf_label_encoding_shape_label_small	
+pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape_Label_Big	rust	hkdf_label_encoding_shape_label_big	
+pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape_Context_Length_Zero	rust	hkdf_label_encoding_shape_context_length_zero	
+pkg/crypto/keyschedule/keyschedule_test.go	TestHKDFLabel_Encoding_Shape_Context_Too_Big	rust	hkdf_label_encoding_shape_context_too_big	
+pkg/crypto/keyschedule/keyschedule_test.go	TestDeriveSecret	rust	test_derive_secret	
+pkg/crypto/keyschedule/keyschedule_test.go	TestDeriveSecret_Empty_Transcript	rust	test_derive_secret_empty_transcript	
 pkg/crypto/prf/prf_test.go	TestPreMasterSecret	named	test_pre_master_secret	
 pkg/crypto/prf/prf_test.go	TestMasterSecret	named	test_master_secret	
 pkg/crypto/prf/prf_test.go	TestEncryptionKeys	named	test_encryption_keys	
 pkg/crypto/prf/prf_test.go	TestVerifyData	named	test_verify_data	
-pkg/crypto/prf/prf_test.go	TestEncryptionKeys_String	todo		
-pkg/crypto/prf/prf_test.go	TestEcdhePSKPreMasterSecret_InvalidCurve	todo		
-pkg/crypto/prf/prf_test.go	TestPreMasterSecret_InvalidCurve	todo		
-pkg/crypto/prf/prf_test.go	TestPreMasterSecret_NewPrivateKeyError	todo		
-pkg/crypto/prf/prf_test.go	TestPreMasterSecret_NewPublicKeyError	todo		
-pkg/crypto/prf/prf_test.go	TestPreMasterSecret_P256_Success_CaseHit	todo		
-pkg/crypto/signature/signature_test.go	TestIsPSS	todo		
-pkg/crypto/signature/signature_test.go	TestIsUnsupported	todo		
-pkg/crypto/signature/signature_test.go	TestGetPSSHash	todo		
-pkg/crypto/signature/signature_test.go	TestAlgorithms	todo		
-pkg/crypto/signaturehash/signaturehash_13_test.go	TestAlgorithms13	todo		
-pkg/crypto/signaturehash/signaturehash_13_test.go	TestAlgorithms13_IncludesRSAPSS	todo		
-pkg/crypto/signaturehash/signaturehash_13_test.go	TestAlgorithms13_RSAPSSBeforePKCS1	todo		
+pkg/crypto/prf/prf_test.go	TestEncryptionKeys_String	rust	test_encryption_keys_string	
+pkg/crypto/prf/prf_test.go	TestEcdhePSKPreMasterSecret_InvalidCurve	gap		ECDHE-PSK pre-master secret not implemented (no ECDHE-PSK cipher suites)
+pkg/crypto/prf/prf_test.go	TestPreMasterSecret_InvalidCurve	rust	test_pre_master_secret_invalid_curve	
+pkg/crypto/prf/prf_test.go	TestPreMasterSecret_NewPrivateKeyError	na		private keys are provider-owned and never parsed from raw bytes; a malformed key cannot be constructed
+pkg/crypto/prf/prf_test.go	TestPreMasterSecret_NewPublicKeyError	rust	test_pre_master_secret_new_public_key_error	
+pkg/crypto/prf/prf_test.go	TestPreMasterSecret_P256_Success_CaseHit	rust	test_pre_master_secret_p256_success_case_hit	
+pkg/crypto/signature/signature_test.go	TestIsPSS	rust	test_is_pss	
+pkg/crypto/signature/signature_test.go	TestIsUnsupported	rust	test_is_unsupported	
+pkg/crypto/signature/signature_test.go	TestGetPSSHash	rust	test_get_pss_hash	
+pkg/crypto/signature/signature_test.go	TestAlgorithms	rust	test_signature_algorithms	
+pkg/crypto/signaturehash/signaturehash_13_test.go	TestAlgorithms13	rust	test_algorithms_13	
+pkg/crypto/signaturehash/signaturehash_13_test.go	TestAlgorithms13_IncludesRSAPSS	rust	test_algorithms_13_includes_rsa_pss	
+pkg/crypto/signaturehash/signaturehash_13_test.go	TestAlgorithms13_RSAPSSBeforePKCS1	rust	test_algorithms_13_rsa_pss_before_pkcs1	
 pkg/crypto/signaturehash/signaturehash_test.go	TestParseSignatureSchemes	named	test_parse_signature_schemes	
-pkg/crypto/signaturehash/signaturehash_test.go	TestSelectSignatureScheme13_VersionAware	todo		
-pkg/crypto/signaturehash/signaturehash_test.go	TestFromCertificate	todo		
+pkg/crypto/signaturehash/signaturehash_test.go	TestSelectSignatureScheme13_VersionAware	gap	test_select_signature_scheme13_version_aware	4 of 7 rows (DTLS 1.2 behaviour); the is13 rows selecting RSA_PSS need DTLS 1.3 selection
+pkg/crypto/signaturehash/signaturehash_test.go	TestFromCertificate	gap		no x509.SignatureAlgorithm -> SignatureHashAlgorithm mapping; schemes bind to the certificate key kind instead
 pkg/protocol/change_cipher_spec_test.go	TestChangeCipherSpecRoundTrip	named	test_change_cipher_spec_round_trip	
 pkg/protocol/change_cipher_spec_test.go	TestChangeCipherSpecInvalid	named	test_change_cipher_spec_invalid	
 pkg/protocol/compression_method_test.go	TestDecodeCompressionMethods	todo		
-pkg/protocol/version_test.go	TestVersionEqual	todo		
-pkg/protocol/version_test.go	TestIsSupportedBytes	todo		
-pkg/protocol/version_test.go	TestIsSupportedVersion	todo		
-pkg/protocol/version_test.go	TestIsValidBytes	todo		
-pkg/protocol/version_test.go	TestIsValidVersion	todo		
+pkg/protocol/version_test.go	TestVersionEqual	rust	test_version_equal	
+pkg/protocol/version_test.go	TestIsSupportedBytes	rust	test_is_supported_bytes	
+pkg/protocol/version_test.go	TestIsSupportedVersion	rust	test_is_supported_version	
+pkg/protocol/version_test.go	TestIsValidBytes	rust	test_is_valid_bytes	
+pkg/protocol/version_test.go	TestIsValidVersion	rust	test_is_valid_version	
 pkg/protocol/alert/alert_test.go	TestAlert	named	test_alert	
 pkg/protocol/extension/alpn_test.go	TestALPN	rust	test_extension_alpn_round_trip	
 pkg/protocol/extension/alpn_test.go	TestALPNProtocolSelection	rust	test_alpn_protocol_selection	
-pkg/protocol/extension/certificate_auth_test.go	TestCertificateAuth	todo		
-pkg/protocol/extension/certificate_auth_test.go	TestCertificateAuth_Multiple	todo		
-pkg/protocol/extension/certificate_auth_test.go	TestCertificateAuth_Empty	todo		
-pkg/protocol/extension/connection_id_test.go	TestExtensionConnectionID	todo		
-pkg/protocol/extension/cookie_test.go	TestCookieExt	todo		
-pkg/protocol/extension/early_data_indication_test.go	TestEarlyDataIndication_NewSessionTicket	todo		
-pkg/protocol/extension/early_data_indication_test.go	TestEarlyDataIndication_CHEE	todo		
+pkg/protocol/extension/certificate_auth_test.go	TestCertificateAuth	rust	certificate_auth	
+pkg/protocol/extension/certificate_auth_test.go	TestCertificateAuth_Multiple	rust	certificate_auth_multiple	
+pkg/protocol/extension/certificate_auth_test.go	TestCertificateAuth_Empty	rust	certificate_auth_empty	
+pkg/protocol/extension/connection_id_test.go	TestExtensionConnectionID	rust	test_extension_connection_id	
+pkg/protocol/extension/cookie_test.go	TestCookieExt	rust	cookie_ext	
+pkg/protocol/extension/early_data_indication_test.go	TestEarlyDataIndication_NewSessionTicket	rust	early_data_indication_new_session_ticket	
+pkg/protocol/extension/early_data_indication_test.go	TestEarlyDataIndication_CHEE	rust	early_data_indication_chee	
 pkg/protocol/extension/extension_test.go	TestExtensions	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_ClientHello_EmptyVector_RoundTrip	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_ClientHello_OK	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_ClientHello_Errors	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_ServerHello_OK	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_HelloRetryRequest	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_MultipleContexts_Error	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_ClientHello	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_ClientHello_TruncatedEntries	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_HelloRetryRequest	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_ServerHello	todo		
-pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_Errors	todo		
-pkg/protocol/extension/key_share_test.go	Test_hasTooManyContexts	todo		
-pkg/protocol/extension/oid_filters_test.go	TestOIDFilters	todo		
-pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_MultipleFilters	todo		
-pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_DuplicateFilters	todo		
-pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_EmptyValues	todo		
-pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_EmptyFilterList	todo		
-pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_EmptyOID	todo		
-pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_MarshalEmptyOID	todo		
-pkg/protocol/extension/post_handshake_auth_test.go	TestPostHandshakeAuth	todo		
-pkg/protocol/extension/post_handshake_auth_test.go	TestPostHandshakeAuth_NonEmpty	todo		
-pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ServerHello	todo		
-pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello	todo		
-pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello_EmptyIdentities	todo		
-pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello_MultipleIdentities	todo		
-pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello_MultipleIdentities_SingleBinder	todo		
-pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello_LowBinders	todo		
-pkg/protocol/extension/psk_key_exchange_modes_test.go	TestPskKeyExchangeModes	todo		
-pkg/protocol/extension/psk_key_exchange_modes_test.go	TestPskKeyExchangeModes_Empty	todo		
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_ClientHello_EmptyVector_RoundTrip	rust	key_share_marshal_client_hello_empty_vector_round_trip	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_ClientHello_OK	rust	key_share_marshal_client_hello_ok	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_ClientHello_Errors	rust	key_share_marshal_client_hello_errors	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_ServerHello_OK	rust	key_share_marshal_server_hello_ok	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_HelloRetryRequest	rust	key_share_marshal_hello_retry_request	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Marshal_MultipleContexts_Error	rust	key_share_marshal_multiple_contexts_error	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_ClientHello	rust	key_share_unmarshal_client_hello	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_ClientHello_TruncatedEntries	rust	key_share_unmarshal_client_hello_truncated_entries	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_HelloRetryRequest	rust	key_share_unmarshal_hello_retry_request	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_ServerHello	rust	key_share_unmarshal_server_hello	
+pkg/protocol/extension/key_share_test.go	TestKeyShare_Unmarshal_Errors	rust	key_share_unmarshal_errors	
+pkg/protocol/extension/key_share_test.go	Test_hasTooManyContexts	rust	has_too_many_contexts	
+pkg/protocol/extension/oid_filters_test.go	TestOIDFilters	rust	oid_filters	
+pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_MultipleFilters	rust	oid_filters_multiple_filters	
+pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_DuplicateFilters	rust	oid_filters_duplicate_filters	
+pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_EmptyValues	rust	oid_filters_empty_values	
+pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_EmptyFilterList	rust	oid_filters_empty_filter_list	
+pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_EmptyOID	rust	oid_filters_empty_oid	
+pkg/protocol/extension/oid_filters_test.go	TestOIDFilters_MarshalEmptyOID	rust	oid_filters_marshal_empty_oid	
+pkg/protocol/extension/post_handshake_auth_test.go	TestPostHandshakeAuth	rust	post_handshake_auth	
+pkg/protocol/extension/post_handshake_auth_test.go	TestPostHandshakeAuth_NonEmpty	rust	post_handshake_auth_non_empty	
+pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ServerHello	rust	pre_shared_key_server_hello	
+pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello	rust	pre_shared_key_client_hello	
+pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello_EmptyIdentities	rust	pre_shared_key_client_hello_empty_identities	
+pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello_MultipleIdentities	rust	pre_shared_key_client_hello_multiple_identities	
+pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello_MultipleIdentities_SingleBinder	rust	pre_shared_key_client_hello_multiple_identities_single_binder	
+pkg/protocol/extension/pre_shared_key_test.go	TestPreSharedKey_ClientHello_LowBinders	rust	pre_shared_key_client_hello_low_binders	
+pkg/protocol/extension/psk_key_exchange_modes_test.go	TestPskKeyExchangeModes	rust	psk_key_exchange_modes	
+pkg/protocol/extension/psk_key_exchange_modes_test.go	TestPskKeyExchangeModes_Empty	rust	psk_key_exchange_modes_empty	
 pkg/protocol/extension/renegotiation_info_test.go	TestRenegotiationInfo	named	test_renegotiation_info	
 pkg/protocol/extension/server_name_test.go	TestServerName	todo		
-pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCert	todo		
-pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertTypeValue	todo		
-pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertPSSSchemes	todo		
-pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertMixedPSSAndNonPSS	todo		
-pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertRoundTrip	todo		
-pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertUnmarshalErrors	todo		
-pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertUnmarshalFiltering	todo		
-pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertDuplicateAlgorithms	todo		
-pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertLargeList	todo		
+pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCert	rust	signature_algorithms_cert	
+pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertTypeValue	rust	signature_algorithms_cert_type_value	
+pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertPSSSchemes	rust	signature_algorithms_cert_pss_schemes	
+pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertMixedPSSAndNonPSS	rust	signature_algorithms_cert_mixed_pss_and_non_pss	
+pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertRoundTrip	rust	signature_algorithms_cert_round_trip	
+pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertUnmarshalErrors	rust	signature_algorithms_cert_unmarshal_errors	
+pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertUnmarshalFiltering	rust	signature_algorithms_cert_unmarshal_filtering	
+pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertDuplicateAlgorithms	rust	signature_algorithms_cert_duplicate_algorithms	
+pkg/protocol/extension/signature_algorithms_cert_test.go	TestSignatureAlgorithmsCertLargeList	rust	signature_algorithms_cert_large_list	
 pkg/protocol/extension/supported_elliptic_curves_test.go	TestExtensionSupportedGroups	named	test_extension_supported_groups	
 pkg/protocol/extension/supported_point_formats_test.go	TestExtensionSupportedPointFormats	named	test_extension_supported_point_formats	
 pkg/protocol/extension/supported_point_formats_test.go	TestExtensionSupportedPointFormats_TooLong	todo		
 pkg/protocol/extension/supported_signature_algorithms_test.go	TestExtensionSupportedSignatureAlgorithms	named	test_extension_supported_signature_algorithms	
-pkg/protocol/extension/supported_signature_algorithms_test.go	TestExtensionSupportedSignatureAlgorithms_PSSSchemes	todo		
-pkg/protocol/extension/supported_signature_algorithms_test.go	TestExtensionSupportedSignatureAlgorithms_MixedPSSAndNonPSS	todo		
-pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_ClientHello_RoundTrip	todo		
-pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_ServerHello_RoundTrip	todo		
-pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_ClientHello_Marshal_Invalid	todo		
-pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_ClientHello_Unmarshal_Invalid	todo		
-pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_Marshal_LengthBounds	todo		
-pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_Unmarshal_Errors	todo		
-pkg/protocol/extension/supported_versions_test.go	TestExtensionsUnmarshal_SupportedVersions_ClientHello	todo		
-pkg/protocol/extension/supported_versions_test.go	TestExtensionsUnmarshal_SupportedVersions_ServerHello	todo		
-pkg/protocol/extension/use_master_secret_test.go	TestUseMasterSecret	todo		
-pkg/protocol/extension/use_master_secret_test.go	TestUseMasterSecret_NonEmpty	todo		
+pkg/protocol/extension/supported_signature_algorithms_test.go	TestExtensionSupportedSignatureAlgorithms_PSSSchemes	rust	test_extension_supported_signature_algorithms_pss_schemes	
+pkg/protocol/extension/supported_signature_algorithms_test.go	TestExtensionSupportedSignatureAlgorithms_MixedPSSAndNonPSS	rust	test_extension_supported_signature_algorithms_mixed_pss_and_non_pss	
+pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_ClientHello_RoundTrip	rust	supported_versions_client_hello_round_trip	
+pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_ServerHello_RoundTrip	rust	supported_versions_server_hello_round_trip	
+pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_ClientHello_Marshal_Invalid	rust	supported_versions_client_hello_marshal_invalid	
+pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_ClientHello_Unmarshal_Invalid	rust	supported_versions_client_hello_unmarshal_invalid	
+pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_Marshal_LengthBounds	rust	supported_versions_marshal_length_bounds	
+pkg/protocol/extension/supported_versions_test.go	TestSupportedVersions_Unmarshal_Errors	rust	supported_versions_unmarshal_errors	
+pkg/protocol/extension/supported_versions_test.go	TestExtensionsUnmarshal_SupportedVersions_ClientHello	rust	extensions_unmarshal_supported_versions_client_hello	
+pkg/protocol/extension/supported_versions_test.go	TestExtensionsUnmarshal_SupportedVersions_ServerHello	rust	extensions_unmarshal_supported_versions_server_hello	
+pkg/protocol/extension/use_master_secret_test.go	TestUseMasterSecret	rust	test_use_master_secret	
+pkg/protocol/extension/use_master_secret_test.go	TestUseMasterSecret_NonEmpty	rust	test_use_master_secret_non_empty	
 pkg/protocol/extension/use_srtp_test.go	TestExtensionUseSRTP	named	test_extension_use_srtp	
 pkg/protocol/handshake/cipher_suite_test.go	TestDecodeCipherSuiteIDs	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestHandshakeMessageCertificate13	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_Type	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_SingleCertNoExtensions	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_WithContext	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_MultipleCertificates	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_MaxContextLength	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_EmptyCertificateList	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_ContextTooLong	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_EmptyCertData	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_CertDataAtMaxBoundary	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_CertDataJustBelowMaxBoundary	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_CertDataOneByteOverBoundary	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_MultipleCertsExceedingBoundary	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_CertListAtExactBoundary	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_UnmarshalBufferTooSmall	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_UnmarshalLengthMismatch	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_UnmarshalInvalidCertEntry	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestParseCertificateEntry_GeneratedCertificate	todo		
-pkg/protocol/handshake/message_certificate_13_test.go	TestParseCertificateEntry_GeneratedCertificateWithExtensions	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestHandshakeMessageCertificateRequest13	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_Type	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_MinimalValid	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_WithContext	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_MaxContextLength	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_MultipleExtensions	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_ContextTooLong	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_MissingSignatureAlgorithms	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_UnmarshalMissingSignatureAlgorithms	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_UnmarshalBufferTooSmall	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_UnmarshalInvalidContext	todo		
-pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_UnmarshalInvalidExtensions	todo		
+pkg/protocol/handshake/message_certificate_13_test.go	TestHandshakeMessageCertificate13	rust	test_handshake_message_certificate_13	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_Type	rust	message_certificate_13_type	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_SingleCertNoExtensions	rust	message_certificate_13_single_cert_no_extensions	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_WithContext	rust	message_certificate_13_with_context	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_MultipleCertificates	rust	message_certificate_13_multiple_certificates	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_MaxContextLength	rust	message_certificate_13_max_context_length	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_EmptyCertificateList	rust	message_certificate_13_empty_certificate_list	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_ContextTooLong	rust	message_certificate_13_context_too_long	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_EmptyCertData	rust	message_certificate_13_empty_cert_data	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_CertDataAtMaxBoundary	rust	message_certificate_13_cert_data_at_max_boundary	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_CertDataJustBelowMaxBoundary	rust	message_certificate_13_cert_data_just_below_max_boundary	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_CertDataOneByteOverBoundary	rust	message_certificate_13_cert_data_one_byte_over_boundary	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_MultipleCertsExceedingBoundary	rust	message_certificate_13_multiple_certs_exceeding_boundary	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_CertListAtExactBoundary	rust	message_certificate_13_cert_list_at_exact_boundary	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_UnmarshalBufferTooSmall	rust	message_certificate_13_unmarshal_buffer_too_small	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_UnmarshalLengthMismatch	rust	message_certificate_13_unmarshal_length_mismatch	
+pkg/protocol/handshake/message_certificate_13_test.go	TestMessageCertificate13_UnmarshalInvalidCertEntry	rust	message_certificate_13_unmarshal_invalid_cert_entry	
+pkg/protocol/handshake/message_certificate_13_test.go	TestParseCertificateEntry_GeneratedCertificate	rust	parse_certificate_entry_generated_certificate	
+pkg/protocol/handshake/message_certificate_13_test.go	TestParseCertificateEntry_GeneratedCertificateWithExtensions	rust	parse_certificate_entry_generated_certificate_with_extensions	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestHandshakeMessageCertificateRequest13	rust	test_handshake_message_certificate_request_13	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_Type	rust	message_certificate_request_13_type	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_MinimalValid	rust	message_certificate_request_13_minimal_valid	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_WithContext	rust	message_certificate_request_13_with_context	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_MaxContextLength	rust	message_certificate_request_13_max_context_length	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_MultipleExtensions	rust	message_certificate_request_13_multiple_extensions	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_ContextTooLong	rust	message_certificate_request_13_context_too_long	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_MissingSignatureAlgorithms	rust	message_certificate_request_13_missing_signature_algorithms	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_UnmarshalMissingSignatureAlgorithms	rust	message_certificate_request_13_unmarshal_missing_signature_algorithms	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_UnmarshalBufferTooSmall	rust	message_certificate_request_13_unmarshal_buffer_too_small	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_UnmarshalInvalidContext	rust	message_certificate_request_13_unmarshal_invalid_context	
+pkg/protocol/handshake/message_certificate_request_13_test.go	TestMessageCertificateRequest13_UnmarshalInvalidExtensions	rust	message_certificate_request_13_unmarshal_invalid_extensions	
 pkg/protocol/handshake/message_certificate_request_test.go	TestHandshakeMessageCertificateRequest	named	test_handshake_message_certificate_request	
-pkg/protocol/handshake/message_certificate_request_test.go	TestHandshakeMessageCertificateRequest_SkipsUnknownAlgorithms	todo		
-pkg/protocol/handshake/message_certificate_request_test.go	TestHandshakeMessageCertificateRequest_CertificateTypesTooLong	todo		
+pkg/protocol/handshake/message_certificate_request_test.go	TestHandshakeMessageCertificateRequest_SkipsUnknownAlgorithms	rust	test_handshake_message_certificate_request_skips_unknown_algorithms	
+pkg/protocol/handshake/message_certificate_request_test.go	TestHandshakeMessageCertificateRequest_CertificateTypesTooLong	rust	test_handshake_message_certificate_request_certificate_types_too_long	
 pkg/protocol/handshake/message_certificate_test.go	TestHandshakeMessageCertificate	named	test_handshake_message_certificate	
 pkg/protocol/handshake/message_certificate_test.go	TestEmptyHandshakeMessageCertificate	named	test_empty_handshake_message_certificate	
-pkg/protocol/handshake/message_certificate_verify_test.go	TestHandshakeMessageCertificateVerify	todo		
-pkg/protocol/handshake/message_certificate_verify_test.go	TestHandshakeMessageCertificateVerify_InvalidAlgorithmValue	todo		
+pkg/protocol/handshake/message_certificate_verify_test.go	TestHandshakeMessageCertificateVerify	rust	test_handshake_message_certificate_verify	
+pkg/protocol/handshake/message_certificate_verify_test.go	TestHandshakeMessageCertificateVerify_InvalidAlgorithmValue	rust	test_handshake_message_certificate_verify_invalid_algorithm_value	
 pkg/protocol/handshake/message_client_hello_test.go	TestHandshakeMessageClientHello	named	test_handshake_message_client_hello	
-pkg/protocol/handshake/message_client_hello_test.go	TestHandshakeMessageClientHelloSessionID	todo		
-pkg/protocol/handshake/message_client_hello_test.go	TestHandshakeMessageClientHello_SessionIDTooLong	todo		
-pkg/protocol/handshake/message_client_hello_test.go	TestHandshakeMessageClientHello_CompressionMethodsTooLong	todo		
+pkg/protocol/handshake/message_client_hello_test.go	TestHandshakeMessageClientHelloSessionID	rust	test_handshake_message_client_hello_session_id	
+pkg/protocol/handshake/message_client_hello_test.go	TestHandshakeMessageClientHello_SessionIDTooLong	rust	test_handshake_message_client_hello_session_id_too_long	
+pkg/protocol/handshake/message_client_hello_test.go	TestHandshakeMessageClientHello_CompressionMethodsTooLong	rust	test_handshake_message_client_hello_compression_methods_too_long	
 pkg/protocol/handshake/message_client_key_exchange_test.go	TestHandshakeMessageClientKeyExchange	named	test_handshake_message_client_key_exchange	
-pkg/protocol/handshake/message_client_key_exchange_test.go	TestHandshakeMessageClientKeyExchange_PublicKeyTooLong	todo		
-pkg/protocol/handshake/message_client_key_exchange_test.go	TestHandshakeMessageClientKeyExchangeECDHEPSK	todo		
-pkg/protocol/handshake/message_client_key_exchange_test.go	TestHandshakeMessageClientKeyExchangeUnmarshalErrors	todo		
+pkg/protocol/handshake/message_client_key_exchange_test.go	TestHandshakeMessageClientKeyExchange_PublicKeyTooLong	rust	test_handshake_message_client_key_exchange_public_key_too_long	
+pkg/protocol/handshake/message_client_key_exchange_test.go	TestHandshakeMessageClientKeyExchangeECDHEPSK	rust	test_handshake_message_client_key_exchange_unmarshal_errors	our CKE cannot carry identity+public key at once, so the ECDHEPSK bytes are rejected (covered by _rejects_both_fields)
+pkg/protocol/handshake/message_client_key_exchange_test.go	TestHandshakeMessageClientKeyExchangeUnmarshalErrors	rust	test_handshake_message_client_key_exchange_unmarshal_errors	
 pkg/protocol/handshake/message_finished_test.go	TestHandshakeMessageFinished	named	test_handshake_message_finished	
 pkg/protocol/handshake/message_hello_verify_request_test.go	TestHandshakeMessageHelloVerifyRequest	named	test_handshake_message_hello_verify_request	
 pkg/protocol/handshake/message_server_hello_done_test.go	TestHandshakeMessageServerHelloDone	named	test_handshake_message_server_hello_done	
 pkg/protocol/handshake/message_server_hello_test.go	TestHandshakeMessageServerHello	named	test_handshake_message_server_hello	
-pkg/protocol/handshake/message_server_hello_test.go	TestHandshakeMessageServerHelloSessionID	todo		
-pkg/protocol/handshake/message_server_hello_test.go	TestHandshakeMessageServerHello_SessionIDTooLong	todo		
+pkg/protocol/handshake/message_server_hello_test.go	TestHandshakeMessageServerHelloSessionID	rust	test_handshake_message_server_hello_session_id	
+pkg/protocol/handshake/message_server_hello_test.go	TestHandshakeMessageServerHello_SessionIDTooLong	rust	test_handshake_message_server_hello_session_id_too_long	
 pkg/protocol/handshake/message_server_key_exchange_test.go	TestHandshakeMessageServerKeyExchange	named	test_handshake_message_server_key_exchange	
 pkg/protocol/handshake/message_server_key_exchange_test.go	TestHandshakeMessageServerKeyExchangeUnmarshalErrors	todo		
 pkg/protocol/recordlayer/recordlayer_test.go	TestUDPDecode	named	test_udp_decode	
