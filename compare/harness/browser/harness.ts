@@ -10,6 +10,42 @@ const name = params.get('name') ?? 'anon';
 const role = (params.get('role') ?? 'listener') as Role;
 const call = params.get('call') ?? 'call';
 
+// Browsers other than Chrome have no flag for fake devices: with ?synthetic=1 capture is a canvas
+// that changes every frame and a tone, which any browser can make without permission.
+function installSyntheticMedia(): void {
+	const audioContext = new AudioContext();
+	void audioContext.resume();
+	navigator.mediaDevices.getUserMedia = async (constraints?: MediaStreamConstraints) => {
+		const stream = new MediaStream();
+		if (constraints?.audio) {
+			const oscillator = audioContext.createOscillator();
+			const destination = audioContext.createMediaStreamDestination();
+			oscillator.connect(destination);
+			oscillator.start();
+			stream.addTrack(destination.stream.getAudioTracks()[0]);
+		}
+		if (constraints?.video) {
+			const canvas = document.createElement('canvas');
+			canvas.width = 640;
+			canvas.height = 360;
+			const context = canvas.getContext('2d')!;
+			let frame = 0;
+			const draw = () => {
+				context.fillStyle = `hsl(${(frame * 7) % 360} 80% 50%)`;
+				context.fillRect(0, 0, 640, 360);
+				context.fillStyle = '#fff';
+				context.font = '48px sans-serif';
+				context.fillText(`${name} ${frame++}`, 20, 100);
+			};
+			draw();
+			setInterval(draw, 33);
+			stream.addTrack(canvas.captureStream(30).getVideoTracks()[0]);
+		}
+		return stream;
+	};
+}
+if (params.get('synthetic') === '1') installSyntheticMedia();
+
 // The client keeps its peer connection private; keep a handle to read its statistics.
 const connections: RTCPeerConnection[] = [];
 const NativePeerConnection = window.RTCPeerConnection;
@@ -129,6 +165,7 @@ async function until(what: string, ms: number, done: () => boolean): Promise<voi
 					width: s.frameWidth ?? 0,
 					height: s.frameHeight ?? 0,
 					lost: s.packetsLost ?? 0,
+					last: s.lastPacketReceivedTimestamp ?? 0,
 					codec: codecOf(s),
 					keyframes: s.keyFramesDecoded ?? 0,
 					plis: s.pliCount ?? 0,

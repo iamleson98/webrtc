@@ -564,6 +564,7 @@ func (s *session) signaling(offer webrtc.SessionDescription, answerCh chan<- Mes
 		return nil
 	}
 
+	offer.SDP = acceptBundleOnlyData(offer.SDP)
 	if err := s.rtcConn.SetRemoteDescription(offer); err != nil {
 		return err
 	}

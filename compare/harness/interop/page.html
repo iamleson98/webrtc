@@ -17,7 +17,7 @@ window.addEventListener('error', (e) => errors.push(String(e.message)));
 async function frameFor([name, role]) {
   const frame = document.createElement('iframe');
   frame.allow = 'camera; microphone; autoplay';
-  frame.src = `/p.html?name=${name}&role=${role}&call=${call}`;
+  frame.src = `/p.html?name=${name}&role=${role}&call=${call}&${location.search.slice(1)}`;
   document.body.appendChild(frame);
   for (let i = 0; i < 200 && !frame.contentWindow.api; i++) await sleep(50);
   if (!frame.contentWindow.api) throw new Error(`${name}: no harness`);
