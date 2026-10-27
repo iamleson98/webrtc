@@ -3,6 +3,8 @@
 #
 #   1. rtc-turn server <- pion client    (Allocate, CreatePermission, ChannelBind, data both ways)
 #   2. pion server     <- rtc-turn client
+#   3. rtc-turn TCP server <- pion TCP client  (RFC 6062: TCP Allocate, Connect, ConnectionBind,
+#                                                and a peer connecting in: ConnectionAttempt)
 #
 # Plus same-stack sanity pairs to prove the harness itself is sound.
 #
@@ -21,7 +23,7 @@ FAILS=0
 echo "=== PION <-> RTC-TURN INTEROP $(date) ===" | tee "$LOG"
 
 ( cd "$GO_DIR" && go build -o "$PION_BIN" . ) || { echo "HARNESS FAIL: go build"; exit 1; }
-( cd "$REPO_ROOT/rtc" && cargo build -p rtc-turn --example turn_server_udp --example turn_echo_check ) \
+( cd "$REPO_ROOT/rtc" && cargo build -p rtc-turn --example turn_server_udp --example turn_server_tcp --example turn_echo_check ) \
     || { echo "HARNESS FAIL: cargo build"; exit 1; }
 
 run_pair() {
@@ -54,6 +56,10 @@ run_pair "pion client -> rtc-turn server" \
 run_pair "rtc-turn client -> pion server" \
     "$PION_BIN --mode server --addr 127.0.0.1:34792 --user user=pass" \
     "$RUST_BIN_DIR/turn_echo_check --server 127.0.0.1:34792 --user user=pass"
+
+run_pair "pion TCP client -> rtc-turn TCP server (RFC 6062)" \
+    "$RUST_BIN_DIR/turn_server_tcp --public-ip 127.0.0.1 --port 34794 --users user=pass" \
+    "$PION_BIN --mode tcp-client --addr 127.0.0.1:34794 --user user=pass"
 
 run_pair "rtc-turn client -> rtc-turn server (sanity)" \
     "$RUST_BIN_DIR/turn_server_udp --public-ip 127.0.0.1 --port 34793 --users user=pass" \
