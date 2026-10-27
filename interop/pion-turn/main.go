@@ -21,7 +21,7 @@ import (
 )
 
 func main() {
-	mode := flag.String("mode", "", "server, client or tcp-client")
+	mode := flag.String("mode", "", "server, client, tcp-server or tcp-client")
 	addr := flag.String("addr", "127.0.0.1:3478", "the TURN server's address")
 	user := flag.String("user", "user=pass", "credentials, user=pass")
 	realm := flag.String("realm", "webrtc.rs", "authentication realm")
@@ -36,12 +36,14 @@ func main() {
 	switch *mode {
 	case "server":
 		runServer(*addr, *realm, name, pass)
+	case "tcp-server":
+		runTCPServer(*addr, *realm, name, pass)
 	case "client":
 		os.Exit(runClient(*addr, *realm, name, pass, *count))
 	case "tcp-client":
 		os.Exit(runTCPClient(*addr, *realm, name, pass, *count))
 	default:
-		fmt.Fprintln(os.Stderr, "--mode wants server, client or tcp-client")
+		fmt.Fprintln(os.Stderr, "--mode wants server, client, tcp-server or tcp-client")
 		os.Exit(2)
 	}
 }
@@ -75,6 +77,42 @@ func runServer(addr, realm, user, pass string) {
 		os.Exit(1)
 	}
 	fmt.Println("pion TURN server listening on", addr)
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
+	<-sig
+	_ = server.Close()
+}
+
+// runTCPServer is a pion TURN server on a TCP listener, whose relays are TCP allocations (RFC 6062).
+func runTCPServer(addr, realm, user, pass string) {
+	listener, err := net.Listen("tcp4", addr)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "listen:", err)
+		os.Exit(1)
+	}
+	host, _, _ := net.SplitHostPort(addr)
+	key := turn.GenerateAuthKey(user, realm, pass)
+	server, err := turn.NewServer(turn.ServerConfig{
+		Realm: realm,
+		AuthHandler: func(ra *turn.RequestAttributes) (string, []byte, bool) {
+			if ra.Username == user {
+				return user, key, true
+			}
+			return "", nil, false
+		},
+		ListenerConfigs: []turn.ListenerConfig{{
+			Listener: listener,
+			RelayAddressGenerator: &turn.RelayAddressGeneratorStatic{
+				RelayAddress: net.ParseIP(host),
+				Address:      host,
+			},
+		}},
+	})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "server:", err)
+		os.Exit(1)
+	}
+	fmt.Println("pion TURN TCP server listening on", addr)
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
 	<-sig
