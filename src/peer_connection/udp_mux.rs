@@ -952,6 +952,10 @@ mod tests {
 
     /// One `[::]` socket serves IPv4 and IPv6 peers alike: IPv4 datagrams arrive attributed to the
     /// plain IPv4 address (not `::ffff:a.b.c.d`) and replies to that address reach the peer.
+    ///
+    /// Needs real sockets and a running reactor; `MockRuntime` has neither, and its `sleep` only
+    /// ends when the virtual clock is advanced, so under it this test would wait forever.
+    #[cfg(any(feature = "runtime-tokio", feature = "runtime-smol"))]
     #[test]
     fn a_dual_stack_mux_serves_ipv4_and_ipv6_peers() {
         use futures::FutureExt;
