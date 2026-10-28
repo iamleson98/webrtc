@@ -1,0 +1,80 @@
+name: capacity
+
+# The Go rtcd and the Rust rtcd under classroom load bigger and longer than the compare suite's
+# (600 and 900 participants, minutes instead of seconds), on the shape of the VPS rtcd runs on:
+# 4 CPUs, 8 GB. The server is pinned to four CPUs, so it sees four and picks the shards it would
+# pick there; a hosted runner has four, which the load generator shares, so the numbers are harsher
+# than a VPS whose clients are remote. Delivery, the worst receiver's loss, CPU, memory and how
+# much memory grew over the window are tabled in the job summary; the Rust run fails when one
+# misses its bound (compare/run-capacity.sh), the Go run is the control and never fails the job.
+#
+# Manual: gh workflow run capacity.yml -f classes="20 30" -f seconds=300
+# Also weekly, and whenever the compare tree (and with it the rtcd-rust pin) changes.
+
+on:
+  push:
+    branches: [ master ]
+    paths: [ 'compare/**', '.github/workflows/capacity.yml' ]
+  workflow_dispatch:
+    inputs:
+      classes:
+        description: classes of 30 participants per run, space separated (20 = 600, 30 = 900)
+        default: "20 30"
+      seconds:
+        description: measured window per run, in seconds
+        default: "120"
+  schedule:
+    - cron: "0 4 * * 0"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_PROFILE_DEV_DEBUG: 0
+
+jobs:
+  capacity:
+    name: ${{ matrix.server }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        server: [ go, rust ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: compare/rtcd-go/go.mod
+          cache-dependency-path: |
+            compare/rtcd-go/go.sum
+      - uses: dtolnay/rust-toolchain@stable
+        if: matrix.server == 'rust'
+      - uses: Swatinem/rust-cache@v2
+        if: matrix.server == 'rust'
+        with:
+          workspaces: compare/rtcd-rust
+      - name: Run the capacity sizes
+        # The Go server is the control: its run is recorded and compared, not gated.
+        continue-on-error: ${{ matrix.server == 'go' }}
+        env:
+          SECONDS_PER_RUN: ${{ inputs.seconds || '120' }}
+        run: |
+          $GITHUB_WORKSPACE/scripts/ci-run.sh compare/run-capacity.sh ${{ matrix.server }} results/${{ matrix.server }} ${{ inputs.classes || '20 30' }}
+      - name: The table as an annotation too
+        if: always()
+        run: |
+          if [ -f results/${{ matrix.server }}/summary.md ]; then
+            echo "::notice title=${{ matrix.server }} capacity::$(sed -e 's/%/%25/g' results/${{ matrix.server }}/summary.md | awk '{printf "%s%%0A", $0}')"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capacity-${{ matrix.server }}
+          path: |
+            results/${{ matrix.server }}/capacity-*.txt
+            results/${{ matrix.server }}/summary.md
